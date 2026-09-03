@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ProgNozer</title>
+
 <style>
 :root{--bg:#050b15;--bg2:#071426;--card:#0c1727;--card2:#0f2036;--line:#1c426d;--blue:#268cff;--blue2:#5ab3ff;--text:#f4f8ff;--muted:#8295ad;--green:#42d6ff;--shadow:0 12px 35px rgba(0,0,0,.28)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -58,6 +59,140 @@ input{padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#08152
 .toast{position:fixed;z-index:100;left:50%;bottom:95px;transform:translate(-50%,20px);opacity:0;transition:.2s;background:#102943;border:1px solid #3b8bd3;padding:13px 18px;border-radius:15px;max-width:92%;text-align:center;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .status{font-size:13px;padding:7px 10px;border-radius:12px;background:#0c2238;color:#79bcf2;display:inline-block}
+
+/* ===== ВИЗУАЛЬНЫЕ СКИН-КАРТОЧКИ ===== */
+.skin-art{
+  --h:210;
+  position:relative;
+  width:56px;
+  height:56px;
+  min-width:56px;
+  border-radius:15px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 25% 20%,rgba(255,255,255,.32),transparent 24%),
+    radial-gradient(circle at 80% 85%,hsla(var(--h),100%,70%,.25),transparent 38%),
+    linear-gradient(135deg,
+      hsl(var(--h),78%,52%),
+      hsl(calc(var(--h) + 45),82%,29%));
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.2),
+    0 7px 24px hsla(var(--h),85%,45%,.28);
+  flex:none;
+}
+
+.skin-art:before{
+  content:"";
+  position:absolute;
+  width:90px;
+  height:14px;
+  transform:rotate(-38deg);
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.25),
+    transparent
+  );
+  animation:skinShine 3s ease-in-out infinite;
+}
+
+.skin-art:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(125deg,transparent 18%,rgba(255,255,255,.1) 19%,transparent 21%),
+    linear-gradient(305deg,transparent 34%,rgba(255,255,255,.08) 35%,transparent 37%),
+    repeating-linear-gradient(
+      135deg,
+      transparent 0,
+      transparent 9px,
+      rgba(255,255,255,.035) 10px,
+      transparent 11px
+    );
+}
+
+@keyframes skinShine{
+  0%,55%{left:-100px}
+  80%,100%{left:110px}
+}
+
+.skin-symbol{
+  position:relative;
+  z-index:2;
+  width:33px;
+  height:33px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  font-weight:900;
+  color:white;
+  background:rgba(5,11,21,.48);
+  border:1px solid rgba(255,255,255,.25);
+  box-shadow:0 0 18px rgba(255,255,255,.13);
+}
+
+.skin-art.small{
+  width:48px;
+  height:48px;
+  min-width:48px;
+  border-radius:12px;
+}
+
+.skin-art.small .skin-symbol{
+  width:27px;
+  height:27px;
+  font-size:16px;
+  border-radius:8px;
+}
+
+.skin-art.large{
+  width:110px;
+  height:110px;
+  min-width:110px;
+  border-radius:21px;
+}
+
+.skin-art.large .skin-symbol{
+  width:58px;
+  height:58px;
+  font-size:31px;
+  border-radius:16px;
+}
+
+/* Редкость */
+.skin-common{
+  filter:saturate(.82);
+}
+
+.skin-rare{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.2),
+    0 0 12px rgba(40,130,255,.22),
+    0 8px 28px rgba(40,130,255,.3);
+}
+
+.skin-epic{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.2),
+    0 0 15px rgba(170,70,255,.25),
+    0 8px 30px rgba(170,70,255,.38);
+}
+
+.skin-legendary{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    0 0 18px rgba(255,170,40,.3),
+    0 8px 35px rgba(255,170,40,.45);
+}
+
+/* ===== РУЛЕТКА ===== */
 .roulette-window{position:relative;overflow:hidden;border:1px solid #24527d;border-radius:20px;background:#07111f;padding:14px 0;box-shadow:inset 0 0 30px rgba(0,90,180,.10)}
 .roulette-pointer{position:absolute;z-index:3;top:0;bottom:0;left:50%;width:3px;background:#55aaff;box-shadow:0 0 16px #268cff;transform:translateX(-50%)}
 .roulette-pointer:before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-top:13px solid #55aaff}
@@ -67,6 +202,7 @@ input{padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#08152
 .roulette-item .ri-name{font-size:12px;font-weight:800;margin-top:5px;max-width:105px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .roulette-item .ri-price{font-size:12px;color:#55b4ff;font-weight:900;margin-top:4px}
 .roulette-item.win{border-color:#5ab3ff;box-shadow:0 0 25px rgba(60,160,255,.35)}
+
 .case-opening-overlay{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,rgba(20,95,170,.24),rgba(2,7,14,.98) 62%);padding:14px;overflow:hidden}
 .case-opening-overlay.open{display:flex}
 .case-opening-stage{width:min(760px,100%);max-height:96vh;display:flex;flex-direction:column;justify-content:center;gap:14px}
@@ -87,6 +223,7 @@ input{padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#08152
 .upgrade-action{background:linear-gradient(135deg,#1677e8,#39a6ff)!important}
 .sell-action{background:#17314e!important}
 .take-action{background:#1593e8!important}
+
 .upgrade-step{display:grid;gap:12px}
 .upgrade-item{cursor:pointer}
 .upgrade-item.selected{border-color:#4baeff;box-shadow:0 0 22px rgba(50,160,255,.18)}
@@ -97,6 +234,7 @@ input{padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#08152
 .upgrade-vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
 .upgrade-vs .drop{margin:0}
 .upgrade-go{width:100%;margin-top:4px}
+
 .auth-screen{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 20%,#123d6d,#030811 72%)}
 .auth-screen.open{display:flex}
 .auth-box{width:min(430px,100%);padding:28px 20px;border:1px solid #28649d;border-radius:28px;background:linear-gradient(145deg,#0d1c30,#07111e);box-shadow:0 20px 70px rgba(0,0,0,.55);text-align:center}
@@ -107,6 +245,7 @@ input{padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#08152
 .auth-google{background:#fff;color:#17202d}
 .auth-guest{background:#12263e;border:1px solid #2d5377}
 .auth-status{min-height:20px;margin-top:15px;color:#8295ad;font-size:14px}
+
 @media(max-width:520px){
 main{padding:14px 15px}
 .grid{gap:11px}
@@ -122,6 +261,7 @@ main{padding:14px 15px}
 }
 </style>
 </head>
+
 <body>
 
 <div class="auth-screen" id="authScreen">
@@ -138,11 +278,14 @@ main{padding:14px 15px}
 </div>
 
 <div class="app">
+
 <header class="top">
 <div class="logo">ProgNozer</div>
 <div class="balance" id="balance">100 💎</div>
 </header>
+
 <main>
+
 <section class="screen active" id="home">
 <div class="hero">
 <div class="small">Добро пожаловать</div>
@@ -151,16 +294,20 @@ main{padding:14px 15px}
 </div>
 <div class="grid" id="homeGrid"></div>
 </section>
+
 <section class="screen" id="games">
 <h2>🎮 Игры</h2>
 <div class="grid" id="gamesGrid"></div>
 </section>
+
 <section class="screen" id="inventory">
 <h2>🎒 Инвентарь</h2>
 <div class="list" id="inventoryList"></div>
 </section>
+
 <section class="screen" id="profile">
 <h2>👤 Профиль</h2>
+
 <div class="row">
 <div class="thumb" id="profileAvatar">👤</div>
 <div class="grow">
@@ -169,35 +316,42 @@ main{padding:14px 15px}
 </div>
 <span class="status" id="profileOnline">GUEST</span>
 </div>
+
 <div class="drop">
 <b>🔵 Google Auth</b>
 <p class="muted" id="googleAccountText">Вы используете гостевой режим.</p>
 <button id="googleLoginBtn" style="width:100%;margin-top:8px">🔵 Войти через Google</button>
 <button class="danger" id="googleLogoutBtn" style="display:none;width:100%;margin-top:8px">🚪 Выйти из Google</button>
 </div>
+
 <div class="drop">
 <b>🔥 Firebase</b>
 <p class="muted" id="firebaseStatus">Ожидание авторизации…</p>
 <p class="muted" id="firebaseUid"></p>
 <button class="secondary" id="syncBtn">Синхронизировать сейчас</button>
 </div>
+
 <div class="drop">
 <b>📊 Статистика</b>
 <p class="muted" id="profileStats">Кейсов: 0 • Апгрейдов: 0</p>
 </div>
+
 <div class="drop">
 <b>☁️ Что сохраняется</b>
 <p class="muted">💎 баланс • 🎒 инвентарь • покупки • продажи • кейсы • апгрейды</p>
 </div>
+
 <div class="drop">
 <b>⚙️ Настройки</b>
 <p class="muted">Язык: 🇷🇺 Русский<br>Валюта: 💎</p>
 </div>
 </section>
+
 <section class="screen" id="shop">
 <h2>🛒 Магазин</h2>
 <div class="list" id="shopList"></div>
 </section>
+
 </main>
 </div>
 
@@ -212,25 +366,31 @@ main{padding:14px 15px}
 
 <div class="case-opening-overlay" id="caseOpeningOverlay">
 <div class="case-opening-stage">
+
 <div class="case-opening-head">
 <h2 id="caseOpeningTitle">🎁 Открытие кейса</h2>
 <button class="case-close" id="caseCloseBtn">×</button>
 </div>
+
 <div class="case-opening-window">
 <div class="roulette-pointer"></div>
 <div class="roulette-strip" id="caseOpeningStrip"></div>
 </div>
+
 <div class="case-opening-status" id="caseOpeningStatus">Открываем кейс…</div>
+
 <div class="case-win-card" id="caseWinCard">
 <div class="win-emoji" id="caseWinEmoji">🎁</div>
 <div class="win-name" id="caseWinName"></div>
 <div class="win-price" id="caseWinPrice"></div>
+
 <div class="case-actions">
 <button class="upgrade-action" id="caseUpgradeBtn">⬆️ Апгрейд</button>
 <button class="take-action" id="caseTakeBtn">📦 Забрать</button>
 <button class="sell-action" id="caseSellBtn">💎 Продать</button>
 </div>
 </div>
+
 </div>
 </div>
 
@@ -248,6 +408,7 @@ main{padding:14px 15px}
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
 <script>
+
 const FIREBASE_CONFIG={
   apiKey:"AIzaSyAhKt3V04BH3PkSC4_mAdcJPghOstOd-7A",
   authDomain:"drivezone-ae945.firebaseapp.com",
@@ -297,319 +458,2175 @@ const items=[
   ["Sticker | Skull","Наклейка","🏷️",900],
   ["Sticker | Lightning","Наклейка","🏷️",1500],
   ["Sticker | Neon","Наклейка","🏷️",2100]
-].map((x,i)=>({id:i+1,name:x[0],type:x[1],emoji:x[2],price:x[3]}));
+].map((x,i)=>({
+  id:i+1,
+  name:x[0],
+  type:x[1],
+  emoji:x[2],
+  price:x[3]
+}));
 
 const cases=[
-  {name:"Маленький кейс",cost:50,drops:[["Sticker | Star",350,"🏷️",20],["MP7 | Short Ochre",550,"🔫",50],["P2000 | Marsch FT",700,"🔫",25],["★ Нож | Blue Steel",2200,"🔪",5]]},
-  {name:"Средний кейс",cost:150,drops:[["Sticker | Champion",1200,"🏷️",35],["P2000 | Marsch FT",700,"🔫",35],["AK-47 | Blue Line",1200,"🔫",28],["★ Нож | Night",3600,"🔪",2]]},
-  {name:"Большой кейс",cost:300,drops:[["Sticker | Dragon",2400,"🏷️",40],["AK-47 | Neon Rider",3200,"🔫",35],["★ Нож | Crimson",6500,"🔪",20],["★ Karambit | Ocean",9800,"🔪",5]]},
-  {name:"Супер большой кейс",cost:750,drops:[["Sticker | Crown",3500,"🏷️",45],["AWP | Arctic",4200,"🔫",30],["★ M9 Bayonet | Dark",16000,"🔪",20],["★ Butterfly | Arctic",12500,"🔪",5]]}
+  {
+    name:"Маленький кейс",
+    cost:50,
+    drops:[
+      ["Sticker | Star",350,"🏷️",20],
+      ["MP7 | Short Ochre",550,"🔫",50],
+      ["P2000 | Marsch FT",700,"🔫",25],
+      ["★ Нож | Blue Steel",2200,"🔪",5]
+    ]
+  },
+  {
+    name:"Средний кейс",
+    cost:150,
+    drops:[
+      ["Sticker | Champion",1200,"🏷️",35],
+      ["P2000 | Marsch FT",700,"🔫",35],
+      ["AK-47 | Blue Line",1200,"🔫",28],
+      ["★ Нож | Night",3600,"🔪",2]
+    ]
+  },
+  {
+    name:"Большой кейс",
+    cost:300,
+    drops:[
+      ["Sticker | Dragon",2400,"🏷️",40],
+      ["AK-47 | Neon Rider",3200,"🔫",35],
+      ["★ Нож | Crimson",6500,"🔪",20],
+      ["★ Karambit | Ocean",9800,"🔪",5]
+    ]
+  },
+  {
+    name:"Супер большой кейс",
+    cost:750,
+    drops:[
+      ["Sticker | Crown",3500,"🏷️",45],
+      ["AWP | Arctic",4200,"🔫",30],
+      ["★ M9 Bayonet | Dark",16000,"🔪",20],
+      ["★ Butterfly | Arctic",12500,"🔪",5]
+    ]
+  }
 ];
 
-/* STATE */
-function createDefaultState(){return{balance:100,inventory:[],statistics:{casesOpened:0,upgrades:0,purchases:0,sales:0},createdAt:Date.now()};}
-function normalizeState(x){const d=createDefaultState();if(!x||typeof x.balance!=="number")return d;return{balance:x.balance,inventory:Array.isArray(x.inventory)?x.inventory:(Array.isArray(x.inv)?x.inv:[]),statistics:{casesOpened:Number(x.statistics?.casesOpened)||0,upgrades:Number(x.statistics?.upgrades)||0,purchases:Number(x.statistics?.purchases)||0,sales:Number(x.statistics?.sales)||0},createdAt:x.createdAt||d.createdAt};}
+/* ================= STATE ================= */
+
+function createDefaultState(){
+  return{
+    balance:100,
+    inventory:[],
+    statistics:{
+      casesOpened:0,
+      upgrades:0,
+      purchases:0,
+      sales:0
+    },
+    createdAt:Date.now()
+  };
+}
+
+function normalizeState(x){
+  const d=createDefaultState();
+
+  if(!x||typeof x.balance!=="number")return d;
+
+  return{
+    balance:x.balance,
+    inventory:Array.isArray(x.inventory)?x.inventory:(Array.isArray(x.inv)?x.inv:[]),
+    statistics:{
+      casesOpened:Number(x.statistics?.casesOpened)||0,
+      upgrades:Number(x.statistics?.upgrades)||0,
+      purchases:Number(x.statistics?.purchases)||0,
+      sales:Number(x.statistics?.sales)||0
+    },
+    createdAt:x.createdAt||d.createdAt
+  };
+}
 
 let state=createDefaultState();
-let db=null,auth=null,firebaseUser=null,firebaseReady=false,saving=false,saveTimer=null;
-let pendingDrop=null,pendingUpgradeSource=null,pendingUpgradeTarget=null;
-let guestMode=false,loggingOut=false,authUIReady=false,lastAuthUid=null,authHandling=false;
+
+let db=null,
+    auth=null,
+    firebaseUser=null,
+    firebaseReady=false,
+    saving=false,
+    saveTimer=null;
+
+let pendingDrop=null,
+    pendingUpgradeSource=null,
+    pendingUpgradeTarget=null;
+
+let guestMode=false,
+    loggingOut=false,
+    authUIReady=false,
+    lastAuthUid=null,
+    authHandling=false;
 
 const GUEST_KEY="prognozer_guest_state";
+
 const $=id=>document.getElementById(id);
 
-function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>e.classList.remove("show"),2200);}
+/* ================= VISUAL SKIN ================= */
+
+function itemVisual(item,size=""){
+  const name=item?.name||"Item";
+  const price=Number(item?.price||0);
+
+  let hash=0;
+
+  for(let i=0;i<name.length;i++){
+    hash=((hash<<5)-hash)+name.charCodeAt(i);
+    hash|=0;
+  }
+
+  const hue=Math.abs(hash)%360;
+
+  let rarity="skin-common";
+
+  if(price>=10000){
+    rarity="skin-legendary";
+  }else if(price>=4000){
+    rarity="skin-epic";
+  }else if(price>=1500){
+    rarity="skin-rare";
+  }
+
+  let symbol="◆";
+
+  if((item?.type||"").toLowerCase().includes("наклей")){
+    symbol="✦";
+  }else if(name.includes("★")){
+    symbol="✧";
+  }else if(price>=4000){
+    symbol="◇";
+  }
+
+  return`
+    <div class="skin-art ${size} ${rarity}" style="--h:${hue}">
+      <div class="skin-symbol">${symbol}</div>
+    </div>
+  `;
+}
+
+/* Для предметов из drops кейсов */
+function dropVisual(drop,size=""){
+  if(!drop)return"";
+
+  return itemVisual({
+    name:drop[0],
+    price:drop[1],
+    type:itemType(drop[0])
+  },size);
+}
+
+/* ================= UI ================= */
+
+function toast(t){
+  const e=$("toast");
+  e.textContent=t;
+  e.classList.add("show");
+
+  clearTimeout(window.__toast);
+
+  window.__toast=setTimeout(
+    ()=>e.classList.remove("show"),
+    2200
+  );
+}
 
 function updateUI(){
   $("balance").textContent=state.balance+" 💎";
+
   renderInventory();
+
   const s=state.statistics||{};
-  $("profileStats").textContent=`Кейсов: ${s.casesOpened||0} • Апгрейдов: ${s.upgrades||0}`;
+
+  $("profileStats").textContent=
+    `Кейсов: ${s.casesOpened||0} • Апгрейдов: ${s.upgrades||0}`;
 }
 
-function loadGuest(){try{const raw=localStorage.getItem(GUEST_KEY);if(raw)state=normalizeState(JSON.parse(raw));else state=createDefaultState();}catch(e){state=createDefaultState();}updateUI();}
-function saveGuest(){try{localStorage.setItem(GUEST_KEY,JSON.stringify(state));}catch(e){}updateUI();}
-function googleCacheKey(uid){return"prognozer_google_cache_"+uid;}
+function loadGuest(){
+  try{
+    const raw=localStorage.getItem(GUEST_KEY);
+
+    if(raw){
+      state=normalizeState(JSON.parse(raw));
+    }else{
+      state=createDefaultState();
+    }
+
+  }catch(e){
+    state=createDefaultState();
+  }
+
+  updateUI();
+}
+
+function saveGuest(){
+  try{
+    localStorage.setItem(
+      GUEST_KEY,
+      JSON.stringify(state)
+    );
+  }catch(e){}
+
+  updateUI();
+}
+
+function googleCacheKey(uid){
+  return"prognozer_google_cache_"+uid;
+}
 
 function localSave(){
-  if(guestMode){saveGuest();return;}
-  if(firebaseUser&&!firebaseUser.isAnonymous){
-    try{localStorage.setItem(googleCacheKey(firebaseUser.uid),JSON.stringify(state));}catch(e){}
-    updateUI();scheduleCloudSave();return;
+
+  if(guestMode){
+    saveGuest();
+    return;
   }
+
+  if(firebaseUser&&!firebaseUser.isAnonymous){
+
+    try{
+      localStorage.setItem(
+        googleCacheKey(firebaseUser.uid),
+        JSON.stringify(state)
+      );
+    }catch(e){}
+
+    updateUI();
+    scheduleCloudSave();
+    return;
+  }
+
   updateUI();
 }
 
 function scheduleCloudSave(){
-  if(!firebaseUser||firebaseUser.isAnonymous||!db||guestMode||saving)return;
+
+  if(
+    !firebaseUser||
+    firebaseUser.isAnonymous||
+    !db||
+    guestMode||
+    saving
+  )return;
+
   clearTimeout(saveTimer);
-  saveTimer=setTimeout(async()=>await saveFirebase(),300);
+
+  saveTimer=setTimeout(
+    async()=>await saveFirebase(),
+    300
+  );
 }
+
+/* ================= NAV ================= */
 
 function nav(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));
-  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.screen===id));
+
+  document
+    .querySelectorAll(".screen")
+    .forEach(s=>s.classList.toggle(
+      "active",
+      s.id===id
+    ));
+
+  document
+    .querySelectorAll(".tab")
+    .forEach(t=>t.classList.toggle(
+      "active",
+      t.dataset.screen===id
+    ));
+
   if(id==="inventory")renderInventory();
   if(id==="shop")renderShop();
-  window.scrollTo({top:0,behavior:"smooth"});
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
 }
 
-function makeGameCard(g){const d=document.createElement("div");d.className="card";d.innerHTML=`<div class="icon">${g.icon}</div><b>${g.title}</b><span>${g.sub}</span>`;d.onclick=()=>g.id==="shop"?nav("shop"):openGame(g.id);return d;}
+function makeGameCard(g){
+
+  const d=document.createElement("div");
+
+  d.className="card";
+
+  d.innerHTML=`
+    <div class="icon">${g.icon}</div>
+    <b>${g.title}</b>
+    <span>${g.sub}</span>
+  `;
+
+  d.onclick=()=>{
+    g.id==="shop"
+      ?nav("shop")
+      :openGame(g.id);
+  };
+
+  return d;
+}
 
 function renderGrids(){
+
   for(const id of["homeGrid","gamesGrid"]){
-    const e=$(id);e.innerHTML="";
-    games.filter(g=>id==="homeGrid"||g.id!=="shop").forEach(g=>e.appendChild(makeGameCard(g)));
+
+    const e=$(id);
+
+    e.innerHTML="";
+
+    games
+      .filter(g=>id==="homeGrid"||g.id!=="shop")
+      .forEach(g=>e.appendChild(
+        makeGameCard(g)
+      ));
   }
 }
+
+/* ================= INVENTORY ================= */
 
 function renderInventory(){
-  const e=$("inventoryList");if(!e)return;
-  if(!state.inventory.length){e.innerHTML='<div class="drop center muted">Инвентарь пуст.<br>Открой кейс или купи предмет.</div>';return;}
-  e.innerHTML=state.inventory.map((x,i)=>`<div class="row"><div class="thumb">${x.emoji}</div><div class="grow"><b>${x.name}</b><span class="muted">${x.type||"Предмет"}</span></div><span class="price">${x.price} 💎</span><button class="secondary sell" data-i="${i}">Продать</button></div>`).join("");
-  e.querySelectorAll(".sell").forEach(b=>b.onclick=()=>sell(+b.dataset.i));
+
+  const e=$("inventoryList");
+
+  if(!e)return;
+
+  if(!state.inventory.length){
+
+    e.innerHTML=
+      '<div class="drop center muted">Инвентарь пуст.<br>Открой кейс или купи предмет.</div>';
+
+    return;
+  }
+
+  e.innerHTML=state.inventory.map((x,i)=>`
+
+    <div class="row">
+
+      ${itemVisual(x)}
+
+      <div class="grow">
+        <b>${x.name}</b>
+        <span class="muted">
+          ${x.type||"Предмет"}
+        </span>
+      </div>
+
+      <span class="price">
+        ${x.price} 💎
+      </span>
+
+      <button
+        class="secondary sell"
+        data-i="${i}">
+        Продать
+      </button>
+
+    </div>
+
+  `).join("");
+
+  e.querySelectorAll(".sell")
+    .forEach(b=>b.onclick=()=>{
+      sell(+b.dataset.i);
+    });
 }
+
+/* ================= SHOP ================= */
 
 function renderShop(){
+
   const e=$("shopList");
-  e.innerHTML=items.map(x=>`<div class="row"><div class="thumb">${x.emoji}</div><div class="grow"><b>${x.name}</b><span class="muted">${x.type}</span></div><span class="price">${x.price} 💎</span><button class="buy" data-id="${x.id}">Купить</button></div>`).join("");
-  e.querySelectorAll(".buy").forEach(b=>b.onclick=()=>buy(+b.dataset.id));
+
+  e.innerHTML=items.map(x=>`
+
+    <div class="row">
+
+      ${itemVisual(x)}
+
+      <div class="grow">
+        <b>${x.name}</b>
+        <span class="muted">${x.type}</span>
+      </div>
+
+      <span class="price">
+        ${x.price} 💎
+      </span>
+
+      <button
+        class="buy"
+        data-id="${x.id}">
+        Купить
+      </button>
+
+    </div>
+
+  `).join("");
+
+  e.querySelectorAll(".buy")
+    .forEach(b=>b.onclick=()=>{
+      buy(+b.dataset.id);
+    });
 }
 
-function addItem(name,price,emoji,type){state.inventory.push({name,price,emoji,type});localSave();}
+/* ================= ITEMS ================= */
 
-function sell(i){const x=state.inventory[i];if(!x)return;state.balance+=x.price;state.inventory.splice(i,1);state.statistics.sales=(state.statistics.sales||0)+1;localSave();toast("Продано: +"+x.price+" 💎");}
+function addItem(name,price,emoji,type){
 
-function buy(id){const x=items.find(a=>a.id===id);if(!x)return;if(state.balance<x.price)return toast("Не хватает 💎");state.balance-=x.price;state.inventory.push({name:x.name,price:x.price,emoji:x.emoji,type:x.type});state.statistics.purchases=(state.statistics.purchases||0)+1;localSave();toast("Предмет куплен");}
+  state.inventory.push({
+    name,
+    price,
+    emoji,
+    type
+  });
 
-function pick(d){let r=Math.random()*100,s=0;for(const x of d){s+=x[3];if(r<s)return x;}return d[d.length-1];}
-function itemType(name){return name.includes("Sticker")?"Наклейка":name.includes("Нож")?"Нож":"Оружие";}
+  localSave();
+}
+
+function sell(i){
+
+  const x=state.inventory[i];
+
+  if(!x)return;
+
+  state.balance+=x.price;
+
+  state.inventory.splice(i,1);
+
+  state.statistics.sales=
+    (state.statistics.sales||0)+1;
+
+  localSave();
+
+  toast("Продано: +"+x.price+" 💎");
+}
+
+function buy(id){
+
+  const x=items.find(a=>a.id===id);
+
+  if(!x)return;
+
+  if(state.balance<x.price){
+    return toast("Не хватает 💎");
+  }
+
+  state.balance-=x.price;
+
+  state.inventory.push({
+    name:x.name,
+    price:x.price,
+    emoji:x.emoji,
+    type:x.type
+  });
+
+  state.statistics.purchases=
+    (state.statistics.purchases||0)+1;
+
+  localSave();
+
+  toast("Предмет куплен");
+}
+
+function pick(d){
+
+  let r=Math.random()*100;
+  let s=0;
+
+  for(const x of d){
+
+    s+=x[3];
+
+    if(r<s)return x;
+  }
+
+  return d[d.length-1];
+}
+
+function itemType(name){
+
+  return name.includes("Sticker")
+    ?"Наклейка"
+    :name.includes("Нож")
+    ?"Нож"
+    :"Оружие";
+}
+
+/* ================= GAMES ================= */
 
 function openGame(type){
-  const m=$("modal"),b=$("modalBody");m.classList.add("open");
-  if(type==="cases")b.innerHTML=`<h2>🎁 Кейсы</h2>${cases.map((c,i)=>`<div class="drop"><h3>${c.name}</h3><p class="muted">Цена: ${c.cost} 💎</p>${c.drops.map(d=>`<div>${d[2]} ${d[0]} — ${d[3]}%<div class="chancebar"><i style="width:${d[3]*2}%"></i></div></div>`).join("")}<br><button class="openCase" data-i="${i}">Открыть кейс</button></div>`).join("")}`;
-  if(type==="battle")b.innerHTML=`<h2>⚔️ Кейс-баттл</h2><p class="muted">Ты и бот открываете средний кейс. Дороже дроп — победа.</p><button id="battleBtn">Начать за 100 💎</button><div id="battleResult"></div>`;
-  if(type==="double")b.innerHTML=`<h2>🎯 Double</h2><p class="muted">Выбери ставку.</p><input id="doubleBet" type="number" min="1" value="100"><button id="doubleBtn">Играть</button><div id="doubleResult"></div>`;
-  if(type==="upgrade")b.innerHTML=`<h2>⬆️ Апгрейдер</h2><p class="muted">Выбери предмет из инвентаря, затем цель.</p><div id="upgradeList"></div>`;
-  if(type==="contracts")b.innerHTML=`<h2>📜 Контракты</h2><p class="muted">3 предмета превращаются в один более дорогой.</p><button id="contractBtn">Обменять 3 предмета</button><div id="contractResult"></div>`;
-  if(type==="royal")b.innerHTML=`<h2>👑 Королевская битва</h2><p class="muted">5 раундов против ботов. Нужно выиграть минимум 3.</p><button id="royalBtn">Начать за 100 💎</button><div id="royalResult"></div>`;
-  b.querySelectorAll(".openCase").forEach(x=>x.onclick=()=>openCase(+x.dataset.i));
-  if(type==="battle")$("battleBtn").onclick=battle;
-  if(type==="double")$("doubleBtn").onclick=doubleGame;
-  if(type==="upgrade")renderUpgrade();
-  if(type==="contracts")$("contractBtn").onclick=contract;
-  if(type==="royal")$("royalBtn").onclick=royal;
+
+  const m=$("modal");
+  const b=$("modalBody");
+
+  m.classList.add("open");
+
+  if(type==="cases"){
+
+    b.innerHTML=`
+      <h2>🎁 Кейсы</h2>
+
+      ${cases.map((c,i)=>`
+
+        <div class="drop">
+
+          <h3>${c.name}</h3>
+
+          <p class="muted">
+            Цена: ${c.cost} 💎
+          </p>
+
+          ${c.drops.map(d=>`
+
+            <div style="display:flex;align-items:center;gap:9px;margin:9px 0">
+
+              ${dropVisual(d,"small")}
+
+              <div style="flex:1">
+                <b>${d[0]}</b>
+                <div class="muted">
+                  ${d[3]}%
+                </div>
+
+                <div class="chancebar">
+                  <i style="width:${d[3]*2}%"></i>
+                </div>
+              </div>
+
+            </div>
+
+          `).join("")}
+
+          <br>
+
+          <button
+            class="openCase"
+            data-i="${i}">
+            Открыть кейс
+          </button>
+
+        </div>
+
+      `).join("")}
+    `;
+  }
+
+  if(type==="battle"){
+
+    b.innerHTML=`
+      <h2>⚔️ Кейс-баттл</h2>
+      <p class="muted">
+        Ты и бот открываете средний кейс.
+        Дороже дроп — победа.
+      </p>
+      <button id="battleBtn">
+        Начать за 100 💎
+      </button>
+      <div id="battleResult"></div>
+    `;
+  }
+
+  if(type==="double"){
+
+    b.innerHTML=`
+      <h2>🎯 Double</h2>
+      <p class="muted">Выбери ставку.</p>
+      <input id="doubleBet"
+             type="number"
+             min="1"
+             value="100">
+      <button id="doubleBtn">
+        Играть
+      </button>
+      <div id="doubleResult"></div>
+    `;
+  }
+
+  if(type==="upgrade"){
+
+    b.innerHTML=`
+      <h2>⬆️ Апгрейдер</h2>
+      <p class="muted">
+        Выбери предмет из инвентаря,
+        затем цель.
+      </p>
+      <div id="upgradeList"></div>
+    `;
+
+  }
+
+  if(type==="contracts"){
+
+    b.innerHTML=`
+      <h2>📜 Контракты</h2>
+      <p class="muted">
+        3 предмета превращаются в один более дорогой.
+      </p>
+      <button id="contractBtn">
+        Обменять 3 предмета
+      </button>
+      <div id="contractResult"></div>
+    `;
+  }
+
+  if(type==="royal"){
+
+    b.innerHTML=`
+      <h2>👑 Королевская битва</h2>
+      <p class="muted">
+        5 раундов против ботов.
+        Нужно выиграть минимум 3.
+      </p>
+      <button id="royalBtn">
+        Начать за 100 💎
+      </button>
+      <div id="royalResult"></div>
+    `;
+  }
+
+  b.querySelectorAll(".openCase")
+    .forEach(x=>x.onclick=()=>{
+      openCase(+x.dataset.i);
+    });
+
+  if(type==="battle")
+    $("battleBtn").onclick=battle;
+
+  if(type==="double")
+    $("doubleBtn").onclick=doubleGame;
+
+  if(type==="upgrade")
+    renderUpgrade();
+
+  if(type==="contracts")
+    $("contractBtn").onclick=contract;
+
+  if(type==="royal")
+    $("royalBtn").onclick=royal;
 }
 
-function showCaseResult(drop){$("caseOpeningStatus").textContent="🎉 Выпал предмет!";$("caseWinEmoji").textContent=drop[2];$("caseWinName").textContent=drop[0];$("caseWinPrice").textContent=drop[1]+" 💎";$("caseWinCard").classList.add("show");}
+/* ================= CASE ================= */
+
+function showCaseResult(drop){
+
+  $("caseOpeningStatus").textContent=
+    "🎉 Выпал предмет!";
+
+  $("caseWinEmoji").innerHTML=
+    dropVisual(drop,"large");
+
+  $("caseWinName").textContent=
+    drop[0];
+
+  $("caseWinPrice").textContent=
+    drop[1]+" 💎";
+
+  $("caseWinCard").classList.add("show");
+}
 
 function openCase(i){
-  const c=cases[i];if(state.balance<c.cost)return toast("Не хватает 💎");
-  state.balance-=c.cost;state.statistics.casesOpened=(state.statistics.casesOpened||0)+1;localSave();
+
+  const c=cases[i];
+
+  if(state.balance<c.cost)
+    return toast("Не хватает 💎");
+
+  state.balance-=c.cost;
+
+  state.statistics.casesOpened=
+    (state.statistics.casesOpened||0)+1;
+
+  localSave();
+
   pendingDrop=pick(c.drops);
-  const overlay=$("caseOpeningOverlay"),strip=$("caseOpeningStrip");
-  $("caseOpeningTitle").textContent="🎁 "+c.name;$("caseOpeningStatus").textContent="Открываем кейс…";$("caseWinCard").classList.remove("show");overlay.classList.add("open");
-  const sequence=[];for(let n=0;n<14;n++)sequence.push(...c.drops);
-  const winnerIndex=sequence.length-c.drops.length+Math.max(0,c.drops.indexOf(pendingDrop));sequence[winnerIndex]=pendingDrop;
-  strip.style.transition="none";strip.style.transform="translateX(0)";
-  strip.innerHTML=sequence.map(x=>`<div class="roulette-item"><div class="ri-emoji">${x[2]}</div><div class="ri-name">${x[0]}</div><div class="ri-price">${x[1]} 💎</div></div>`).join("");
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{const card=strip.children[winnerIndex],v=strip.parentElement,target=card.offsetLeft+card.offsetWidth/2-v.clientWidth/2;strip.style.transition="transform 4.8s cubic-bezier(.07,.72,.12,1)";strip.style.transform=`translateX(${-Math.max(0,target)}px)`;}));
-  clearTimeout(window.__caseTimer);window.__caseTimer=setTimeout(()=>{strip.children[winnerIndex]?.classList.add("win");showCaseResult(pendingDrop);},4900);
+
+  const overlay=$("caseOpeningOverlay");
+  const strip=$("caseOpeningStrip");
+
+  $("caseOpeningTitle").textContent=
+    "🎁 "+c.name;
+
+  $("caseOpeningStatus").textContent=
+    "Открываем кейс…";
+
+  $("caseWinCard").classList.remove("show");
+
+  overlay.classList.add("open");
+
+  const sequence=[];
+
+  for(let n=0;n<14;n++)
+    sequence.push(...c.drops);
+
+  const winnerIndex=
+    sequence.length-
+    c.drops.length+
+    Math.max(
+      0,
+      c.drops.indexOf(pendingDrop)
+    );
+
+  sequence[winnerIndex]=pendingDrop;
+
+  strip.style.transition="none";
+  strip.style.transform="translateX(0)";
+
+  strip.innerHTML=
+    sequence.map(x=>`
+
+      <div class="roulette-item">
+
+        ${dropVisual(x)}
+
+        <div class="ri-name">
+          ${x[0]}
+        </div>
+
+        <div class="ri-price">
+          ${x[1]} 💎
+        </div>
+
+      </div>
+
+    `).join("");
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+
+    const card=strip.children[winnerIndex];
+    const v=strip.parentElement;
+
+    const target=
+      card.offsetLeft+
+      card.offsetWidth/2-
+      v.clientWidth/2;
+
+    strip.style.transition=
+      "transform 4.8s cubic-bezier(.07,.72,.12,1)";
+
+    strip.style.transform=
+      `translateX(${-Math.max(0,target)}px)`;
+
+  }));
+
+  clearTimeout(window.__caseTimer);
+
+  window.__caseTimer=setTimeout(()=>{
+
+    strip.children[winnerIndex]
+      ?.classList.add("win");
+
+    showCaseResult(pendingDrop);
+
+  },4900);
 }
 
-function closeCaseOverlay(){$("caseOpeningOverlay").classList.remove("open");pendingDrop=null;pendingUpgradeSource=null;pendingUpgradeTarget=null;}
-function takeCaseDrop(){if(!pendingDrop)return;addItem(pendingDrop[0],pendingDrop[1],pendingDrop[2],itemType(pendingDrop[0]));toast("Предмет добавлен в инвентарь");closeCaseOverlay();}
-function sellCaseDrop(){if(!pendingDrop)return;state.balance+=pendingDrop[1];state.statistics.sales=(state.statistics.sales||0)+1;localSave();toast("Продано: +"+pendingDrop[1]+" 💎");closeCaseOverlay();}
-function startUpgradeFromCase(){if(!pendingDrop)return;closeCaseOverlay();openGame("upgrade");}
+function closeCaseOverlay(){
+
+  $("caseOpeningOverlay")
+    .classList.remove("open");
+
+  pendingDrop=null;
+  pendingUpgradeSource=null;
+  pendingUpgradeTarget=null;
+}
+
+function takeCaseDrop(){
+
+  if(!pendingDrop)return;
+
+  addItem(
+    pendingDrop[0],
+    pendingDrop[1],
+    pendingDrop[2],
+    itemType(pendingDrop[0])
+  );
+
+  toast("Предмет добавлен в инвентарь");
+
+  closeCaseOverlay();
+}
+
+function sellCaseDrop(){
+
+  if(!pendingDrop)return;
+
+  state.balance+=pendingDrop[1];
+
+  state.statistics.sales=
+    (state.statistics.sales||0)+1;
+
+  localSave();
+
+  toast(
+    "Продано: +"+
+    pendingDrop[1]+
+    " 💎"
+  );
+
+  closeCaseOverlay();
+}
+
+function startUpgradeFromCase(){
+
+  if(!pendingDrop)return;
+
+  closeCaseOverlay();
+
+  openGame("upgrade");
+}
+
+/* ================= UPGRADE ================= */
 
 function renderUpgrade(sourceIndex=null){
-  const e=$("upgradeList");if(!e)return;
-  if(!state.inventory.length){e.innerHTML='<div class="drop center muted">Инвентарь пуст. Получи или купи предмет.</div>';return;}
-  if(sourceIndex===null){
-    e.innerHTML=`<div class="upgrade-step"><div class="drop"><b>Шаг 1. Что улучшаем?</b><p class="muted">Выбери предмет из своего инвентаря.</p></div><div class="list">${state.inventory.map((x,i)=>`<div class="row upgrade-item" data-i="${i}"><div class="thumb">${x.emoji}</div><div class="grow"><b>${x.name}</b><span class="muted">${x.type||"Предмет"} • ${x.price} 💎</span></div><span>›</span></div>`).join("")}</div></div>`;
-    e.querySelectorAll(".upgrade-item").forEach(x=>x.onclick=()=>renderUpgrade(+x.dataset.i));return;
+
+  const e=$("upgradeList");
+
+  if(!e)return;
+
+  if(!state.inventory.length){
+
+    e.innerHTML=
+      '<div class="drop center muted">Инвентарь пуст. Получи или купи предмет.</div>';
+
+    return;
   }
-  const source=state.inventory[sourceIndex];if(!source)return renderUpgrade();
+
+  if(sourceIndex===null){
+
+    e.innerHTML=`
+
+      <div class="upgrade-step">
+
+        <div class="drop">
+          <b>Шаг 1. Что улучшаем?</b>
+          <p class="muted">
+            Выбери предмет из своего инвентаря.
+          </p>
+        </div>
+
+        <div class="list">
+
+          ${state.inventory.map((x,i)=>`
+
+            <div
+              class="row upgrade-item"
+              data-i="${i}">
+
+              ${itemVisual(x)}
+
+              <div class="grow">
+                <b>${x.name}</b>
+                <span class="muted">
+                  ${x.type||"Предмет"} • ${x.price} 💎
+                </span>
+              </div>
+
+              <span>›</span>
+
+            </div>
+
+          `).join("")}
+
+        </div>
+
+      </div>
+    `;
+
+    e.querySelectorAll(".upgrade-item")
+      .forEach(x=>x.onclick=()=>{
+        renderUpgrade(+x.dataset.i);
+      });
+
+    return;
+  }
+
+  const source=state.inventory[sourceIndex];
+
+  if(!source)
+    return renderUpgrade();
+
   pendingUpgradeSource=sourceIndex;
-  const targets=items.filter(x=>x.price>source.price);
-  e.innerHTML=`<div class="upgrade-step"><div class="drop center"><b>Шаг 2. На что улучшаем?</b><p class="muted">${source.emoji} ${source.name} • ${source.price} 💎</p></div><div class="upgrade-targets">${targets.map(x=>{const chance=Math.min(100,source.price/x.price*100);return`<div class="upgrade-target" data-id="${x.id}"><div class="thumb">${x.emoji}</div><div class="grow"><b>${x.name}</b><span class="muted">${x.type} • ${x.price} 💎</span></div><span class="price">${chance.toFixed(chance%1?1:0)}%</span></div>`}).join("")}</div><div class="upgrade-vs"><div class="drop center"><div class="big">${source.emoji}</div><b>${source.price} 💎</b><br><span class="muted">Твой предмет</span></div><b>→</b><div class="drop center" id="upgradeTargetPreview"><div class="big">❔</div><b>Выбери</b></div></div><div class="upgrade-chance" id="upgradeChance">—</div><button class="upgrade-go" id="upgradeGo" disabled>⬆️ АПГРЕЙД</button></div>`;
-  e.querySelectorAll(".upgrade-target").forEach(x=>x.onclick=()=>{
-    e.querySelectorAll(".upgrade-target").forEach(z=>z.classList.remove("selected"));x.classList.add("selected");
-    pendingUpgradeTarget=items.find(a=>a.id===+x.dataset.id);
-    const ch=Math.min(100,source.price/pendingUpgradeTarget.price*100);
-    $("upgradeChance").textContent=ch.toFixed(ch%1?1:0)+"% ШАНС";
-    $("upgradeTargetPreview").innerHTML=`<div class="big">${pendingUpgradeTarget.emoji}</div><b>${pendingUpgradeTarget.price} 💎</b><br><span class="muted">${pendingUpgradeTarget.name}</span>`;
-    $("upgradeGo").disabled=false;$("upgradeGo").textContent="⬆️ АПГРЕЙД";
-  });
+
+  const targets=
+    items.filter(x=>x.price>source.price);
+
+  e.innerHTML=`
+
+    <div class="upgrade-step">
+
+      <div class="drop center">
+
+        <b>Шаг 2. На что улучшаем?</b>
+
+        <div style="margin-top:12px">
+          ${itemVisual(source,"small")}
+        </div>
+
+        <p class="muted">
+          ${source.name} • ${source.price} 💎
+        </p>
+
+      </div>
+
+      <div class="upgrade-targets">
+
+        ${targets.map(x=>{
+
+          const chance=
+            Math.min(
+              100,
+              source.price/x.price*100
+            );
+
+          return`
+
+            <div
+              class="upgrade-target"
+              data-id="${x.id}">
+
+              ${itemVisual(x,"small")}
+
+              <div class="grow">
+
+                <b>${x.name}</b>
+
+                <span class="muted">
+                  ${x.type} • ${x.price} 💎
+                </span>
+
+              </div>
+
+              <span class="price">
+                ${chance.toFixed(
+                  chance%1?1:0
+                )}%
+              </span>
+
+            </div>
+
+          `;
+
+        }).join("")}
+
+      </div>
+
+      <div class="upgrade-vs">
+
+        <div class="drop center">
+
+          ${itemVisual(source,"large")}
+
+          <b>${source.price} 💎</b>
+          <br>
+          <span class="muted">
+            Твой предмет
+          </span>
+
+        </div>
+
+        <b>→</b>
+
+        <div
+          class="drop center"
+          id="upgradeTargetPreview">
+
+          <div class="big">❔</div>
+
+          <b>Выбери</b>
+
+        </div>
+
+      </div>
+
+      <div
+        class="upgrade-chance"
+        id="upgradeChance">
+        —
+      </div>
+
+      <button
+        class="upgrade-go"
+        id="upgradeGo"
+        disabled>
+        ⬆️ АПГРЕЙД
+      </button>
+
+    </div>
+  `;
+
+  e.querySelectorAll(".upgrade-target")
+    .forEach(x=>x.onclick=()=>{
+
+      e.querySelectorAll(".upgrade-target")
+        .forEach(z=>
+          z.classList.remove("selected")
+        );
+
+      x.classList.add("selected");
+
+      pendingUpgradeTarget=
+        items.find(
+          a=>a.id===+x.dataset.id
+        );
+
+      const ch=
+        Math.min(
+          100,
+          source.price/
+          pendingUpgradeTarget.price*
+          100
+        );
+
+      $("upgradeChance").textContent=
+        ch.toFixed(ch%1?1:0)+
+        "% ШАНС";
+
+      $("upgradeTargetPreview").innerHTML=`
+
+        ${itemVisual(
+          pendingUpgradeTarget,
+          "small"
+        )}
+
+        <b>
+          ${pendingUpgradeTarget.price} 💎
+        </b>
+
+        <br>
+
+        <span class="muted">
+          ${pendingUpgradeTarget.name}
+        </span>
+
+      `;
+
+      $("upgradeGo").disabled=false;
+      $("upgradeGo").textContent="⬆️ АПГРЕЙД";
+
+    });
+
   $("upgradeGo").onclick=runUpgrade;
 }
 
 function runUpgrade(){
-  if(pendingUpgradeSource===null||!pendingUpgradeTarget)return;
-  const source=state.inventory[pendingUpgradeSource];if(!source)return renderUpgrade();
-  const target=pendingUpgradeTarget;const chance=Math.min(100,source.price/target.price*100);const success=Math.random()*100<chance;
-  const overlay=$("caseOpeningOverlay"),strip=$("caseOpeningStrip");
-  $("caseOpeningTitle").textContent="⬆️ Апгрейд";$("caseOpeningStatus").textContent="Проверяем шанс "+chance.toFixed(chance%1?1:0)+"%…";$("caseWinCard").classList.remove("show");overlay.classList.add("open");
-  const pool=[source,target,...items.filter(x=>x.price>=source.price).slice(0,8)];const seq=[];for(let n=0;n<12;n++)seq.push(pool[n%pool.length]);
-  const winner=success?target:source;const winnerIndex=seq.length-pool.length+pool.indexOf(winner);seq[winnerIndex]=winner;
-  strip.style.transition="none";strip.style.transform="translateX(0)";
-  strip.innerHTML=seq.map(x=>`<div class="roulette-item"><div class="ri-emoji">${x.emoji}</div><div class="ri-name">${x.name}</div><div class="ri-price">${x.price} 💎</div></div>`).join("");
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{const card=strip.children[winnerIndex],v=strip.parentElement,targetX=card.offsetLeft+card.offsetWidth/2-v.clientWidth/2;strip.style.transition="transform 4.8s cubic-bezier(.07,.72,.12,1)";strip.style.transform=`translateX(${-Math.max(0,targetX)}px)`;}));
-  clearTimeout(window.__upgradeTimer);window.__upgradeTimer=setTimeout(()=>{
-    strip.children[winnerIndex]?.classList.add("win");
-    $("caseWinEmoji").textContent=winner.emoji;$("caseWinName").textContent=success?target.name:"Апгрейд не удался";$("caseWinPrice").textContent=success?target.price+" 💎":"Предмет потерян";$("caseOpeningStatus").textContent=success?"🎉 Успешный апгрейд!":"💥 Неудача";$("caseWinCard").classList.add("show");
-    state.statistics.upgrades=(state.statistics.upgrades||0)+1;
-    if(success)state.inventory[pendingUpgradeSource]={name:target.name,price:target.price,emoji:target.emoji,type:target.type};
-    else state.inventory.splice(pendingUpgradeSource,1);
-    localSave();
-    document.querySelector(".case-actions").innerHTML='<button class="take-action" id="upgradeFinishBtn" style="grid-column:1/-1">✓ Продолжить</button>';
-    $("upgradeFinishBtn").onclick=()=>{document.querySelector(".case-actions").innerHTML='<button class="upgrade-action" id="caseUpgradeBtn">⬆️ Апгрейд</button><button class="take-action" id="caseTakeBtn">📦 Забрать</button><button class="sell-action" id="caseSellBtn">💎 Продать</button>';bindCaseButtons();closeCaseOverlay();openGame("upgrade");};
-  },4900);
+
+  if(
+    pendingUpgradeSource===null||
+    !pendingUpgradeTarget
+  )return;
+
+  const source=
+    state.inventory[pendingUpgradeSource];
+
+  if(!source)
+    return renderUpgrade();
+
+  const target=
+    pendingUpgradeTarget;
+
+  const chance=
+    Math.min(
+      100,
+      source.price/
+      target.price*
+      100
+    );
+
+  const success=
+    Math.random()*100<chance;
+
+  const overlay=
+    $("caseOpeningOverlay");
+
+  const strip=
+    $("caseOpeningStrip");
+
+  $("caseOpeningTitle").textContent=
+    "⬆️ Апгрейд";
+
+  $("caseOpeningStatus").textContent=
+    "Проверяем шанс "+
+    chance.toFixed(chance%1?1:0)+
+    "%…";
+
+  $("caseWinCard")
+    .classList.remove("show");
+
+  overlay.classList.add("open");
+
+  const pool=[
+    source,
+    target,
+    ...items
+      .filter(x=>x.price>=source.price)
+      .slice(0,8)
+  ];
+
+  const seq=[];
+
+  for(let n=0;n<12;n++)
+    seq.push(pool[n%pool.length]);
+
+  const winner=
+    success?target:source;
+
+  const winnerIndex=
+    seq.length-
+    pool.length+
+    pool.indexOf(winner);
+
+  seq[winnerIndex]=winner;
+
+  strip.style.transition="none";
+  strip.style.transform="translateX(0)";
+
+  strip.innerHTML=
+    seq.map(x=>`
+
+      <div class="roulette-item">
+
+        ${itemVisual(x,"small")}
+
+        <div class="ri-name">
+          ${x.name}
+        </div>
+
+        <div class="ri-price">
+          ${x.price} 💎
+        </div>
+
+      </div>
+
+    `).join("");
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+
+    const card=
+      strip.children[winnerIndex];
+
+    const v=
+      strip.parentElement;
+
+    const targetX=
+      card.offsetLeft+
+      card.offsetWidth/2-
+      v.clientWidth/2;
+
+    strip.style.transition=
+      "transform 4.8s cubic-bezier(.07,.72,.12,1)";
+
+    strip.style.transform=
+      `translateX(${-Math.max(
+        0,
+        targetX
+      )}px)`;
+
+  }));
+
+  clearTimeout(window.__upgradeTimer);
+
+  window.__upgradeTimer=
+    setTimeout(()=>{
+
+      strip.children[winnerIndex]
+        ?.classList.add("win");
+
+      $("caseWinEmoji").innerHTML=
+        itemVisual(
+          winner,
+          "large"
+        );
+
+      $("caseWinName").textContent=
+        success
+          ?target.name
+          :"Апгрейд не удался";
+
+      $("caseWinPrice").textContent=
+        success
+          ?target.price+" 💎"
+          :"Предмет потерян";
+
+      $("caseOpeningStatus").textContent=
+        success
+          ?"🎉 Успешный апгрейд!"
+          :"💥 Неудача";
+
+      $("caseWinCard")
+        .classList.add("show");
+
+      state.statistics.upgrades=
+        (state.statistics.upgrades||0)+1;
+
+      if(success){
+
+        state.inventory[pendingUpgradeSource]={
+          name:target.name,
+          price:target.price,
+          emoji:target.emoji,
+          type:target.type
+        };
+
+      }else{
+
+        state.inventory.splice(
+          pendingUpgradeSource,
+          1
+        );
+      }
+
+      localSave();
+
+      document.querySelector(
+        ".case-actions"
+      ).innerHTML=`
+        <button
+          class="take-action"
+          id="upgradeFinishBtn"
+          style="grid-column:1/-1">
+          ✓ Продолжить
+        </button>
+      `;
+
+      $("upgradeFinishBtn").onclick=()=>{
+
+        document.querySelector(
+          ".case-actions"
+        ).innerHTML=`
+          <button
+            class="upgrade-action"
+            id="caseUpgradeBtn">
+            ⬆️ Апгрейд
+          </button>
+
+          <button
+            class="take-action"
+            id="caseTakeBtn">
+            📦 Забрать
+          </button>
+
+          <button
+            class="sell-action"
+            id="caseSellBtn">
+            💎 Продать
+          </button>
+        `;
+
+        bindCaseButtons();
+
+        closeCaseOverlay();
+
+        openGame("upgrade");
+      };
+
+    },4900);
 }
 
-function battle(){if(state.balance<100)return toast("Не хватает 💎");state.balance-=100;const a=pick(cases[1].drops),bot=pick(cases[1].drops),win=a[1]>=bot[1];if(win)state.inventory.push({name:a[0],price:a[1],emoji:a[2],type:itemType(a[0])});localSave();$("battleResult").innerHTML=`<div class="drop">Твой дроп: ${a[2]} ${a[0]} — ${a[1]} 💎<br>Бот: ${bot[2]} ${bot[0]} — ${bot[1]} 💎<hr><b>${win?"🏆 Ты победил и забрал дроп!":"💥 Бот победил."}</b></div>`;}
+/* ================= BATTLE ================= */
 
-function doubleGame(){const bet=Math.floor(+$("doubleBet").value);if(!bet||bet<1||state.balance<bet)return toast("Неверная ставка");state.balance-=bet;const mult=(1+Math.random()).toFixed(2),win=Math.random()<.48;if(win){const prize=Math.floor(bet*mult);state.balance+=prize;$("doubleResult").innerHTML=`<div class="drop center">🎉 <b>${mult}×</b><br>+${prize} 💎</div>`;}else{$("doubleResult").innerHTML='<div class="drop center">💥 Ставка проиграна</div>';}localSave();}
+function battle(){
 
-function contract(){if(state.inventory.length<3)return toast("Нужно 3 предмета");const chosen=state.inventory.splice(0,3),value=Math.floor(chosen.reduce((s,x)=>s+x.price,0)*.75),pool=items.filter(x=>x.price<=Math.max(value,1)),target=pool[Math.floor(Math.random()*pool.length)];state.inventory.push({name:target.name,price:target.price,emoji:target.emoji,type:target.type});localSave();$("contractResult").innerHTML=`<div class="drop center">📜 Получено: ${target.emoji} ${target.name} — ${target.price} 💎</div>`;}
+  if(state.balance<100)
+    return toast("Не хватает 💎");
 
-function royal(){if(state.balance<100)return toast("Не хватает 💎");state.balance-=100;let wins=0;for(let i=0;i<5;i++)if(Math.random()<.55)wins++;if(wins>=3)state.balance+=200;localSave();$("royalResult").innerHTML=`<div class="drop center">${wins>=3?"👑 Победа! +200 💎":"💥 Поражение"}<br>Побед в раундах: ${wins}/5</div>`;}
+  state.balance-=100;
 
-function firebaseError(e){const c=e?.code||"",m=e?.message||String(e);if(c==="auth/operation-not-allowed")return"Google-вход не включён в Firebase";if(c==="auth/unauthorized-domain")return"Этот домен не добавлен в Authorized domains";if(c==="auth/popup-blocked")return"Браузер заблокировал всплывающее окно. Разрешите popup для этого сайта.";if(c==="auth/popup-closed-by-user")return"Окно входа было закрыто. Попробуйте ещё раз.";if(c==="auth/cancelled-popup-request")return"Запрос отменён. Попробуйте ещё раз.";if(c==="auth/network-request-failed")return"Ошибка сети";if(c==="auth/invalid-api-key")return"Неверный Firebase API key";if(/permission_denied/i.test(m))return"Нет доступа к RTDB — проверь Rules";if(/network|offline|fetch/i.test(m))return"Ошибка сети";return m;}
+  const a=pick(cases[1].drops);
+  const bot=pick(cases[1].drops);
 
-function setFirebaseStatus(text,on=false){$("firebaseStatus").textContent=text;$("profileOnline").textContent=guestMode?"GUEST":(on?"ONLINE":"OFFLINE");}
+  const win=a[1]>=bot[1];
+
+  if(win){
+
+    state.inventory.push({
+      name:a[0],
+      price:a[1],
+      emoji:a[2],
+      type:itemType(a[0])
+    });
+  }
+
+  localSave();
+
+  $("battleResult").innerHTML=`
+
+    <div class="drop">
+
+      <b>Твой дроп</b>
+
+      <div style="display:flex;align-items:center;gap:10px;margin:10px 0">
+        ${dropVisual(a,"small")}
+        <span>
+          ${a[0]} — ${a[1]} 💎
+        </span>
+      </div>
+
+      <b>Бот</b>
+
+      <div style="display:flex;align-items:center;gap:10px;margin:10px 0">
+        ${dropVisual(bot,"small")}
+        <span>
+          ${bot[0]} — ${bot[1]} 💎
+        </span>
+      </div>
+
+      <hr>
+
+      <b>
+        ${win
+          ?"🏆 Ты победил и забрал дроп!"
+          :"💥 Бот победил."}
+      </b>
+
+    </div>
+  `;
+}
+
+/* ================= DOUBLE ================= */
+
+function doubleGame(){
+
+  const bet=
+    Math.floor(
+      +$("doubleBet").value
+    );
+
+  if(
+    !bet||
+    bet<1||
+    state.balance<bet
+  ){
+    return toast("Неверная ставка");
+  }
+
+  state.balance-=bet;
+
+  const mult=
+    (1+Math.random()).toFixed(2);
+
+  const win=
+    Math.random()<.48;
+
+  if(win){
+
+    const prize=
+      Math.floor(bet*mult);
+
+    state.balance+=prize;
+
+    $("doubleResult").innerHTML=`
+      <div class="drop center">
+        🎉 <b>${mult}×</b>
+        <br>
+        +${prize} 💎
+      </div>
+    `;
+
+  }else{
+
+    $("doubleResult").innerHTML=`
+      <div class="drop center">
+        💥 Ставка проиграна
+      </div>
+    `;
+  }
+
+  localSave();
+}
+
+/* ================= CONTRACT ================= */
+
+function contract(){
+
+  if(state.inventory.length<3)
+    return toast("Нужно 3 предмета");
+
+  const chosen=
+    state.inventory.splice(0,3);
+
+  const value=
+    Math.floor(
+      chosen.reduce(
+        (s,x)=>s+x.price,
+        0
+      )*.75
+    );
+
+  const pool=
+    items.filter(
+      x=>x.price<=Math.max(value,1)
+    );
+
+  const target=
+    pool[
+      Math.floor(
+        Math.random()*pool.length
+      )
+    ];
+
+  state.inventory.push({
+    name:target.name,
+    price:target.price,
+    emoji:target.emoji,
+    type:target.type
+  });
+
+  localSave();
+
+  $("contractResult").innerHTML=`
+
+    <div class="drop center">
+
+      ${itemVisual(target,"large")}
+
+      <br>
+
+      📜 Получено:
+      <br>
+
+      <b>${target.name}</b>
+
+      <br>
+
+      <span class="price">
+        ${target.price} 💎
+      </span>
+
+    </div>
+  `;
+}
+
+/* ================= ROYAL ================= */
+
+function royal(){
+
+  if(state.balance<100)
+    return toast("Не хватает 💎");
+
+  state.balance-=100;
+
+  let wins=0;
+
+  for(let i=0;i<5;i++)
+    if(Math.random()<.55)
+      wins++;
+
+  if(wins>=3)
+    state.balance+=200;
+
+  localSave();
+
+  $("royalResult").innerHTML=`
+
+    <div class="drop center">
+
+      ${wins>=3
+        ?"👑 Победа! +200 💎"
+        :"💥 Поражение"}
+
+      <br>
+
+      Побед в раундах:
+      ${wins}/5
+
+    </div>
+  `;
+}
+
+/* ================= FIREBASE ================= */
+
+function firebaseError(e){
+
+  const c=e?.code||"";
+  const m=e?.message||String(e);
+
+  if(c==="auth/operation-not-allowed")
+    return"Google-вход не включён в Firebase";
+
+  if(c==="auth/unauthorized-domain")
+    return"Этот домен не добавлен в Authorized domains";
+
+  if(c==="auth/popup-blocked")
+    return"Браузер заблокировал всплывающее окно. Разрешите popup для этого сайта.";
+
+  if(c==="auth/popup-closed-by-user")
+    return"Окно входа было закрыто. Попробуйте ещё раз.";
+
+  if(c==="auth/cancelled-popup-request")
+    return"Запрос отменён. Попробуйте ещё раз.";
+
+  if(c==="auth/network-request-failed")
+    return"Ошибка сети";
+
+  if(c==="auth/invalid-api-key")
+    return"Неверный Firebase API key";
+
+  if(/permission_denied/i.test(m))
+    return"Нет доступа к RTDB — проверь Rules";
+
+  if(/network|offline|fetch/i.test(m))
+    return"Ошибка сети";
+
+  return m;
+}
+
+function setFirebaseStatus(text,on=false){
+
+  $("firebaseStatus").textContent=text;
+
+  $("profileOnline").textContent=
+    guestMode
+      ?"GUEST"
+      :(on?"ONLINE":"OFFLINE");
+}
 
 function updateGoogleUI(user){
-  if(guestMode){$("profileName").textContent="Гость";$("profileUid").textContent="Локальный аккаунт";$("firebaseUid").textContent="";$("googleAccountText").textContent="👤 Вы используете гостевой режим.";$("googleLoginBtn").style.display="block";$("googleLogoutBtn").style.display="none";$("profileAvatar").textContent="👤";return;}
-  if(!user){$("profileName").textContent="Пользователь";$("profileUid").textContent="Вход не выполнен";$("firebaseUid").textContent="";$("googleAccountText").textContent="Войдите через Google для облачного сохранения.";$("googleLoginBtn").style.display="block";$("googleLogoutBtn").style.display="none";$("profileAvatar").textContent="👤";return;}
-  $("profileUid").textContent="UID: "+user.uid;$("firebaseUid").textContent="Google: "+(user.email||"")+" • UID: "+user.uid;$("profileName").textContent=user.displayName||(user.email?user.email.split("@")[0]:"Пользователь");$("googleAccountText").textContent=user.email?"🔵 Google: "+user.email:"🔵 Аккаунт Google подключён";$("googleLoginBtn").style.display="none";$("googleLogoutBtn").style.display="block";$("profileAvatar").textContent="🔵";
+
+  if(guestMode){
+
+    $("profileName").textContent="Гость";
+    $("profileUid").textContent="Локальный аккаунт";
+    $("firebaseUid").textContent="";
+    $("googleAccountText").textContent=
+      "👤 Вы используете гостевой режим.";
+
+    $("googleLoginBtn").style.display="block";
+    $("googleLogoutBtn").style.display="none";
+    $("profileAvatar").textContent="👤";
+
+    return;
+  }
+
+  if(!user){
+
+    $("profileName").textContent="Пользователь";
+    $("profileUid").textContent="Вход не выполнен";
+    $("firebaseUid").textContent="";
+    $("googleAccountText").textContent=
+      "Войдите через Google для облачного сохранения.";
+
+    $("googleLoginBtn").style.display="block";
+    $("googleLogoutBtn").style.display="none";
+    $("profileAvatar").textContent="👤";
+
+    return;
+  }
+
+  $("profileUid").textContent=
+    "UID: "+user.uid;
+
+  $("firebaseUid").textContent=
+    "Google: "+
+    (user.email||"")+
+    " • UID: "+
+    user.uid;
+
+  $("profileName").textContent=
+    user.displayName||
+    (user.email
+      ?user.email.split("@")[0]
+      :"Пользователь");
+
+  $("googleAccountText").textContent=
+    user.email
+      ?"🔵 Google: "+user.email
+      :"🔵 Аккаунт Google подключён";
+
+  $("googleLoginBtn").style.display="none";
+  $("googleLogoutBtn").style.display="block";
+  $("profileAvatar").textContent="🔵";
 }
 
-/* ===== ИСПРАВЛЕНО: POPUP вместо Redirect ===== */
+/* ================= GOOGLE POPUP ================= */
+
 async function loginWithGoogle(){
-  if(!auth||!firebaseReady){$("authStatus").textContent="⏳ Firebase ещё загружается…";return;}
 
-  const provider=new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({prompt:"select_account"});
+  if(!auth||!firebaseReady){
 
-  $("authStatus").textContent="🔵 Открываем Google…";
+    $("authStatus").textContent=
+      "⏳ Firebase ещё загружается…";
+
+    return;
+  }
+
+  const provider=
+    new firebase.auth.GoogleAuthProvider();
+
+  provider.setCustomParameters({
+    prompt:"select_account"
+  });
+
+  $("authStatus").textContent=
+    "🔵 Открываем Google…";
 
   try{
-    /* Используем popup — он не перезагружает страницу и надёжнее */
-    const result=await auth.signInWithPopup(provider);
+
+    const result=
+      await auth.signInWithPopup(
+        provider
+      );
+
     if(result&&result.user){
+
       $("authStatus").textContent="";
-      toast("✅ Вход через Google выполнен");
+
+      toast(
+        "✅ Вход через Google выполнен"
+      );
     }
+
   }catch(e){
-    console.error("Google popup login:",e);
-    const msg=firebaseError(e);
-    $("authStatus").textContent="❌ "+msg;
-    toast("Ошибка: "+msg);
+
+    console.error(
+      "Google popup login:",
+      e
+    );
+
+    const msg=
+      firebaseError(e);
+
+    $("authStatus").textContent=
+      "❌ "+msg;
+
+    toast(
+      "Ошибка: "+msg
+    );
   }
 }
 
 async function logoutGoogle(){
+
   if(!auth)return;
+
   try{
-    loggingOut=true;clearTimeout(saveTimer);await auth.signOut();
-    firebaseUser=null;guestMode=false;lastAuthUid=null;state=createDefaultState();updateUI();
-    $("authScreen").classList.add("open");updateGoogleUI(null);setFirebaseStatus("Выберите способ входа",false);$("authStatus").textContent="";loggingOut=false;toast("Вы вышли из Google");
-  }catch(e){loggingOut=false;console.error("Logout:",e);toast("Ошибка выхода: "+firebaseError(e));}
+
+    loggingOut=true;
+
+    clearTimeout(saveTimer);
+
+    await auth.signOut();
+
+    firebaseUser=null;
+    guestMode=false;
+    lastAuthUid=null;
+
+    state=createDefaultState();
+
+    updateUI();
+
+    $("authScreen")
+      .classList.add("open");
+
+    updateGoogleUI(null);
+
+    setFirebaseStatus(
+      "Выберите способ входа",
+      false
+    );
+
+    $("authStatus").textContent="";
+
+    loggingOut=false;
+
+    toast("Вы вышли из Google");
+
+  }catch(e){
+
+    loggingOut=false;
+
+    console.error(
+      "Logout:",
+      e
+    );
+
+    toast(
+      "Ошибка выхода: "+
+      firebaseError(e)
+    );
+  }
 }
 
 async function continueGuest(){
-  try{if(auth&&auth.currentUser&&!auth.currentUser.isAnonymous)await auth.signOut();}catch(e){}
-  guestMode=true;firebaseUser=null;loadGuest();$("authScreen").classList.remove("open");updateGoogleUI(null);setFirebaseStatus("👤 Гостевой режим • данные только на этом устройстве",false);$("authStatus").textContent="";toast("Вы вошли как гость");
+
+  try{
+
+    if(
+      auth&&
+      auth.currentUser&&
+      !auth.currentUser.isAnonymous
+    ){
+      await auth.signOut();
+    }
+
+  }catch(e){}
+
+  guestMode=true;
+  firebaseUser=null;
+
+  loadGuest();
+
+  $("authScreen")
+    .classList.remove("open");
+
+  updateGoogleUI(null);
+
+  setFirebaseStatus(
+    "👤 Гостевой режим • данные только на этом устройстве",
+    false
+  );
+
+  $("authStatus").textContent="";
+
+  toast("Вы вошли как гость");
 }
 
 async function continueGoogle(){
-  if(!auth||!firebaseReady){$("authStatus").textContent="⏳ Firebase ещё загружается…";return;}
-  guestMode=false;await loginWithGoogle();
+
+  if(!auth||!firebaseReady){
+
+    $("authStatus").textContent=
+      "⏳ Firebase ещё загружается…";
+
+    return;
+  }
+
+  guestMode=false;
+
+  await loginWithGoogle();
 }
 
+/* ================= FIREBASE INIT ================= */
+
 async function initFirebase(){
-  if(!window.firebase){$("authStatus").textContent="❌ Firebase SDK не загрузился";return;}
+
+  if(!window.firebase){
+
+    $("authStatus").textContent=
+      "❌ Firebase SDK не загрузился";
+
+    return;
+  }
+
   try{
-    if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
-    db=firebase.database();auth=firebase.auth();firebaseReady=true;
 
-    auth.onAuthStateChanged(async user=>{
-      console.log("Auth state:",user);
-      if(!authUIReady)return;
-      await handleAuthUser(user);
-    });
+    if(!firebase.apps.length)
+      firebase.initializeApp(
+        FIREBASE_CONFIG
+      );
 
-    if(db){db.ref(".info/connected").on("value",snap=>{if(snap.val()===true&&firebaseUser)setFirebaseStatus("🟢 Подключено • база доступна",true);});}
+    db=firebase.database();
+    auth=firebase.auth();
+    firebaseReady=true;
+
+    auth.onAuthStateChanged(
+      async user=>{
+
+        console.log(
+          "Auth state:",
+          user
+        );
+
+        if(!authUIReady)return;
+
+        await handleAuthUser(user);
+      }
+    );
+
+    if(db){
+
+      db.ref(".info/connected")
+        .on("value",snap=>{
+
+          if(
+            snap.val()===true&&
+            firebaseUser
+          ){
+
+            setFirebaseStatus(
+              "🟢 Подключено • база доступна",
+              true
+            );
+          }
+
+        });
+    }
 
     authUIReady=true;
-    await handleAuthUser(auth.currentUser);
+
+    await handleAuthUser(
+      auth.currentUser
+    );
 
   }catch(e){
-    firebaseReady=false;console.error("Firebase init:",e);
-    $("authStatus").textContent="❌ "+firebaseError(e);
+
+    firebaseReady=false;
+
+    console.error(
+      "Firebase init:",
+      e
+    );
+
+    $("authStatus").textContent=
+      "❌ "+firebaseError(e);
   }
 }
 
 async function handleAuthUser(user){
+
   if(!authUIReady)return;
-  const uid=user?(user.uid||""):"";
-  if(authHandling&&uid===lastAuthUid)return;
-  lastAuthUid=uid;authHandling=true;
+
+  const uid=
+    user?(user.uid||""):"";
+
+  if(
+    authHandling&&
+    uid===lastAuthUid
+  )return;
+
+  lastAuthUid=uid;
+  authHandling=true;
+
   try{
+
     if(user&&user.isAnonymous){
-      try{await auth.signOut();}catch(e){}
-      firebaseUser=null;guestMode=false;lastAuthUid=null;loadGuest();updateGoogleUI(null);
-      $("authScreen").classList.add("open");setFirebaseStatus("Выберите способ входа",false);return;
-    }
-    if(user){
-      firebaseUser=user;guestMode=false;$("authScreen").classList.remove("open");updateGoogleUI(user);setFirebaseStatus("🔵 Google • загружаем данные…",true);$("authStatus").textContent="";
-      try{await loadFirebaseUser();setFirebaseStatus("🟢 Google подключён • ☁️ данные синхронизированы",true);updateGoogleUI(user);}catch(e){console.error("Load user:",e);setFirebaseStatus("❌ Ошибка базы: "+firebaseError(e),false);}
+
+      try{
+        await auth.signOut();
+      }catch(e){}
+
+      firebaseUser=null;
+      guestMode=false;
+      lastAuthUid=null;
+
+      loadGuest();
+
+      updateGoogleUI(null);
+
+      $("authScreen")
+        .classList.add("open");
+
+      setFirebaseStatus(
+        "Выберите способ входа",
+        false
+      );
+
       return;
     }
-    firebaseUser=null;guestMode=false;loadGuest();updateGoogleUI(null);$("authScreen").classList.add("open");setFirebaseStatus("Выберите способ входа",false);
-  }catch(e){console.error("Auth handler:",e);}finally{authHandling=false;}
+
+    if(user){
+
+      firebaseUser=user;
+      guestMode=false;
+
+      $("authScreen")
+        .classList.remove("open");
+
+      updateGoogleUI(user);
+
+      setFirebaseStatus(
+        "🔵 Google • загружаем данные…",
+        true
+      );
+
+      $("authStatus").textContent="";
+
+      try{
+
+        await loadFirebaseUser();
+
+        setFirebaseStatus(
+          "🟢 Google подключён • ☁️ данные синхронизированы",
+          true
+        );
+
+        updateGoogleUI(user);
+
+      }catch(e){
+
+        console.error(
+          "Load user:",
+          e
+        );
+
+        setFirebaseStatus(
+          "❌ Ошибка базы: "+
+          firebaseError(e),
+          false
+        );
+      }
+
+      return;
+    }
+
+    firebaseUser=null;
+    guestMode=false;
+
+    loadGuest();
+
+    updateGoogleUI(null);
+
+    $("authScreen")
+      .classList.add("open");
+
+    setFirebaseStatus(
+      "Выберите способ входа",
+      false
+    );
+
+  }catch(e){
+
+    console.error(
+      "Auth handler:",
+      e
+    );
+
+  }finally{
+
+    authHandling=false;
+  }
 }
 
 async function loadFirebaseUser(){
-  if(!firebaseUser||firebaseUser.isAnonymous||!db)throw new Error("Firebase не готов");
+
+  if(
+    !firebaseUser||
+    firebaseUser.isAnonymous||
+    !db
+  ){
+    throw new Error(
+      "Firebase не готов"
+    );
+  }
+
   saving=true;
+
   try{
-    const snap=await db.ref("prognozer/users/"+firebaseUser.uid).once("value");
+
+    const snap=
+      await db
+        .ref(
+          "prognozer/users/"+
+          firebaseUser.uid
+        )
+        .once("value");
+
     const remote=snap.val();
-    if(remote){state=normalizeState(remote);try{localStorage.setItem(googleCacheKey(firebaseUser.uid),JSON.stringify(state));}catch(e){}updateUI();}
-    else{state=createDefaultState();updateUI();await saveFirebase();}
-  }finally{saving=false;}
+
+    if(remote){
+
+      state=
+        normalizeState(remote);
+
+      try{
+
+        localStorage.setItem(
+          googleCacheKey(
+            firebaseUser.uid
+          ),
+          JSON.stringify(state)
+        );
+
+      }catch(e){}
+
+      updateUI();
+
+    }else{
+
+      state=createDefaultState();
+
+      updateUI();
+
+      await saveFirebase();
+    }
+
+  }finally{
+
+    saving=false;
+  }
 }
 
 async function saveFirebase(){
-  if(!firebaseUser||firebaseUser.isAnonymous||!db||guestMode||saving)return false;
+
+  if(
+    !firebaseUser||
+    firebaseUser.isAnonymous||
+    !db||
+    guestMode||
+    saving
+  )return false;
+
   saving=true;
+
   try{
-    await db.ref("prognozer/users/"+firebaseUser.uid).update({balance:Number(state.balance)||0,inventory:Array.isArray(state.inventory)?state.inventory:[],statistics:state.statistics||{},createdAt:state.createdAt||Date.now(),updatedAt:firebase.database.ServerValue.TIMESTAMP,profile:{name:firebaseUser.displayName||"",email:firebaseUser.email||"",photoURL:firebaseUser.photoURL||""}});
-    try{localStorage.setItem(googleCacheKey(firebaseUser.uid),JSON.stringify(state));}catch(e){}
-    $("firebaseStatus").textContent="🟢 Firebase подключена • ☁️ данные синхронизированы";$("profileOnline").textContent="ONLINE";return true;
-  }catch(e){console.error("Firebase save:",e);$("firebaseStatus").textContent="❌ Ошибка сохранения: "+firebaseError(e);return false;}
-  finally{saving=false;}
+
+    await db
+      .ref(
+        "prognozer/users/"+
+        firebaseUser.uid
+      )
+      .update({
+
+        balance:
+          Number(state.balance)||0,
+
+        inventory:
+          Array.isArray(state.inventory)
+            ?state.inventory
+            :[],
+
+        statistics:
+          state.statistics||{},
+
+        createdAt:
+          state.createdAt||
+          Date.now(),
+
+        updatedAt:
+          firebase.database.ServerValue.TIMESTAMP,
+
+        profile:{
+          name:
+            firebaseUser.displayName||"",
+
+          email:
+            firebaseUser.email||"",
+
+          photoURL:
+            firebaseUser.photoURL||""
+        }
+
+      });
+
+    try{
+
+      localStorage.setItem(
+        googleCacheKey(
+          firebaseUser.uid
+        ),
+        JSON.stringify(state)
+      );
+
+    }catch(e){}
+
+    $("firebaseStatus").textContent=
+      "🟢 Firebase подключена • ☁️ данные синхронизированы";
+
+    $("profileOnline").textContent=
+      "ONLINE";
+
+    return true;
+
+  }catch(e){
+
+    console.error(
+      "Firebase save:",
+      e
+    );
+
+    $("firebaseStatus").textContent=
+      "❌ Ошибка сохранения: "+
+      firebaseError(e);
+
+    return false;
+
+  }finally{
+
+    saving=false;
+  }
 }
 
-function bindCaseButtons(){$("caseTakeBtn").onclick=takeCaseDrop;$("caseSellBtn").onclick=sellCaseDrop;$("caseUpgradeBtn").onclick=startUpgradeFromCase;}
+/* ================= BUTTONS ================= */
 
-document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>nav(t.dataset.screen));
-$("caseCloseBtn").onclick=()=>{if($("caseWinCard").classList.contains("show"))closeCaseOverlay();};
-bindCaseButtons();
-$("closeBtn").onclick=()=>$("modal").classList.remove("open");
-$("modal").onclick=e=>{if(e.target.id==="modal")$("modal").classList.remove("open");};
-$("googleLoginBtn").onclick=loginWithGoogle;
-$("googleLogoutBtn").onclick=logoutGoogle;
-$("authGoogleBtn").onclick=continueGoogle;
-$("authGuestBtn").onclick=continueGuest;
-$("syncBtn").onclick=async()=>{
-  if(guestMode||!firebaseUser||firebaseUser.isAnonymous)return toast("В гостевом режиме облачной синхронизации нет");
-  setFirebaseStatus("☁️ Синхронизация…",true);const ok=await saveFirebase();toast(ok?"Синхронизация завершена":"Синхронизация не выполнена");
+function bindCaseButtons(){
+
+  $("caseTakeBtn").onclick=
+    takeCaseDrop;
+
+  $("caseSellBtn").onclick=
+    sellCaseDrop;
+
+  $("caseUpgradeBtn").onclick=
+    startUpgradeFromCase;
+}
+
+document
+  .querySelectorAll(".tab")
+  .forEach(t=>
+    t.onclick=()=>{
+      nav(t.dataset.screen);
+    }
+  );
+
+$("caseCloseBtn").onclick=()=>{
+
+  if(
+    $("caseWinCard")
+      .classList.contains("show")
+  ){
+    closeCaseOverlay();
+  }
 };
 
-loadGuest();renderGrids();renderShop();initFirebase();
+bindCaseButtons();
+
+$("closeBtn").onclick=()=>
+  $("modal")
+    .classList.remove("open");
+
+$("modal").onclick=e=>{
+
+  if(e.target.id==="modal")
+    $("modal")
+      .classList.remove("open");
+};
+
+$("googleLoginBtn").onclick=
+  loginWithGoogle;
+
+$("googleLogoutBtn").onclick=
+  logoutGoogle;
+
+$("authGoogleBtn").onclick=
+  continueGoogle;
+
+$("authGuestBtn").onclick=
+  continueGuest;
+
+$("syncBtn").onclick=async()=>{
+
+  if(
+    guestMode||
+    !firebaseUser||
+    firebaseUser.isAnonymous
+  ){
+    return toast(
+      "В гостевом режиме облачной синхронизации нет"
+    );
+  }
+
+  setFirebaseStatus(
+    "☁️ Синхронизация…",
+    true
+  );
+
+  const ok=
+    await saveFirebase();
+
+  toast(
+    ok
+      ?"Синхронизация завершена"
+      :"Синхронизация не выполнена"
+  );
+};
+
+/* ================= START ================= */
+
+loadGuest();
+renderGrids();
+renderShop();
+initFirebase();
+
 </script>
+
 </body>
-</html>
+  </html>
