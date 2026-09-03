@@ -28,39 +28,9 @@ input{padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#08152
 .case-opening-overlay{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,rgba(20,95,170,.24),rgba(2,7,14,.98) 62%);padding:14px;overflow:hidden}.case-opening-overlay.open{display:flex}.case-opening-stage{width:min(760px,100%);max-height:96vh;display:flex;flex-direction:column;justify-content:center;gap:14px}.case-opening-head{display:flex;align-items:center;justify-content:space-between}.case-opening-head h2{margin:0;font-size:27px}.case-close{background:#10233a;border:1px solid #2d5b86;width:44px;height:44px;padding:0;border-radius:50%;font-size:25px}.case-opening-window{position:relative;overflow:hidden;border:1px solid #2d689e;border-radius:22px;background:#06101d;padding:13px 0;box-shadow:0 0 45px rgba(20,120,230,.18),inset 0 0 35px rgba(0,100,190,.12)}.case-opening-window .roulette-pointer{top:0;bottom:0}.case-opening-window .roulette-strip{transition:transform 4.8s cubic-bezier(.07,.72,.12,1)}.case-opening-status{text-align:center;color:#91a8c0;font-size:15px;min-height:22px}.case-win-card{display:none;text-align:center;border:1px solid #2d73ad;border-radius:24px;background:#0b1726;padding:18px;box-shadow:0 0 45px rgba(30,130,240,.16)}.case-win-card.show{display:block}.case-win-card .win-emoji{font-size:62px;line-height:1}.case-win-card .win-name{font-size:23px;font-weight:900;margin-top:8px}.case-win-card .win-price{font-size:21px;color:#59b9ff;font-weight:900;margin-top:5px}.case-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.case-actions button{padding:14px 8px;font-size:14px}.upgrade-action{background:linear-gradient(135deg,#1677e8,#39a6ff)!important}.sell-action{background:#17314e!important}.take-action{background:#1593e8!important}
 .upgrade-step{display:grid;gap:12px}.upgrade-item{cursor:pointer}.upgrade-item.selected{border-color:#4baeff;box-shadow:0 0 22px rgba(50,160,255,.18)}.upgrade-targets{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:48vh;overflow:auto}.upgrade-target{cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #234664;border-radius:17px;background:#0a1625}.upgrade-target.selected{border-color:#49adff;background:#0e2238}.upgrade-chance{text-align:center;font-size:30px;font-weight:900;color:#5ab3ff;margin:4px 0}.upgrade-vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}.upgrade-vs .drop{margin:0}.upgrade-go{width:100%;margin-top:4px}
 
-.auth-screen{
-position:fixed;
-inset:0;
-z-index:200;
-display:none;
-align-items:center;
-justify-content:center;
-padding:20px;
-background:radial-gradient(circle at 50% 20%,#123d6d,#030811 72%);
-}
-.auth-screen.open{display:flex}
-.auth-box{
-width:min(430px,100%);
-padding:28px 20px;
-border:1px solid #28649d;
-border-radius:28px;
-background:linear-gradient(145deg,#0d1c30,#07111e);
-box-shadow:0 20px 70px rgba(0,0,0,.55);
-text-align:center;
-}
-.auth-logo{
-font-size:36px;
-font-weight:900;
-font-style:italic;
-color:#4ca7ff;
-margin-bottom:8px;
-}
-.auth-box h2{margin:8px 0;font-size:27px}
-.auth-box p{color:#8295ad;line-height:1.45}
-.auth-buttons{display:grid;gap:11px;margin-top:22px}
-.auth-google{background:#fff;color:#17202d}
-.auth-guest{background:#12263e;border:1px solid #2d5377}
-.auth-status{min-height:20px;margin-top:15px;color:#8295ad;font-size:14px}
+.auth-screen{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 20%,#123d6d,#030811 72%)}
+.auth-screen.open{display:flex}.auth-box{width:min(430px,100%);padding:28px 20px;border:1px solid #28649d;border-radius:28px;background:linear-gradient(145deg,#0d1c30,#07111e);box-shadow:0 20px 70px rgba(0,0,0,.55);text-align:center}
+.auth-logo{font-size:36px;font-weight:900;font-style:italic;color:#4ca7ff;margin-bottom:8px}.auth-box h2{margin:8px 0;font-size:27px}.auth-box p{color:#8295ad;line-height:1.45}.auth-buttons{display:grid;gap:11px;margin-top:22px}.auth-google{background:#fff;color:#17202d}.auth-guest{background:#12263e;border:1px solid #2d5377}.auth-status{min-height:20px;margin-top:15px;color:#8295ad;font-size:14px}
 
 @media(max-width:520px){
 main{padding:14px 15px}.grid{gap:11px}.card{min-height:150px;padding:17px;border-radius:22px}.card b{font-size:19px}.icon{font-size:38px}.hero h1{font-size:36px}.case-opening-stage{gap:10px}.case-opening-head h2{font-size:23px}.roulette-item{width:104px;height:116px}.case-actions{grid-template-columns:1fr}.upgrade-targets{grid-template-columns:1fr}
@@ -70,7 +40,6 @@ main{padding:14px 15px}.grid{gap:11px}.card{min-height:150px;padding:17px;border
 
 <body>
 
-<!-- ВЫБОР ВХОДА -->
 <div class="auth-screen" id="authScreen">
 <div class="auth-box">
 
@@ -100,7 +69,6 @@ Google сохраняет баланс и инвентарь в облаке.
 
 </div>
 </div>
-
 
 <div class="app">
 
@@ -208,10 +176,6 @@ Google сохраняет баланс и инвентарь в облаке.
 Валюта: 💎
 </p>
 
-<button class="danger" id="resetBtn">
-Сбросить демо
-</button>
-
 </div>
 
 </section>
@@ -223,7 +187,6 @@ Google сохраняет баланс и инвентарь в облаке.
 
 </main>
 </div>
-
 
 <nav class="tabs">
 
@@ -248,7 +211,6 @@ Google сохраняет баланс и инвентарь в облаке.
 </div>
 
 </nav>
-
 
 <div class="case-opening-overlay" id="caseOpeningOverlay">
 
@@ -307,7 +269,6 @@ Google сохраняет баланс и инвентарь в облаке.
 </div>
 </div>
 
-
 <div class="sheet-bg" id="modal">
 
 <div class="sheet">
@@ -322,14 +283,11 @@ Google сохраняет баланс и инвентарь в облаке.
 
 </div>
 
-
 <div class="toast" id="toast"></div>
-
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-
 
 <script>
 
@@ -343,7 +301,6 @@ messagingSenderId:"917903784504",
 appId:"1:917903784504:web:5ed7d142892b1d7ca004cd"
 };
 
-
 const games=[
 {id:"cases",icon:"🎁",title:"Кейсы",sub:"Открытие кейсов"},
 {id:"battle",icon:"⚔️",title:"Кейс-баттлы",sub:"Дуэль кейсов"},
@@ -353,7 +310,6 @@ const games=[
 {id:"royal",icon:"👑",title:"Королевская битва",sub:"5 раундов"},
 {id:"shop",icon:"🛒",title:"Магазин",sub:"Предметы"}
 ];
-
 
 const items=[
 ["AK-47 | Blue Line","Оружие","🔫",1200],
@@ -391,7 +347,6 @@ type:x[1],
 emoji:x[2],
 price:x[3]
 }));
-
 
 const cases=[
 {
@@ -436,7 +391,6 @@ drops:[
 }
 ];
 
-
 let state={
 balance:5000,
 inventory:[],
@@ -449,7 +403,6 @@ sales:0
 createdAt:null
 };
 
-
 let db=null;
 let auth=null;
 let firebaseUser=null;
@@ -459,12 +412,9 @@ let saveTimer=null;
 let pendingDrop=null;
 let pendingUpgradeSource=null;
 let pendingUpgradeTarget=null;
-let loggingOut=false;
 let guestMode=false;
 
-
 const $=id=>document.getElementById(id);
-
 
 function toast(t){
 
@@ -478,10 +428,9 @@ clearTimeout(window.__toast);
 window.__toast=setTimeout(
 ()=>e.classList.remove("show"),
 2200
-)
+);
 
 }
-
 
 function updateUI(){
 
@@ -497,7 +446,6 @@ $("profileStats").textContent=
 
 }
 
-
 function localSave(){
 
 localStorage.setItem(
@@ -508,10 +456,9 @@ JSON.stringify(state)
 updateUI();
 
 if(!guestMode)
-scheduleCloudSave()
+scheduleCloudSave();
 
 }
-
 
 function loadLocal(){
 
@@ -538,16 +485,15 @@ sales:0
 },
 
 createdAt:x.createdAt||null
-}
+};
 
 }
 
 }catch(e){}
 
-updateUI()
+updateUI();
 
 }
-
 
 function scheduleCloudSave(){
 
@@ -563,10 +509,9 @@ clearTimeout(saveTimer);
 saveTimer=setTimeout(
 saveFirebase,
 300
-)
+);
 
 }
-
 
 function nav(id){
 
@@ -597,10 +542,9 @@ renderShop();
 window.scrollTo({
 top:0,
 behavior:"smooth"
-})
+});
 
 }
-
 
 function makeGameCard(g){
 
@@ -618,10 +562,9 @@ g.id==="shop"
 ?nav("shop")
 :openGame(g.id);
 
-return d
+return d;
 
 }
-
 
 function renderGrids(){
 
@@ -640,12 +583,11 @@ g.id!=="shop"
 e.appendChild(
 makeGameCard(g)
 )
-)
+);
 
 }
 
 }
-
 
 function renderInventory(){
 
@@ -658,7 +600,7 @@ if(!state.inventory.length){
 e.innerHTML=
 '<div class="drop center muted">Инвентарь пуст.<br>Открой кейс или купи предмет.</div>';
 
-return
+return;
 
 }
 
@@ -693,10 +635,9 @@ e.querySelectorAll(".sell")
 .forEach(b=>
 b.onclick=()=>
 sell(+b.dataset.i)
-)
+);
 
 }
-
 
 function renderShop(){
 
@@ -731,10 +672,9 @@ e.querySelectorAll(".buy")
 .forEach(b=>
 b.onclick=()=>
 buy(+b.dataset.id)
-)
+);
 
 }
-
 
 function addItem(name,price,emoji,type){
 
@@ -745,10 +685,9 @@ emoji,
 type
 });
 
-localSave()
+localSave();
 
 }
-
 
 function sell(i){
 
@@ -767,10 +706,9 @@ localSave();
 
 toast(
 "Продано: +"+x.price+" 💎"
-)
+);
 
 }
-
 
 function buy(id){
 
@@ -795,10 +733,9 @@ state.statistics.purchases=
 
 localSave();
 
-toast("Предмет куплен")
+toast("Предмет куплен");
 
 }
-
 
 function pick(d){
 
@@ -810,14 +747,13 @@ for(const x of d){
 s+=x[3];
 
 if(r<s)
-return x
+return x;
 
 }
 
-return d[d.length-1]
+return d[d.length-1];
 
 }
-
 
 function itemType(name){
 
@@ -825,10 +761,9 @@ return name.includes("Sticker")
 ?"Наклейка"
 :name.includes("Нож")
 ?"Нож"
-:"Оружие"
+:"Оружие";
 
 }
-
 
 function openGame(type){
 
@@ -887,7 +822,6 @@ b.innerHTML=
 
 <div id="battleResult"></div>`;
 
-
 if(type==="double")
 
 b.innerHTML=
@@ -908,7 +842,6 @@ value="100">
 
 <div id="doubleResult"></div>`;
 
-
 if(type==="upgrade")
 
 b.innerHTML=
@@ -922,7 +855,6 @@ b.innerHTML=
 </p>
 
 <div id="upgradeList"></div>`;
-
 
 if(type==="contracts")
 
@@ -938,7 +870,6 @@ b.innerHTML=
 </button>
 
 <div id="contractResult"></div>`;
-
 
 if(type==="royal")
 
@@ -956,13 +887,11 @@ b.innerHTML=
 
 <div id="royalResult"></div>`;
 
-
 b.querySelectorAll(".openCase")
 .forEach(x=>
 x.onclick=()=>
 openCase(+x.dataset.i)
 );
-
 
 if(type==="battle")
 $("battleBtn").onclick=battle;
@@ -977,10 +906,9 @@ if(type==="contracts")
 $("contractBtn").onclick=contract;
 
 if(type==="royal")
-$("royalBtn").onclick=royal
+$("royalBtn").onclick=royal;
 
 }
-
 
 function showCaseResult(drop){
 
@@ -997,10 +925,9 @@ $("caseWinPrice").textContent=
 drop[1]+" 💎";
 
 $("caseWinCard")
-.classList.add("show")
+.classList.add("show");
 
 }
-
 
 function openCase(i){
 
@@ -1092,7 +1019,7 @@ strip.style.transition=
 "transform 4.8s cubic-bezier(.07,.72,.12,1)";
 
 strip.style.transform=
-`translateX(${-Math.max(0,target)}px)`
+`translateX(${-Math.max(0,target)}px)`;
 
 })
 );
@@ -1109,12 +1036,11 @@ strip.children[winnerIndex]
 
 showCaseResult(
 pendingDrop
-)
+);
 
-},4900)
+},4900);
 
 }
-
 
 function closeCaseOverlay(){
 
@@ -1123,10 +1049,9 @@ $("caseOpeningOverlay")
 
 pendingDrop=null;
 pendingUpgradeSource=null;
-pendingUpgradeTarget=null
+pendingUpgradeTarget=null;
 
 }
-
 
 function takeCaseDrop(){
 
@@ -1141,10 +1066,9 @@ itemType(pendingDrop[0])
 
 toast("Предмет добавлен в инвентарь");
 
-closeCaseOverlay()
+closeCaseOverlay();
 
 }
-
 
 function sellCaseDrop(){
 
@@ -1164,10 +1088,9 @@ pendingDrop[1]+
 " 💎"
 );
 
-closeCaseOverlay()
+closeCaseOverlay();
 
 }
-
 
 function startUpgradeFromCase(){
 
@@ -1175,10 +1098,9 @@ if(!pendingDrop)return;
 
 closeCaseOverlay();
 
-openGame("upgrade")
+openGame("upgrade");
 
 }
-
 
 function renderUpgrade(sourceIndex=null){
 
@@ -1191,7 +1113,7 @@ if(!state.inventory.length){
 e.innerHTML=
 '<div class="drop center muted">Инвентарь пуст. Получи или купи предмет.</div>';
 
-return
+return;
 
 }
 
@@ -1244,7 +1166,7 @@ x.onclick=()=>
 renderUpgrade(+x.dataset.i)
 );
 
-return
+return;
 
 }
 
@@ -1310,7 +1232,7 @@ ${x.type} • ${x.price} 💎
 ${chance.toFixed(chance%1?1:0)}%
 </span>
 
-</div>`
+</div>`;
 
 }).join("")}
 
@@ -1365,7 +1287,6 @@ disabled>
 
 </div>`;
 
-
 e.querySelectorAll(".upgrade-target")
 .forEach(x=>
 x.onclick=()=>{
@@ -1414,16 +1335,15 @@ ${pendingUpgradeTarget.name}
 $("upgradeGo").disabled=false;
 
 $("upgradeGo").textContent=
-"⬆️ АПГРЕЙД"
+"⬆️ АПГРЕЙД";
 
 }
 );
 
 $("upgradeGo").onclick=
-runUpgrade
+runUpgrade;
 
 }
-
 
 function runUpgrade(){
 
@@ -1539,7 +1459,7 @@ strip.style.transition=
 "transform 4.8s cubic-bezier(.07,.72,.12,1)";
 
 strip.style.transform=
-`translateX(${-Math.max(0,targetX)}px)`
+`translateX(${-Math.max(0,targetX)}px)`;
 
 })
 );
@@ -1616,14 +1536,13 @@ bindCaseButtons();
 
 closeCaseOverlay();
 
-openGame("upgrade")
+openGame("upgrade");
 
 }
 
-},4900)
+},4900);
 
 }
-
 
 function battle(){
 
@@ -1671,10 +1590,9 @@ ${win?
 "💥 Бот победил."}
 </b>
 
-</div>`
+</div>`;
 
 }
-
 
 function doubleGame(){
 
@@ -1714,17 +1632,16 @@ $("doubleResult").innerHTML=
 
 +${prize} 💎
 
-</div>`
+</div>`;
 
 }else
 
 $("doubleResult").innerHTML=
 '<div class="drop center">💥 Ставка проиграна</div>';
 
-localSave()
+localSave();
 
 }
-
 
 function contract(){
 
@@ -1772,10 +1689,9 @@ ${target.name}
 —
 ${target.price} 💎
 
-</div>`
+</div>`;
 
 }
-
 
 function royal(){
 
@@ -1808,15 +1724,13 @@ ${wins>=3?
 Побед в раундах:
 ${wins}/5
 
-</div>`
+</div>`;
 
 }
-
 
 /* =========================
    FIREBASE
    ========================= */
-
 
 function firebaseError(e){
 
@@ -1853,10 +1767,9 @@ return"Нет доступа к RTDB — проверь Rules";
 if(/network|offline|fetch/i.test(m))
 return"Ошибка сети";
 
-return m
+return m;
 
 }
-
 
 function setFirebaseStatus(text,on=false){
 
@@ -1866,10 +1779,9 @@ text;
 $("profileOnline").textContent=
 guestMode?
 "GUEST":
-(on?"ONLINE":"OFFLINE")
+(on?"ONLINE":"OFFLINE");
 
 }
-
 
 function updateGoogleUI(user){
 
@@ -1896,10 +1808,9 @@ $("googleLogoutBtn").style.display=
 $("profileAvatar").textContent=
 "👤";
 
-return
+return;
 
 }
-
 
 if(!user){
 
@@ -1924,10 +1835,9 @@ $("googleLogoutBtn").style.display=
 $("profileAvatar").textContent=
 "👤";
 
-return
+return;
 
 }
-
 
 $("profileUid").textContent=
 "UID: "+user.uid;
@@ -1959,7 +1869,6 @@ $("profileAvatar").textContent=
 "🔵";
 
 }
-
 
 async function loginWithGoogle(){
 
@@ -1998,12 +1907,11 @@ $("authStatus").textContent=
 toast(
 "Ошибка Google: "+
 firebaseError(e)
-)
+);
 
 }
 
 }
-
 
 async function logoutGoogle(){
 
@@ -2011,8 +1919,6 @@ if(!auth)
 return;
 
 try{
-
-loggingOut=true;
 
 await auth.signOut();
 
@@ -2050,23 +1956,18 @@ setFirebaseStatus(
 false
 );
 
-loggingOut=false;
-
 }catch(e){
-
-loggingOut=false;
 
 console.error(e);
 
 toast(
 "Ошибка выхода: "+
 firebaseError(e)
-)
+);
 
 }
 
 }
-
 
 async function continueGuest(){
 
@@ -2090,10 +1991,9 @@ setFirebaseStatus(
 false
 );
 
-toast("Вы вошли как гость")
+toast("Вы вошли как гость");
 
 }
-
 
 async function continueGoogle(){
 
@@ -2102,7 +2002,7 @@ if(!auth||!firebaseReady){
 $("authStatus").textContent=
 "⏳ Firebase ещё загружается…";
 
-return
+return;
 
 }
 
@@ -2116,10 +2016,9 @@ localStorage.setItem(
 $("authStatus").textContent=
 "🔵 Открываем Google…";
 
-await loginWithGoogle()
+await loginWithGoogle();
 
 }
-
 
 async function initFirebase(){
 
@@ -2128,7 +2027,7 @@ if(!window.firebase){
 $("authStatus").textContent=
 "❌ Firebase SDK не загрузился";
 
-return
+return;
 
 }
 
@@ -2159,10 +2058,9 @@ $("authStatus").textContent=
 $("firebaseStatus").textContent=
 "Открой HTML через HTTPS";
 
-return
+return;
 
 }
-
 
 db.ref(".info/connected")
 .on("value",s=>{
@@ -2178,7 +2076,6 @@ true
 );
 
 });
-
 
 let redirectResult=null;
 
@@ -2206,7 +2103,6 @@ $("authStatus").textContent=
 "❌ "+firebaseError(e);
 
 }
-
 
 auth.onAuthStateChanged(
 async user=>{
@@ -2254,19 +2150,13 @@ setFirebaseStatus(
 "❌ Ошибка базы: "+
 firebaseError(e),
 false
-)
+);
 
 }
 
-return
+return;
 
 }
-
-
-/*
- Если Google-пользователь отсутствует,
- Anonymous Auth НЕ запускаем.
- */
 
 const savedMode=
 localStorage.getItem(
@@ -2289,15 +2179,9 @@ setFirebaseStatus(
 false
 );
 
-return
+return;
 
 }
-
-
-/*
- Если пользователь ещё не выбрал режим,
- показываем экран выбора.
- */
 
 guestMode=false;
 
@@ -2327,7 +2211,6 @@ $("authStatus").textContent=
 }
 
 }
-
 
 async function loadFirebaseUser(){
 
@@ -2391,10 +2274,6 @@ updateUI();
 
 }else{
 
-/*
- Новый Google-профиль.
- */
-
 state={
 balance:5000,
 inventory:[],
@@ -2409,18 +2288,17 @@ createdAt:Date.now()
 
 updateUI();
 
-await saveFirebase()
+await saveFirebase();
 
 }
 
 }finally{
 
-saving=false
+saving=false;
 
 }
 
 }
-
 
 async function saveFirebase(){
 
@@ -2479,7 +2357,7 @@ $("firebaseStatus").textContent=
 $("profileOnline").textContent=
 "ONLINE";
 
-return true
+return true;
 
 }catch(e){
 
@@ -2489,16 +2367,15 @@ $("firebaseStatus").textContent=
 "❌ Ошибка сохранения: "+
 firebaseError(e);
 
-return false
+return false;
 
 }finally{
 
-saving=false
+saving=false;
 
 }
 
 }
-
 
 function bindCaseButtons(){
 
@@ -2509,15 +2386,13 @@ $("caseSellBtn").onclick=
 sellCaseDrop;
 
 $("caseUpgradeBtn").onclick=
-startUpgradeFromCase
+startUpgradeFromCase;
 
 }
-
 
 /* =========================
    UI
    ========================= */
-
 
 document
 .querySelectorAll(".tab")
@@ -2525,7 +2400,6 @@ document
 t.onclick=()=>
 nav(t.dataset.screen)
 );
-
 
 $("caseCloseBtn").onclick=()=>{
 
@@ -2535,28 +2409,24 @@ $("caseWinCard")
 .contains("show")
 )
 
-closeCaseOverlay()
+closeCaseOverlay();
 
 };
 
-
 bindCaseButtons();
-
 
 $("closeBtn").onclick=()=>
 $("modal")
 .classList.remove("open");
-
 
 $("modal").onclick=e=>{
 
 if(e.target.id==="modal")
 
 $("modal")
-.classList.remove("open")
+.classList.remove("open");
 
 };
-
 
 $("googleLoginBtn").onclick=
 loginWithGoogle;
@@ -2564,52 +2434,11 @@ loginWithGoogle;
 $("googleLogoutBtn").onclick=
 logoutGoogle;
 
-
 $("authGoogleBtn").onclick=
 continueGoogle;
 
 $("authGuestBtn").onclick=
 continueGuest;
-
-
-$("resetBtn").onclick=
-async()=>{
-
-state={
-balance:5000,
-inventory:[],
-statistics:{
-casesOpened:0,
-upgrades:0,
-purchases:0,
-sales:0
-},
-createdAt:Date.now()
-};
-
-localSave();
-
-if(!guestMode){
-
-const ok=
-await saveFirebase();
-
-toast(
-ok?
-"Данные сброшены и сохранены в Firebase":
-"Ошибка сохранения"
-)
-
-}else{
-
-toast(
-"Гостевые данные сброшены"
-)
-
-}
-
-};
-
 
 $("syncBtn").onclick=
 async()=>{
@@ -2631,10 +2460,9 @@ toast(
 ok?
 "Синхронизация завершена":
 "Синхронизация не выполнена"
-)
+);
 
 };
-
 
 loadLocal();
 
@@ -2647,4 +2475,4 @@ initFirebase();
 </script>
 
 </body>
-  </html>
+   </html>
