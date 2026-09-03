@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ProgNozer</title>
+<style>
+:root{--bg:#050b15;--bg2:#071426;--card:#0c1727;--card2:#0f2036;--line:#1c426d;--blue:#268cff;--blue2:#5ab3ff;--text:#f4f8ff;--muted:#8295ad;--green:#42d6ff;--shadow:0 12px 35px rgba(0,0,0,.28)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% -10%,#123d6d 0,#06111f 38%,#030811 80%);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+body{overflow-x:hidden}.app{max-width:760px;margin:auto;min-height:100vh;padding-bottom:92px}
+.top{height:72px;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;position:sticky;top:0;z-index:20;background:rgba(4,9,17,.94);backdrop-filter:blur(14px);border-bottom:1px solid #173250}
+.logo{font-size:30px;font-weight:900;font-style:italic;letter-spacing:-1.5px;color:#4ca7ff}.balance{padding:10px 15px;border:1px solid #2b659e;border-radius:22px;background:#0a1b30;color:#73c0ff;font-weight:800}
+main{padding:18px}.screen{display:none}.screen.active{display:block}.hero{border:1px solid #28649d;border-radius:30px;padding:29px 18px;text-align:center;background:radial-gradient(circle at 50% 0,#164777,#0a1728 68%);box-shadow:var(--shadow);margin-bottom:20px}
+.hero .small{font-size:18px;color:#879bb2}.hero h1{font-size:40px;margin:9px 0}.hero p{margin:0;color:#8da0b8;font-size:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{min-height:170px;padding:20px;border-radius:26px;border:1px solid #1d3b5d;background:linear-gradient(145deg,#0d1a2c,#091321);box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;justify-content:center;transition:.12s}.card:active{transform:scale(.975);border-color:#3d9cff}
+.icon{font-size:42px;margin-bottom:13px}.card b{font-size:21px}.card span{color:var(--muted);font-size:16px;margin-top:5px}
+h2{font-size:31px;margin:7px 0 18px}h3{margin:8px 0}.muted{color:var(--muted)}.list{display:grid;gap:11px}.row{display:flex;align-items:center;gap:13px;padding:14px;border:1px solid #1c3959;border-radius:19px;background:#0b1726}.thumb{width:56px;height:56px;border-radius:15px;display:grid;place-items:center;background:#122b49;font-size:29px;flex:none}.grow{flex:1;min-width:0}.grow b{display:block}.price{color:#55b4ff;font-weight:900;white-space:nowrap}
+button{border:0;border-radius:13px;background:var(--blue);color:white;padding:12px 16px;font-weight:800;font-size:15px;cursor:pointer}button:active{transform:scale(.97)}button.secondary{background:#12263e;border:1px solid #2d5377}button.danger{background:#8e2a3b}button:disabled{opacity:.45;cursor:not-allowed}
+.tabs{position:fixed;left:0;right:0;bottom:0;height:82px;z-index:30;background:rgba(6,12,21,.98);border-top:1px solid #18344f}.tabs-inner{max-width:760px;height:100%;margin:auto;display:grid;grid-template-columns:repeat(4,1fr)}.tab{background:none;border-radius:0;color:#75889f;padding:7px 2px;font-size:13px}.tab.active{color:#4da6ff}.ti{display:block;font-size:27px;line-height:31px}
+.sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.72);display:none;align-items:flex-end}.sheet-bg.open{display:flex}.sheet{width:min(760px,100%);max-height:90vh;overflow:auto;background:#091625;border:1px solid #27527c;border-radius:28px 28px 0 0;padding:20px;box-shadow:0 -20px 60px rgba(0,0,0,.5)}.close{float:right;width:42px;height:42px;border-radius:50%;padding:0;background:#142b45;font-size:27px}
+.drop{padding:17px;margin:11px 0;border:1px solid #24527d;border-radius:19px;background:#0b192a}.drop.center{text-align:center}.big{font-size:54px}.chancebar{height:8px;border-radius:10px;background:#132b43;overflow:hidden;margin-top:8px}.chancebar i{display:block;height:100%;background:linear-gradient(90deg,#267fff,#59c0ff)}
+input{padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:16px;outline:none}.toast{position:fixed;z-index:100;left:50%;bottom:95px;transform:translate(-50%,20px);opacity:0;transition:.2s;background:#102943;border:1px solid #3b8bd3;padding:13px 18px;border-radius:15px;max-width:92%;text-align:center;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,0)}.status{font-size:13px;padding:7px 10px;border-radius:12px;background:#0c2238;color:#79bcf2;display:inline-block}
+.roulette-window{position:relative;overflow:hidden;border:1px solid #24527d;border-radius:20px;background:#07111f;padding:14px 0;box-shadow:inset 0 0 30px rgba(0,90,180,.10)}.roulette-pointer{position:absolute;z-index:3;top:0;bottom:0;left:50%;width:3px;background:#55aaff;box-shadow:0 0 16px #268cff;transform:translateX(-50%)}.roulette-pointer:before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-top:13px solid #55aaff}
+.roulette-strip{display:flex;gap:9px;width:max-content;transform:translateX(0);will-change:transform}.roulette-item{width:118px;height:126px;flex:none;border:1px solid #25496d;border-radius:15px;background:linear-gradient(145deg,#0e1c2e,#081321);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px}.roulette-item .ri-emoji{font-size:38px;line-height:42px}.roulette-item .ri-name{font-size:12px;font-weight:800;margin-top:5px;max-width:105px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.roulette-item .ri-price{font-size:12px;color:#55b4ff;font-weight:900;margin-top:4px}.roulette-item.win{border-color:#5ab3ff;box-shadow:0 0 25px rgba(60,160,255,.35)}
+.case-opening-overlay{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,rgba(20,95,170,.24),rgba(2,7,14,.98) 62%);padding:14px;overflow:hidden}.case-opening-overlay.open{display:flex}.case-opening-stage{width:min(760px,100%);max-height:96vh;display:flex;flex-direction:column;justify-content:center;gap:14px}.case-opening-head{display:flex;align-items:center;justify-content:space-between}.case-opening-head h2{margin:0;font-size:27px}.case-close{background:#10233a;border:1px solid #2d5b86;width:44px;height:44px;padding:0;border-radius:50%;font-size:25px}.case-opening-window{position:relative;overflow:hidden;border:1px solid #2d689e;border-radius:22px;background:#06101d;padding:13px 0;box-shadow:0 0 45px rgba(20,120,230,.18),inset 0 0 35px rgba(0,100,190,.12)}.case-opening-window .roulette-pointer{top:0;bottom:0}.case-opening-window .roulette-strip{transition:transform 4.8s cubic-bezier(.07,.72,.12,1)}.case-opening-status{text-align:center;color:#91a8c0;font-size:15px;min-height:22px}.case-win-card{display:none;text-align:center;border:1px solid #2d73ad;border-radius:24px;background:#0b1726;padding:18px;box-shadow:0 0 45px rgba(30,130,240,.16)}.case-win-card.show{display:block}.case-win-card .win-emoji{font-size:62px;line-height:1}.case-win-card .win-name{font-size:23px;font-weight:900;margin-top:8px}.case-win-card .win-price{font-size:21px;color:#59b9ff;font-weight:900;margin-top:5px}.case-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.case-actions button{padding:14px 8px;font-size:14px}.upgrade-action{background:linear-gradient(135deg,#1677e8,#39a6ff)!important}.sell-action{background:#17314e!important}.take-action{background:#1593e8!important}
+.upgrade-step{display:grid;gap:12px}.upgrade-item{cursor:pointer}.upgrade-item.selected{border-color:#4baeff;box-shadow:0 0 22px rgba(50,160,255,.18)}.upgrade-targets{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:48vh;overflow:auto}.upgrade-target{cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #234664;border-radius:17px;background:#0a1625}.upgrade-target.selected{border-color:#49adff;background:#0e2238}.upgrade-chance{text-align:center;font-size:30px;font-weight:900;color:#5ab3ff;margin:4px 0}.upgrade-vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}.upgrade-vs .drop{margin:0}.upgrade-go{width:100%;margin-top:4px}
+@media(max-width:520px){main{padding:14px 15px}.grid{gap:11px}.card{min-height:150px;padding:17px;border-radius:22px}.card b{font-size:19px}.icon{font-size:38px}.hero h1{font-size:36px}.case-opening-stage{gap:10px}.case-opening-head h2{font-size:23px}.roulette-item{width:104px;height:116px}.case-actions{grid-template-columns:1fr}.upgrade-targets{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div class="logo">ProgNozer</div><div class="balance" id="balance">5000 💎</div></header>
+<main>
+<section class="screen active" id="home"><div class="hero"><div class="small">Добро пожаловать</div><h1>ProgNozer</h1><p>Игры • Инвентарь • Магазин</p></div><div class="grid" id="homeGrid"></div></section>
+<section class="screen" id="games"><h2>🎮 Игры</h2><div class="grid" id="gamesGrid"></div></section>
+<section class="screen" id="inventory"><h2>🎒 Инвентарь</h2><div class="list" id="inventoryList"></div></section>
+<section class="screen" id="profile"><h2>👤 Профиль</h2><div class="row"><div class="thumb">👤</div><div class="grow"><b>Пользователь</b><span class="muted" id="profileUid">Получаем ID…</span></div><span class="status" id="profileOnline">...</span></div>
+<div class="drop"><b>🔥 Firebase</b><p class="muted" id="firebaseStatus">Проверяем подключение…</p><p class="muted" id="firebaseUid"></p><button class="secondary" id="syncBtn">Синхронизировать сейчас</button></div>
+<div class="drop"><b>📊 Статистика</b><p class="muted" id="profileStats">Кейсов: 0 • Апгрейдов: 0</p></div>
+<div class="drop"><b>☁️ Что сохраняется</b><p class="muted">💎 баланс • 🎒 инвентарь • покупки • продажи • кейсы • апгрейды</p></div>
+<div class="drop"><b>Настройки</b><p class="muted">Язык: Русский<br>Валюта: 💎</p><button class="danger" id="resetBtn">Сбросить демо</button></div></section>
+<section class="screen" id="shop"><h2>🛒 Магазин</h2><div class="list" id="shopList"></div></section>
+</main></div>
+<nav class="tabs"><div class="tabs-inner"><button class="tab active" data-screen="home"><span class="ti">⌂</span>Главная</button><button class="tab" data-screen="games"><span class="ti">🎮</span>Игры</button><button class="tab" data-screen="inventory"><span class="ti">🎒</span>Инвентарь</button><button class="tab" data-screen="profile"><span class="ti">●</span>Профиль</button></div></nav>
+
+<div class="case-opening-overlay" id="caseOpeningOverlay"><div class="case-opening-stage"><div class="case-opening-head"><h2 id="caseOpeningTitle">🎁 Открытие кейса</h2><button class="case-close" id="caseCloseBtn">×</button></div><div class="case-opening-window"><div class="roulette-pointer"></div><div class="roulette-strip" id="caseOpeningStrip"></div></div><div class="case-opening-status" id="caseOpeningStatus">Открываем кейс…</div><div class="case-win-card" id="caseWinCard"><div class="win-emoji" id="caseWinEmoji">🎁</div><div class="win-name" id="caseWinName"></div><div class="win-price" id="caseWinPrice"></div><div class="case-actions"><button class="upgrade-action" id="caseUpgradeBtn">⬆️ Апгрейд</button><button class="take-action" id="caseTakeBtn">📦 Забрать</button><button class="sell-action" id="caseSellBtn">💎 Продать</button></div></div></div></div>
+<div class="sheet-bg" id="modal"><div class="sheet"><button class="close" id="closeBtn">×</button><div id="modalBody"></div></div></div><div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script>
+const FIREBASE_CONFIG={apiKey:"AIzaSyAhKt3V04BH3PkSC4_mAdcJPghOstOd-7A",authDomain:"drivezone-ae945.firebaseapp.com",databaseURL:"https://drivezone-ae945-default-rtdb.firebaseio.com",projectId:"drivezone-ae945",storageBucket:"drivezone-ae945.firebasestorage.app",messagingSenderId:"917903784504",appId:"1:917903784504:web:5ed7d142892b1d7ca004cd"};
+const games=[
+{id:"cases",icon:"🎁",title:"Кейсы",sub:"Открытие кейсов"},{id:"battle",icon:"⚔️",title:"Кейс-баттлы",sub:"Дуэль кейсов"},{id:"double",icon:"🎯",title:"Double",sub:"Виртуальная игра"},{id:"upgrade",icon:"⬆️",title:"Апгрейдер",sub:"Улучшение предмета"},{id:"contracts",icon:"📜",title:"Контракты",sub:"Обмен предметов"},{id:"royal",icon:"👑",title:"Королевская битва",sub:"5 раундов"},{id:"shop",icon:"🛒",title:"Магазин",sub:"Предметы"}];
+const items=[
+["AK-47 | Blue Line","Оружие","🔫",1200],["AK-47 | Neon Rider","Оружие","🔫",3200],["M4A1-S | Night Wave","Оружие","🔫",1800],["AWP | Arctic","Оружие","🔫",4200],["AWP | Redline","Оружие","🔫",5200],["M4A4 | Cyber","Оружие","🔫",2600],["USP-S | Ocean","Оружие","🔫",900],["Glock-18 | Fade","Оружие","🔫",2800],["P2000 | Marsch FT","Оружие","🔫",700],["MP7 | Short Ochre","Оружие","🔫",550],["MP9 | Blue Steel","Оружие","🔫",650],["MAC-10 | Surf","Оружие","🔫",800],["FAMAS | Pulse","Оружие","🔫",1100],["Galil AR | Ice","Оружие","🔫",950],["★ Нож | Blue Steel","Нож","🔪",2200],["★ Нож | Night","Нож","🔪",3600],["★ Нож | Crimson","Нож","🔪",6500],["★ Karambit | Ocean","Нож","🔪",9800],["★ Butterfly | Arctic","Нож","🔪",12500],["★ M9 Bayonet | Dark","Нож","🔪",16000],["Sticker | Champion","Наклейка","🏷️",1200],["Sticker | Star","Наклейка","🏷️",350],["Sticker | Dragon","Наклейка","🏷️",2400],["Sticker | Crown","Наклейка","🏷️",3500],["Sticker | Blue Wave","Наклейка","🏷️",650],["Sticker | Skull","Наклейка","🏷️",900],["Sticker | Lightning","Наклейка","🏷️",1500],["Sticker | Neon","Наклейка","🏷️",2100]].map((x,i)=>({id:i+1,name:x[0],type:x[1],emoji:x[2],price:x[3]}));
+const cases=[
+{name:"Маленький кейс",cost:50,drops:[["Sticker | Star",350,"🏷️",20],["MP7 | Short Ochre",550,"🔫",50],["P2000 | Marsch FT",700,"🔫",25],["★ Нож | Blue Steel",2200,"🔪",5]]},
+{name:"Средний кейс",cost:150,drops:[["Sticker | Champion",1200,"🏷️",35],["P2000 | Marsch FT",700,"🔫",35],["AK-47 | Blue Line",1200,"🔫",28],["★ Нож | Night",3600,"🔪",2]]},
+{name:"Большой кейс",cost:300,drops:[["Sticker | Dragon",2400,"🏷️",40],["AK-47 | Neon Rider",3200,"🔫",35],["★ Нож | Crimson",6500,"🔪",20],["★ Karambit | Ocean",9800,"🔪",5]]},
+{name:"Супер большой кейс",cost:750,drops:[["Sticker | Crown",3500,"🏷️",45],["AWP | Arctic",4200,"🔫",30],["★ M9 Bayonet | Dark",16000,"🔪",20],["★ Butterfly | Arctic",12500,"🔪",5]]}];
+
+let state={balance:5000,inventory:[],statistics:{casesOpened:0,upgrades:0,purchases:0,sales:0},createdAt:null};
+let db=null,auth=null,firebaseUser=null,firebaseReady=false,saving=false,saveTimer=null,pendingDrop=null,pendingUpgradeSource=null,pendingUpgradeTarget=null;
+
+const $=id=>document.getElementById(id);
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>e.classList.remove("show"),2200)}
+function updateUI(){ $("balance").textContent=state.balance+" 💎"; renderInventory(); const s=state.statistics||{}; $("profileStats").textContent=`Кейсов: ${s.casesOpened||0} • Апгрейдов: ${s.upgrades||0}`; }
+function localSave(){localStorage.setItem("prognozer_state",JSON.stringify(state));updateUI();scheduleCloudSave()}
+function loadLocal(){try{const x=JSON.parse(localStorage.getItem("prognozer_state"));if(x&&typeof x.balance==="number"){state={balance:x.balance,inventory:Array.isArray(x.inventory)?x.inventory:(Array.isArray(x.inv)?x.inv:[]),statistics:x.statistics||{casesOpened:0,upgrades:0,purchases:0,sales:0},createdAt:x.createdAt||null}}}catch(e){}updateUI()}
+function scheduleCloudSave(){if(!firebaseUser||!db||saving)return;clearTimeout(saveTimer);saveTimer=setTimeout(saveFirebase,300)}
+function nav(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.screen===id));if(id==="inventory")renderInventory();if(id==="shop")renderShop();window.scrollTo({top:0,behavior:"smooth"})}
+function makeGameCard(g){const d=document.createElement("div");d.className="card";d.innerHTML=`<div class="icon">${g.icon}</div><b>${g.title}</b><span>${g.sub}</span>`;d.onclick=()=>g.id==="shop"?nav("shop"):openGame(g.id);return d}
+function renderGrids(){for(const id of ["homeGrid","gamesGrid"]){const e=$(id);e.innerHTML="";games.filter(g=>id==="homeGrid"||g.id!=="shop").forEach(g=>e.appendChild(makeGameCard(g)))}}
+function renderInventory(){const e=$("inventoryList");if(!e)return;if(!state.inventory.length){e.innerHTML='<div class="drop center muted">Инвентарь пуст.<br>Открой кейс или купи предмет.</div>';return}e.innerHTML=state.inventory.map((x,i)=>`<div class="row"><div class="thumb">${x.emoji}</div><div class="grow"><b>${x.name}</b><span class="muted">${x.type||"Предмет"}</span></div><span class="price">${x.price} 💎</span><button class="secondary sell" data-i="${i}">Продать</button></div>`).join("");e.querySelectorAll(".sell").forEach(b=>b.onclick=()=>sell(+b.dataset.i))}
+function renderShop(){const e=$("shopList");e.innerHTML=items.map(x=>`<div class="row"><div class="thumb">${x.emoji}</div><div class="grow"><b>${x.name}</b><span class="muted">${x.type}</span></div><span class="price">${x.price} 💎</span><button class="buy" data-id="${x.id}">Купить</button></div>`).join("");e.querySelectorAll(".buy").forEach(b=>b.onclick=()=>buy(+b.dataset.id))}
+function addItem(name,price,emoji,type){state.inventory.push({name,price,emoji,type});localSave()}
+function sell(i){const x=state.inventory[i];if(!x)return;state.balance+=x.price;state.inventory.splice(i,1);state.statistics.sales=(state.statistics.sales||0)+1;localSave();toast("Продано: +"+x.price+" 💎")}
+function buy(id){const x=items.find(a=>a.id===id);if(state.balance<x.price)return toast("Не хватает 💎");state.balance-=x.price;state.inventory.push({name:x.name,price:x.price,emoji:x.emoji,type:x.type});state.statistics.purchases=(state.statistics.purchases||0)+1;localSave();toast("Предмет куплен")}
+function pick(d){let r=Math.random()*100,s=0;for(const x of d){s+=x[3];if(r<s)return x}return d[d.length-1]}
+function itemType(name){return name.includes("Sticker")?"Наклейка":name.includes("Нож")?"Нож":"Оружие"}
+
+function openGame(type){
+ const m=$("modal"),b=$("modalBody");m.classList.add("open");
+ if(type==="cases")b.innerHTML=`<h2>🎁 Кейсы</h2>${cases.map((c,i)=>`<div class="drop"><h3>${c.name}</h3><p class="muted">Цена: ${c.cost} 💎</p>${c.drops.map(d=>`<div>${d[2]} ${d[0]} — ${d[3]}%<div class="chancebar"><i style="width:${d[3]*2}%"></i></div></div>`).join("")}<br><button class="openCase" data-i="${i}">Открыть кейс</button></div>`).join("")}`;
+ if(type==="battle")b.innerHTML=`<h2>⚔️ Кейс-баттл</h2><p class="muted">Ты и бот открываете средний кейс. Дороже дроп — победа.</p><button id="battleBtn">Начать за 100 💎</button><div id="battleResult"></div>`;
+ if(type==="double")b.innerHTML=`<h2>🎯 Double</h2><p class="muted">Выбери ставку.</p><input id="doubleBet" type="number" min="1" value="100"><button id="doubleBtn">Играть</button><div id="doubleResult"></div>`;
+ if(type==="upgrade")b.innerHTML=`<h2>⬆️ Апгрейдер</h2><p class="muted">Выбери предмет из инвентаря, затем цель. Шанс = стоимость своего предмета ÷ стоимость цели × 100%.</p><div id="upgradeList"></div>`;
+ if(type==="contracts")b.innerHTML=`<h2>📜 Контракты</h2><p class="muted">3 предмета превращаются в один более дорогой.</p><button id="contractBtn">Обменять 3 предмета</button><div id="contractResult"></div>`;
+ if(type==="royal")b.innerHTML=`<h2>👑 Королевская битва</h2><p class="muted">5 раундов против ботов. Нужно выиграть минимум 3.</p><button id="royalBtn">Начать за 100 💎</button><div id="royalResult"></div>`;
+ b.querySelectorAll(".openCase").forEach(x=>x.onclick=()=>openCase(+x.dataset.i));
+ if(type==="battle")$("battleBtn").onclick=battle;if(type==="double")$("doubleBtn").onclick=doubleGame;if(type==="upgrade")renderUpgrade();if(type==="contracts")$("contractBtn").onclick=contract;if(type==="royal")$("royalBtn").onclick=royal;
+}
+
+function showCaseResult(drop){$("caseOpeningStatus").textContent="🎉 Выпал предмет!";$("caseWinEmoji").textContent=drop[2];$("caseWinName").textContent=drop[0];$("caseWinPrice").textContent=drop[1]+" 💎";$("caseWinCard").classList.add("show")}
+function openCase(i){
+ const c=cases[i];if(state.balance<c.cost)return toast("Не хватает 💎");state.balance-=c.cost;state.statistics.casesOpened=(state.statistics.casesOpened||0)+1;localSave();pendingDrop=pick(c.drops);
+ const overlay=$("caseOpeningOverlay"),strip=$("caseOpeningStrip");$("caseOpeningTitle").textContent="🎁 "+c.name;$("caseOpeningStatus").textContent="Открываем кейс…";$("caseWinCard").classList.remove("show");overlay.classList.add("open");
+ const sequence=[];for(let n=0;n<14;n++)sequence.push(...c.drops);const winnerIndex=sequence.length-c.drops.length+Math.max(0,c.drops.indexOf(pendingDrop));sequence[winnerIndex]=pendingDrop;
+ strip.style.transition="none";strip.style.transform="translateX(0)";strip.innerHTML=sequence.map(x=>`<div class="roulette-item"><div class="ri-emoji">${x[2]}</div><div class="ri-name">${x[0]}</div><div class="ri-price">${x[1]} 💎</div></div>`).join("");
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{const card=strip.children[winnerIndex],v=strip.parentElement,target=card.offsetLeft+card.offsetWidth/2-v.clientWidth/2;strip.style.transition="transform 4.8s cubic-bezier(.07,.72,.12,1)";strip.style.transform=`translateX(${-Math.max(0,target)}px)`}));
+ clearTimeout(window.__caseTimer);window.__caseTimer=setTimeout(()=>{strip.children[winnerIndex]?.classList.add("win");showCaseResult(pendingDrop)},4900)
+}
+function closeCaseOverlay(){ $("caseOpeningOverlay").classList.remove("open");pendingDrop=null;pendingUpgradeSource=null;pendingUpgradeTarget=null}
+function takeCaseDrop(){if(!pendingDrop)return;addItem(pendingDrop[0],pendingDrop[1],pendingDrop[2],itemType(pendingDrop[0]));toast("Предмет добавлен в инвентарь");closeCaseOverlay()}
+function sellCaseDrop(){if(!pendingDrop)return;state.balance+=pendingDrop[1];state.statistics.sales=(state.statistics.sales||0)+1;localSave();toast("Продано: +"+pendingDrop[1]+" 💎");closeCaseOverlay()}
+function startUpgradeFromCase(){if(!pendingDrop)return;closeCaseOverlay();openGame("upgrade")}
+
+function renderUpgrade(sourceIndex=null){
+ const e=$("upgradeList");if(!e)return;
+ if(!state.inventory.length){e.innerHTML='<div class="drop center muted">Инвентарь пуст. Получи или купи предмет.</div>';return}
+ if(sourceIndex===null){e.innerHTML=`<div class="upgrade-step"><div class="drop"><b>Шаг 1. Что улучшаем?</b><p class="muted">Выбери предмет из своего инвентаря.</p></div><div class="list">${state.inventory.map((x,i)=>`<div class="row upgrade-item" data-i="${i}"><div class="thumb">${x.emoji}</div><div class="grow"><b>${x.name}</b><span class="muted">${x.type||"Предмет"} • ${x.price} 💎</span></div><span>›</span></div>`).join("")}</div></div>`;e.querySelectorAll(".upgrade-item").forEach(x=>x.onclick=()=>renderUpgrade(+x.dataset.i));return}
+ const source=state.inventory[sourceIndex];if(!source)return renderUpgrade();pendingUpgradeSource=sourceIndex;
+ const targets=items.filter(x=>x.price>source.price);
+ e.innerHTML=`<div class="upgrade-step"><div class="drop center"><b>Шаг 2. На что улучшаем?</b><p class="muted">${source.emoji} ${source.name} • ${source.price} 💎</p></div><div class="upgrade-targets">${targets.map(x=>{const chance=Math.min(100,source.price/x.price*100);return `<div class="upgrade-target" data-id="${x.id}"><div class="thumb">${x.emoji}</div><div class="grow"><b>${x.name}</b><span class="muted">${x.type} • ${x.price} 💎</span></div><span class="price">${chance.toFixed(chance%1?1:0)}%</span></div>`}).join("")}</div><div class="upgrade-vs"><div class="drop center"><div class="big">${source.emoji}</div><b>${source.price} 💎</b><br><span class="muted">Твой предмет</span></div><b>→</b><div class="drop center" id="upgradeTargetPreview"><div class="big">❔</div><b>Выбери</b></div></div><div class="upgrade-chance" id="upgradeChance">—</div><button class="upgrade-go" id="upgradeGo" disabled>⬆️ АПГРЕЙД</button></div>`;
+ e.querySelectorAll(".upgrade-target").forEach(x=>x.onclick=()=>{e.querySelectorAll(".upgrade-target").forEach(z=>z.classList.remove("selected"));x.classList.add("selected");pendingUpgradeTarget=items.find(a=>a.id===+x.dataset.id);const ch=Math.min(100,source.price/pendingUpgradeTarget.price*100);$("upgradeChance").textContent=ch.toFixed(ch%1?1:0)+"% ШАНС";$("upgradeTargetPreview").innerHTML=`<div class="big">${pendingUpgradeTarget.emoji}</div><b>${pendingUpgradeTarget.price} 💎</b><br><span class="muted">${pendingUpgradeTarget.name}</span>`;$("upgradeGo").disabled=false;$("upgradeGo").textContent="⬆️ АПГРЕЙД"});
+ $("upgradeGo").onclick=runUpgrade
+}
+function runUpgrade(){
+ if(pendingUpgradeSource===null||!pendingUpgradeTarget)return;const source=state.inventory[pendingUpgradeSource];if(!source)return renderUpgrade();const target=pendingUpgradeTarget,chance=Math.min(100,source.price/target.price*100),success=Math.random()*100<chance;
+ const overlay=$("caseOpeningOverlay"),strip=$("caseOpeningStrip");$("caseOpeningTitle").textContent="⬆️ Апгрейд";$("caseOpeningStatus").textContent="Проверяем шанс "+chance.toFixed(chance%1?1:0)+"%…";$("caseWinCard").classList.remove("show");overlay.classList.add("open");
+ const pool=[source,target,...items.filter(x=>x.price>=source.price).slice(0,8)],seq=[];for(let n=0;n<12;n++)seq.push(pool[n%pool.length]);const winner=success?target:source,winnerIndex=seq.length-pool.length+pool.indexOf(winner);seq[winnerIndex]=winner;
+ strip.style.transition="none";strip.style.transform="translateX(0)";strip.innerHTML=seq.map(x=>`<div class="roulette-item"><div class="ri-emoji">${x.emoji}</div><div class="ri-name">${x.name}</div><div class="ri-price">${x.price} 💎</div></div>`).join("");
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{const card=strip.children[winnerIndex],v=strip.parentElement,targetX=card.offsetLeft+card.offsetWidth/2-v.clientWidth/2;strip.style.transition="transform 4.8s cubic-bezier(.07,.72,.12,1)";strip.style.transform=`translateX(${-Math.max(0,targetX)}px)`}));
+ clearTimeout(window.__upgradeTimer);window.__upgradeTimer=setTimeout(()=>{strip.children[winnerIndex]?.classList.add("win");$("caseWinEmoji").textContent=winner.emoji;$("caseWinName").textContent=success?target.name:"Апгрейд не удался";$("caseWinPrice").textContent=success?target.price+" 💎":"Предмет потерян";$("caseOpeningStatus").textContent=success?"🎉 Успешный апгрейд!":"💥 Неудача";$("caseWinCard").classList.add("show");
+ state.statistics.upgrades=(state.statistics.upgrades||0)+1;if(success)state.inventory[pendingUpgradeSource]={name:target.name,price:target.price,emoji:target.emoji,type:target.type};else state.inventory.splice(pendingUpgradeSource,1);localSave();
+ document.querySelector(".case-actions").innerHTML='<button class="take-action" id="upgradeFinishBtn" style="grid-column:1/-1">✓ Продолжить</button>';$("upgradeFinishBtn").onclick=()=>{document.querySelector(".case-actions").innerHTML='<button class="upgrade-action" id="caseUpgradeBtn">⬆️ Апгрейд</button><button class="take-action" id="caseTakeBtn">📦 Забрать</button><button class="sell-action" id="caseSellBtn">💎 Продать</button>';bindCaseButtons();closeCaseOverlay();openGame("upgrade")}},4900)
+}
+function battle(){if(state.balance<100)return toast("Не хватает 💎");state.balance-=100;const a=pick(cases[1].drops),bot=pick(cases[1].drops),win=a[1]>=bot[1];if(win)state.inventory.push({name:a[0],price:a[1],emoji:a[2],type:itemType(a[0])});localSave();$("battleResult").innerHTML=`<div class="drop">Твой дроп: ${a[2]} ${a[0]} — ${a[1]} 💎<br>Бот: ${bot[2]} ${bot[0]} — ${bot[1]} 💎<hr><b>${win?"🏆 Ты победил и забрал дроп!":"💥 Бот победил."}</b></div>`}
+function doubleGame(){const bet=Math.floor(+$("doubleBet").value);if(!bet||bet<1||state.balance<bet)return toast("Неверная ставка");state.balance-=bet;const mult=(1+Math.random()).toFixed(2),win=Math.random()<.48;if(win){const prize=Math.floor(bet*mult);state.balance+=prize;$("doubleResult").innerHTML=`<div class="drop center">🎉 <b>${mult}×</b><br>+${prize} 💎</div>`}else $("doubleResult").innerHTML='<div class="drop center">💥 Ставка проиграна</div>';localSave()}
+function contract(){if(state.inventory.length<3)return toast("Нужно 3 предмета");const chosen=state.inventory.splice(0,3),value=Math.floor(chosen.reduce((s,x)=>s+x.price,0)*.75),pool=items.filter(x=>x.price<=Math.max(value,1)),target=pool[Math.floor(Math.random()*pool.length)];state.inventory.push({name:target.name,price:target.price,emoji:target.emoji,type:target.type});localSave();$("contractResult").innerHTML=`<div class="drop center">📜 Получено: ${target.emoji} ${target.name} — ${target.price} 💎</div>`}
+function royal(){if(state.balance<100)return toast("Не хватает 💎");state.balance-=100;let wins=0;for(let i=0;i<5;i++)if(Math.random()<.55)wins++;if(wins>=3)state.balance+=200;localSave();$("royalResult").innerHTML=`<div class="drop center">${wins>=3?"👑 Победа! +200 💎":"💥 Поражение"}<br>Побед в раундах: ${wins}/5</div>`}
+
+function firebaseError(e){const c=e?.code||"",m=e?.message||String(e);if(c==="auth/operation-not-allowed")return"Anonymous-вход не включён в Authentication";if(c==="PERMISSION_DENIED"||/permission_denied/i.test(m))return"нет доступа к RTDB — проверь Rules";if(/network|offline|fetch/i.test(m))return"ошибка сети";return m}
+function setFirebaseStatus(text,on=false){$("firebaseStatus").textContent=text;$("profileOnline").textContent=on?"ONLINE":"OFFLINE"}
+async function initFirebase(){
+ if(!window.firebase)return setFirebaseStatus("❌ Firebase SDK не загрузился. Проверь интернет.");
+ try{
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  auth=firebase.auth();
+  firebaseReady=true;
+
+  // Важно: Firebase Auth в Android-браузере не должен открываться как
+  // content://downloads/... или file://... . Для реальной авторизации
+  // страница должна быть размещена на HTTPS/localhost.
+  const protocol=location.protocol;
+  if(protocol==="file:" || protocol==="content:"){
+    setFirebaseStatus("⚠️ HTML открыт как файл. Для Firebase Auth открой его через HTTPS/localhost.",false);
+    $("profileUid").textContent="Firebase ждёт веб-адрес";
+    $("firebaseUid").textContent="Загрузите HTML на Firebase Hosting / GitHub Pages";
+    return;
+  }
+
+  db.ref(".info/connected").on("value",s=>{
+    if(s.val()===true && firebaseUser)setFirebaseStatus("🟢 Подключено • база доступна",true);
+    else if(!firebaseUser)setFirebaseStatus("🔐 Авторизация…",false);
+    else setFirebaseStatus("🔴 База недоступна",false);
+  });
+
+  let authTimer=setTimeout(()=>{
+    if(!firebaseUser){
+      setFirebaseStatus("❌ Авторизация не отвечает. Проверь Anonymous Provider и Authorized domains.",false);
+      $("profileUid").textContent="UID не получен";
+    }
+  },12000);
+
+  auth.onAuthStateChanged(async user=>{
+   clearTimeout(authTimer);
+   firebaseUser=user;
+   if(!user){
+     setFirebaseStatus("🔐 Входим анонимно…",false);
+     try{
+       const result=await Promise.race([
+         auth.signInAnonymously(),
+         new Promise((_,reject)=>setTimeout(()=>reject(new Error("Тайм-аут Anonymous Auth (12 сек)")),12000))
+       ]);
+       console.log("Firebase UID:",result.user.uid);
+     }catch(e){
+       const msg=firebaseError(e);
+       setFirebaseStatus("❌ Ошибка входа: "+msg,false);
+       $("profileUid").textContent="UID не получен";
+       $("firebaseUid").textContent="Проверьте Authentication → Sign-in method → Anonymous";
+       console.error("Firebase Auth error:",e);
+     }
+     return;
+   }
+
+   $("profileUid").textContent="UID: "+user.uid;
+   $("firebaseUid").textContent="UID: "+user.uid;
+   setFirebaseStatus("☁️ Авторизован • загружаем данные…",true);
+
+   try{
+     await loadFirebaseUser();
+     setFirebaseStatus("🟢 Firebase подключена • ☁️ данные синхронизированы",true);
+   }catch(e){
+     setFirebaseStatus("❌ Ошибка базы: "+firebaseError(e),false);
+     console.error("Firebase RTDB error:",e);
+   }
+  });
+ }catch(e){
+   firebaseReady=false;
+   setFirebaseStatus("❌ Ошибка Firebase: "+firebaseError(e),false);
+   console.error(e);
+ }
+}
+async function loadFirebaseUser(){
+ if(!firebaseUser||!db)throw new Error("Firebase не готов");saving=true;
+ try{
+  const ref=db.ref("prognozer/users/"+firebaseUser.uid),snap=await ref.once("value"),remote=snap.val();
+  if(remote){
+   state={balance:typeof remote.balance==="number"?remote.balance:5000,inventory:Array.isArray(remote.inventory)?remote.inventory:[],statistics:remote.statistics||{casesOpened:0,upgrades:0,purchases:0,sales:0},createdAt:remote.createdAt||Date.now()};
+   localStorage.setItem("prognozer_state",JSON.stringify(state));updateUI();
+  }else{state.createdAt=Date.now();await saveFirebase()}
+ }finally{saving=false}
+}
+async function saveFirebase(){
+ if(!firebaseUser||!db)return false;saving=true;
+ try{
+  await db.ref("prognozer/users/"+firebaseUser.uid).update({balance:Number(state.balance)||0,inventory:Array.isArray(state.inventory)?state.inventory:[],statistics:state.statistics||{},createdAt:state.createdAt||Date.now(),updatedAt:firebase.database.ServerValue.TIMESTAMP});
+  $("firebaseStatus").textContent="🟢 Firebase подключена • ☁️ данные синхронизированы";$("profileOnline").textContent="ONLINE";return true
+ }catch(e){$("firebaseStatus").textContent="Ошибка сохранения: "+firebaseError(e);return false}finally{saving=false}
+}
+function bindCaseButtons(){$("caseTakeBtn").onclick=takeCaseDrop;$("caseSellBtn").onclick=sellCaseDrop;$("caseUpgradeBtn").onclick=startUpgradeFromCase}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>nav(t.dataset.screen));
+$("caseCloseBtn").onclick=()=>{if($("caseWinCard").classList.contains("show"))closeCaseOverlay()};bindCaseButtons();
+$("closeBtn").onclick=()=>$("modal").classList.remove("open");$("modal").onclick=e=>{if(e.target.id==="modal")$("modal").classList.remove("open")};
+$("resetBtn").onclick=async()=>{state={balance:5000,inventory:[],statistics:{casesOpened:0,upgrades:0,purchases:0,sales:0},createdAt:Date.now()};localSave();const ok=await saveFirebase();toast(ok?"Данные сброшены и сохранены в Firebase":"Демо сброшено локально")};
+$("syncBtn").onclick=async()=>{setFirebaseStatus("☁️ Синхронизация…",true);const ok=await saveFirebase();toast(ok?"Синхронизация завершена":"Синхронизация не выполнена")};
+loadLocal();renderGrids();renderShop();initFirebase();
+</script>
+</body>
+</html>
