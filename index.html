@@ -438,7 +438,250 @@ main{padding:14px 15px}
 </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js">
+/* ===== FINAL FIX LAYER ===== */
+let googleSynced=false;
+let presenceConnectedHandler=null;
+let presenceRef=null;
+
+function isGoogleReady(){return !!(firebaseUser && !firebaseUser.isAnonymous && !guestMode && googleSynced && db)}
+function requireGameAccess(){
+  if(guestMode) return true;
+  if(!firebaseUser || firebaseUser.isAnonymous){
+    toast("🔒 Войдите через Google или продолжите как гость");
+    $("authScreen")?.classList.add("open");
+    return false;
+  }
+  if(!googleSynced){
+    toast("☁️ Сначала дождитесь синхронизации с Firebase");
+    return false;
+  }
+  return true;
+}
+
+/* Guest is strictly local. No Firebase writes are allowed from guest mode. */
+function localSave(){
+  if(guestMode){saveGuest();return;}
+  if(firebaseUser && !firebaseUser.isAnonymous && googleSynced){
+    try{localStorage.setItem(googleCacheKey(firebaseUser.uid),JSON.stringify(state))}catch(e){}
+    updateUI();
+    scheduleCloudSave();
+    return;
+  }
+  updateUI();
+}
+function scheduleCloudSave(){
+  if(!isGoogleReady() || saving)return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>saveFirebase(),350);
+}
+
+/* Every successful sync refreshes the Google avatar/profile URL. */
+async function refreshGoogleProfile(){
+  if(!isGoogleReady())return false;
+  const u=firebaseUser;
+  const profile={
+    name:u.displayName||"",
+    email:u.email||"",
+    photoURL:u.photoURL||""
+  };
+  await db.ref("prognozer/users/"+u.uid+"/profile").update(profile);
+  await db.ref("prognozer/community/profiles/"+u.uid).update({
+    displayName:u.displayName||"Пользователь",
+    photoURL:u.photoURL||"",
+    uid:u.uid,
+    updatedAt:firebase.database.ServerValue.TIMESTAMP
+  });
+  updateGoogleUI(u);
+  return true;
+}
+
+async function saveFirebase(){
+  if(!firebaseUser || firebaseUser.isAnonymous || !db || guestMode || saving)return false;
+  saving=true;
+  try{
+    const u=firebaseUser;
+    const data={
+      balance:Number(state.balance)||0,
+      inventory:Array.isArray(state.inventory)?state.inventory:[],
+      statistics:state.statistics||{},
+      createdAt:state.createdAt||Date.now(),
+      updatedAt:firebase.database.ServerValue.TIMESTAMP,
+      profile:{name:u.displayName||"",email:u.email||"",photoURL:u.photoURL||""}
+    };
+    await db.ref("prognozer/users/"+u.uid).update(data);
+    await db.ref("prognozer/community/profiles/"+u.uid).update({
+      displayName:u.displayName||"Пользователь",
+      photoURL:u.photoURL||"",
+      uid:u.uid,
+      updatedAt:firebase.database.ServerValue.TIMESTAMP
+    });
+    try{localStorage.setItem(googleCacheKey(u.uid),JSON.stringify(state))}catch(e){}
+    googleSynced=true;
+    $("firebaseStatus").textContent="🟢 Firebase • ☁️ синхронизировано";
+    $("profileOnline").textContent="ONLINE";
+    updateGoogleUI(u);
+    return true;
+  }catch(e){
+    googleSynced=false;
+    $("firebaseStatus").textContent="❌ Ошибка: "+firebaseError(e);
+    return false;
+  }finally{saving=false}
+}
+
+/* Login: synchronization is considered complete only after the user's cloud data is loaded. */
+async function handleAuthUser(user){
+  if(!authUIReady)return;
+  const uid=user?(user.uid||""):"";
+  if(authHandling&&uid===lastAuthUid)return;
+  lastAuthUid=uid;
+  authHandling=true;
+  googleSynced=false;
+  try{
+    if(user&&user.isAnonymous){
+      try{await auth.signOut()}catch(e){}
+      firebaseUser=null;guestMode=false;googleSynced=false;lastAuthUid=null;
+      loadGuest();updateGoogleUI(null);$("authScreen").classList.add("open");
+      setFirebaseStatus("Выберите способ входа",false);return;
+    }
+    if(user){
+      firebaseUser=user;guestMode=false;
+      $("authScreen").classList.remove("open");
+      updateGoogleUI(user);
+      setFirebaseStatus("🔵 Google • синхронизация…",true);
+      try{
+        await loadFirebaseUser();
+        /* Always write the CURRENT Google photoURL during sync. */
+        await refreshGoogleProfile();
+        const username=await getMyUsername();
+        if(username){
+          await db.ref("prognozer/community/profiles/"+user.uid).update({
+            username,displayName:user.displayName||username,photoURL:user.photoURL||"",
+            rank:"Silver I",uid:user.uid,updatedAt:firebase.database.ServerValue.TIMESTAMP
+          });
+          await startPresence();
+        }
+        googleSynced=true;
+        setFirebaseStatus("🟢 Google подключён • синхронизировано",true);
+        updateGoogleUI(user);loadUsernameDisplay();updateCommunityDrawer();
+      }catch(e){
+        googleSynced=false;
+        setFirebaseStatus("❌ Ошибка синхронизации: "+firebaseError(e),false);
+      }
+      return;
+    }
+    firebaseUser=null;guestMode=false;googleSynced=false;
+    loadGuest();updateGoogleUI(null);$("authScreen").classList.add("open");
+    setFirebaseStatus("Выберите способ входа",false);
+  }finally{authHandling=false}
+}
+
+async function loginWithGoogle(){
+  if(!auth||!firebaseReady){$("authStatus").textContent="⏳ Firebase ещё загружается…";return}
+  const provider=new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:"select_account"});
+  $("authStatus").textContent="🔵 Открываем Google…";
+  try{await auth.signInWithPopup(provider);}
+  catch(e){const msg=firebaseError(e);$("authStatus").textContent="❌ "+msg;toast("Ошибка: "+msg)}
+}
+
+async function continueGuest(){
+  /* Explicitly local-only: no guest data is ever written to Firebase. */
+  try{if(auth&&auth.currentUser)await auth.signOut()}catch(e){}
+  clearTimeout(saveTimer);googleSynced=false;firebaseUser=null;guestMode=true;
+  loadGuest();$("authScreen").classList.remove("open");updateGoogleUI(null);
+  setFirebaseStatus("👤 Гостевой режим • только на этом устройстве",false);
+  $("authStatus").textContent="";loadUsernameDisplay();toast("Вы вошли как гость");
+}
+
+async function logoutGoogle(){
+  if(!auth)return;
+  try{
+    loggingOut=true;googleSynced=false;clearTimeout(saveTimer);
+    if(firebaseUser&&db){try{await db.ref("prognozer/community/online/"+firebaseUser.uid).remove()}catch(_){}
+    }
+    await auth.signOut();firebaseUser=null;guestMode=false;lastAuthUid=null;
+    state=createDefaultState();updateUI();$("authScreen").classList.add("open");
+    updateGoogleUI(null);setFirebaseStatus("Выберите способ входа",false);$("authStatus").textContent="";
+    loggingOut=false;toast("Вы вышли из Google");
+  }catch(e){loggingOut=false;toast("Ошибка выхода: "+firebaseError(e))}
+}
+
+/* Do not accumulate .info/connected listeners. */
+async function startPresence(){
+  if(!isGoogleReady())return;
+  const username=await getMyUsername();if(!username)return;
+  const ref=db.ref("prognozer/community/online/"+firebaseUser.uid);
+  const connectedRef=db.ref(".info/connected");
+  if(presenceConnectedHandler)connectedRef.off("value",presenceConnectedHandler);
+  presenceConnectedHandler=snap=>{
+    if(snap.val()!==true || !isGoogleReady())return;
+    ref.onDisconnect().remove();
+    ref.set({uid:firebaseUser.uid,username,displayName:firebaseUser.displayName||username,
+      photoURL:firebaseUser.photoURL||"",rank:"Silver I",lastSeen:firebase.database.ServerValue.TIMESTAMP});
+  };
+  connectedRef.on("value",presenceConnectedHandler);
+  presenceRef=ref;
+}
+
+/* Game modes: Google users need a completed sync; guests can play immediately. */
+const _originalOpenGame=openGame;
+openGame=function(type){
+  if(type!=="shop" && !requireGameAccess())return;
+  return _originalOpenGame(type);
+};
+const _originalBuy=buy;
+buy=function(id){
+  if(!guestMode && !requireGameAccess())return;
+  return _originalBuy(id);
+};
+
+/* Prevent game-opening buttons from being usable before sync, while keeping the guest path free. */
+function renderGrids(){
+  for(const id of ["homeGrid","gamesGrid"]){
+    const e=$(id);if(!e)continue;e.innerHTML="";
+    games.filter(g=>id==="homeGrid"||g.id!=="shop").forEach(g=>e.appendChild(makeGameCard(g)));
+  }
+}
+
+/* Likes: one like per Google user, guest cannot touch Community. */
+async function likeCommunityPost(id){
+  if(!isGoogleReady())return toast("🔒 Сначала войдите через Google и синхронизируйтесь");
+  try{
+    const likeRef=db.ref("prognozer/community/postLikes/"+id+"/"+firebaseUser.uid);
+    const result=await likeRef.transaction(v=>v?null:true);
+    if(result.committed){
+      const countRef=db.ref("prognozer/community/posts/"+id+"/likes");
+      await countRef.transaction(v=>Math.max(0,(Number(v)||0)+(result.snapshot.val()?1:-1)));
+    }
+  }catch(e){toast("Ошибка лайка: "+firebaseError(e))}
+}
+
+/* Community must also require sync, not merely a Google account object. */
+async function openCommunity(){
+  if(!isGoogleReady()){
+    toast(guestMode?"🔒 Community недоступен в гостевом режиме":"☁️ Сначала дождитесь синхронизации");
+    if(!guestMode)$("authScreen")?.classList.add("open");
+    return;
+  }
+  const username=await getMyUsername();
+  if(!username){toast("Сначала установите username");nav("profile");return;}
+  nav("community");
+  initCommunityListeners();
+}
+
+/* Re-bind handlers because functions above intentionally replace the old implementations. */
+$("googleLoginBtn").onclick=loginWithGoogle;
+$("googleLogoutBtn").onclick=logoutGoogle;
+$("authGoogleBtn").onclick=continueGoogle;
+$("authGuestBtn").onclick=continueGuest;
+$("communityTab").onclick=openCommunity;
+$("addPostBtn").onclick=openCreatePost;
+
+/* Initial state: guests stay local; Google is marked unsynced until handleAuthUser finishes. */
+googleSynced=!!(guestMode);
+
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script>
