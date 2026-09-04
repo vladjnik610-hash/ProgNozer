@@ -7,63 +7,71 @@
 
 <style>
 :root{
- --bg:#050b15;--bg2:#071426;--card:#0c1727;--card2:#0f2036;
- --line:#1c426d;--blue:#268cff;--blue2:#5ab3ff;
- --text:#f4f8ff;--muted:#8295ad;--green:#42d6ff;
- --shadow:0 12px 35px rgba(0,0,0,.28)
+  --bg:#050b15;
+  --bg2:#071426;
+  --card:#0c1727;
+  --card2:#0f2036;
+  --line:#1c426d;
+  --blue:#268cff;
+  --blue2:#5ab3ff;
+  --text:#f4f8ff;
+  --muted:#8295ad;
+  --green:#42d6ff;
+  --shadow:0 12px 35px rgba(0,0,0,.28)
 }
 
 *{
- box-sizing:border-box;
- -webkit-tap-highlight-color:transparent
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent
 }
 
 html,body{
- margin:0;
- min-height:100%;
- background:radial-gradient(circle at 50% -10%,#123d6d 0,#06111f 38%,#030811 80%);
- color:var(--text);
- font-family:Arial,Helvetica,sans-serif
+  margin:0;
+  min-height:100%;
+  background:
+    radial-gradient(circle at 50% -10%,#123d6d 0,#06111f 38%,#030811 80%);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif
 }
 
 body{overflow-x:hidden}
 
 .app{
- max-width:760px;
- margin:auto;
- min-height:100vh;
- padding-bottom:92px
+  max-width:760px;
+  margin:auto;
+  min-height:100vh;
+  padding-bottom:92px
 }
 
 .top{
- height:72px;
- display:flex;
- align-items:center;
- justify-content:space-between;
- padding:10px 18px;
- position:sticky;
- top:0;
- z-index:20;
- background:rgba(4,9,17,.94);
- backdrop-filter:blur(14px);
- border-bottom:1px solid #173250
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 18px;
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(4,9,17,.94);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid #173250
 }
 
 .logo{
- font-size:30px;
- font-weight:900;
- font-style:italic;
- letter-spacing:-1.5px;
- color:#4ca7ff
+  font-size:30px;
+  font-weight:900;
+  font-style:italic;
+  letter-spacing:-1.5px;
+  color:#4ca7ff
 }
 
 .balance{
- padding:10px 15px;
- border:1px solid #2b659e;
- border-radius:22px;
- background:#0a1b30;
- color:#73c0ff;
- font-weight:800
+  padding:10px 15px;
+  border:1px solid #2b659e;
+  border-radius:22px;
+  background:#0a1b30;
+  color:#73c0ff;
+  font-weight:800
 }
 
 main{padding:18px}
@@ -72,1401 +80,1835 @@ main{padding:18px}
 .screen.active{display:block}
 
 .hero{
- border:1px solid #28649d;
- border-radius:30px;
- padding:29px 18px;
- text-align:center;
- background:radial-gradient(circle at 50% 0,#164777,#0a1728 68%);
- box-shadow:var(--shadow);
- margin-bottom:20px
+  border:1px solid #28649d;
+  border-radius:30px;
+  padding:29px 18px;
+  text-align:center;
+  background:
+    radial-gradient(circle at 50% 0,#164777,#0a1728 68%);
+  box-shadow:var(--shadow);
+  margin-bottom:20px
 }
 
 .hero .small{
- font-size:18px;
- color:#879bb2
+  font-size:18px;
+  color:#879bb2
 }
 
 .hero h1{
- font-size:40px;
- margin:9px 0
+  font-size:40px;
+  margin:9px 0
 }
 
 .hero p{
- margin:0;
- color:#8da0b8;
- font-size:18px
+  margin:0;
+  color:#8da0b8;
+  font-size:18px
 }
 
 .grid{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:14px
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px
 }
 
 .card{
- min-height:170px;
- padding:20px;
- border-radius:26px;
- border:1px solid #1d3b5d;
- background:linear-gradient(145deg,#0d1a2c,#091321);
- box-shadow:var(--shadow);
- cursor:pointer;
- display:flex;
- flex-direction:column;
- justify-content:center;
- transition:.12s
+  min-height:170px;
+  padding:20px;
+  border-radius:26px;
+  border:1px solid #1d3b5d;
+  background:linear-gradient(145deg,#0d1a2c,#091321);
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  transition:.12s
 }
 
 .card:active{
- transform:scale(.975);
- border-color:#3d9cff
+  transform:scale(.975);
+  border-color:#3d9cff
 }
 
 .icon{
- font-size:42px;
- margin-bottom:13px
+  font-size:42px;
+  margin-bottom:13px
 }
 
 .card b{font-size:21px}
-
 .card span{
- color:var(--muted);
- font-size:16px;
- margin-top:5px
+  color:var(--muted);
+  font-size:16px;
+  margin-top:5px
 }
 
 h2{
- font-size:31px;
- margin:7px 0 18px
+  font-size:31px;
+  margin:7px 0 18px
 }
 
 h3{margin:8px 0}
-
 .muted{color:var(--muted)}
 
 .list{
- display:grid;
- gap:11px
+  display:grid;
+  gap:11px
 }
 
 .row{
- display:flex;
- align-items:center;
- gap:13px;
- padding:14px;
- border:1px solid #1c3959;
- border-radius:19px;
- background:#0b1726
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:14px;
+  border:1px solid #1c3959;
+  border-radius:19px;
+  background:#0b1726
 }
 
 .thumb{
- width:56px;
- height:56px;
- border-radius:15px;
- display:grid;
- place-items:center;
- background:#122b49;
- font-size:29px;
- flex:none;
- overflow:hidden
+  width:56px;
+  height:56px;
+  border-radius:15px;
+  display:grid;
+  place-items:center;
+  background:#122b49;
+  font-size:29px;
+  flex:none;
+  overflow:hidden
 }
 
 .thumb img{
- width:100%;
- height:100%;
- object-fit:cover
+  width:100%;
+  height:100%;
+  object-fit:cover
 }
 
 .grow{
- flex:1;
- min-width:0
+  flex:1;
+  min-width:0
 }
 
-.grow b{
- display:block
-}
+.grow b{display:block}
 
 .price{
- color:#55b4ff;
- font-weight:900;
- white-space:nowrap
+  color:#55b4ff;
+  font-weight:900;
+  white-space:nowrap
 }
 
 button{
- border:0;
- border-radius:13px;
- background:var(--blue);
- color:white;
- padding:12px 16px;
- font-weight:800;
- font-size:15px;
- cursor:pointer
+  border:0;
+  border-radius:13px;
+  background:var(--blue);
+  color:white;
+  padding:12px 16px;
+  font-weight:800;
+  font-size:15px;
+  cursor:pointer
 }
 
-button:active{
- transform:scale(.97)
-}
+button:active{transform:scale(.97)}
 
 button.secondary{
- background:#12263e;
- border:1px solid #2d5377
+  background:#12263e;
+  border:1px solid #2d5377
 }
 
-button.danger{
- background:#8e2a3b
-}
+button.danger{background:#8e2a3b}
 
 button:disabled{
- opacity:.45;
- cursor:not-allowed
+  opacity:.45;
+  cursor:not-allowed
 }
 
 .tabs{
- position:fixed;
- left:0;
- right:0;
- bottom:0;
- height:82px;
- z-index:30;
- background:rgba(6,12,21,.98);
- border-top:1px solid #18344f
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  height:82px;
+  z-index:30;
+  background:rgba(6,12,21,.98);
+  border-top:1px solid #18344f
 }
 
 .tabs-inner{
- max-width:760px;
- height:100%;
- margin:auto;
- display:grid;
- grid-template-columns:repeat(5,1fr)
+  max-width:760px;
+  height:100%;
+  margin:auto;
+  display:grid;
+  grid-template-columns:repeat(6,1fr)
 }
 
 .tab{
- background:none;
- border-radius:0;
- color:#75889f;
- padding:7px 2px;
- font-size:12px
+  background:none;
+  border-radius:0;
+  color:#75889f;
+  padding:7px 2px;
+  font-size:11px
 }
 
-.tab.active{
- color:#4da6ff
-}
+.tab.active{color:#4da6ff}
 
 .ti{
- display:block;
- font-size:25px;
- line-height:31px
+  display:block;
+  font-size:27px;
+  line-height:31px
 }
 
 .sheet-bg{
- position:fixed;
- inset:0;
- z-index:40;
- background:rgba(0,0,0,.72);
- display:none;
- align-items:flex-end
+  position:fixed;
+  inset:0;
+  z-index:40;
+  background:rgba(0,0,0,.72);
+  display:none;
+  align-items:flex-end
 }
 
-.sheet-bg.open{
- display:flex
-}
+.sheet-bg.open{display:flex}
 
 .sheet{
- width:min(760px,100%);
- max-height:90vh;
- overflow:auto;
- background:#091625;
- border:1px solid #27527c;
- border-radius:28px 28px 0 0;
- padding:20px;
- box-shadow:0 -20px 60px rgba(0,0,0,.5)
+  width:min(760px,100%);
+  max-height:90vh;
+  overflow:auto;
+  background:#091625;
+  border:1px solid #27527c;
+  border-radius:28px 28px 0 0;
+  padding:20px;
+  box-shadow:0 -20px 60px rgba(0,0,0,.5)
 }
 
 .close{
- float:right;
- width:42px;
- height:42px;
- border-radius:50%;
- padding:0;
- background:#142b45;
- font-size:27px
+  float:right;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  padding:0;
+  background:#142b45;
+  font-size:27px
 }
 
 .drop{
- padding:17px;
- margin:11px 0;
- border:1px solid #24527d;
- border-radius:19px;
- background:#0b192a
+  padding:17px;
+  margin:11px 0;
+  border:1px solid #24527d;
+  border-radius:19px;
+  background:#0b192a
 }
 
 .drop.center{text-align:center}
-
 .big{font-size:54px}
 
 .chancebar{
- height:8px;
- border-radius:10px;
- background:#132b43;
- overflow:hidden;
- margin-top:8px
+  height:8px;
+  border-radius:10px;
+  background:#132b43;
+  overflow:hidden;
+  margin-top:8px
 }
 
 .chancebar i{
- display:block;
- height:100%;
- background:linear-gradient(90deg,#267fff,#59c0ff)
+  display:block;
+  height:100%;
+  background:linear-gradient(90deg,#267fff,#59c0ff)
 }
 
-input,textarea,select{
- padding:12px;
- border-radius:12px;
- border:1px solid #2a4f72;
- background:#081522;
- color:#fff;
- font-size:16px;
- outline:none;
- width:100%
+input,
+textarea,
+select{
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #2a4f72;
+  background:#081522;
+  color:#fff;
+  font-size:16px;
+  outline:none;
+  font-family:Arial,Helvetica,sans-serif
 }
 
 textarea{
- min-height:220px;
- resize:vertical;
- font-family:Arial,Helvetica,sans-serif;
- line-height:1.45
+  width:100%;
+  resize:vertical;
+  min-height:220px;
+  line-height:1.45
 }
 
 .toast{
- position:fixed;
- z-index:100;
- left:50%;
- bottom:95px;
- transform:translate(-50%,20px);
- opacity:0;
- transition:.2s;
- background:#102943;
- border:1px solid #3b8bd3;
- padding:13px 18px;
- border-radius:15px;
- max-width:92%;
- text-align:center;
- pointer-events:none
+  position:fixed;
+  z-index:100;
+  left:50%;
+  bottom:95px;
+  transform:translate(-50%,20px);
+  opacity:0;
+  transition:.2s;
+  background:#102943;
+  border:1px solid #3b8bd3;
+  padding:13px 18px;
+  border-radius:15px;
+  max-width:92%;
+  text-align:center;
+  pointer-events:none
 }
 
 .toast.show{
- opacity:1;
- transform:translate(-50%,0)
+  opacity:1;
+  transform:translate(-50%,0)
 }
 
 .status{
- font-size:13px;
- padding:7px 10px;
- border-radius:12px;
- background:#0c2238;
- color:#79bcf2;
- display:inline-block
+  font-size:13px;
+  padding:7px 10px;
+  border-radius:12px;
+  background:#0c2238;
+  color:#79bcf2;
+  display:inline-block
 }
 
-/* КЕЙСЫ */
+/* AUTH */
 
-.roulette-window{
- position:relative;
- overflow:hidden;
- border:1px solid #24527d;
- border-radius:20px;
- background:#07111f;
- padding:14px 0;
- box-shadow:inset 0 0 30px rgba(0,90,180,.10)
+.auth-screen{
+  position:fixed;
+  inset:0;
+  z-index:200;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:
+    radial-gradient(circle at 50% 20%,#123d6d,#030811 72%)
 }
 
-.roulette-pointer{
- position:absolute;
- z-index:3;
- top:0;
- bottom:0;
- left:50%;
- width:3px;
- background:#55aaff;
- box-shadow:0 0 16px #268cff;
- transform:translateX(-50%)
+.auth-screen.open{display:flex}
+
+.auth-box{
+  width:min(430px,100%);
+  padding:28px 20px;
+  border:1px solid #28649d;
+  border-radius:28px;
+  background:linear-gradient(145deg,#0d1c30,#07111e);
+  box-shadow:0 20px 70px rgba(0,0,0,.55);
+  text-align:center
 }
 
-.roulette-pointer:before{
- content:"";
- position:absolute;
- top:0;
- left:50%;
- transform:translateX(-50%);
- border-left:9px solid transparent;
- border-right:9px solid transparent;
- border-top:13px solid #55aaff
+.auth-logo{
+  font-size:36px;
+  font-weight:900;
+  font-style:italic;
+  color:#4ca7ff;
+  margin-bottom:8px
 }
 
-.roulette-strip{
- display:flex;
- gap:9px;
- width:max-content;
- transform:translateX(0);
- will-change:transform
+.auth-box h2{
+  margin:8px 0;
+  font-size:27px
 }
 
-.roulette-item{
- width:118px;
- height:126px;
- flex:none;
- border:1px solid #25496d;
- border-radius:15px;
- background:linear-gradient(145deg,#0e1c2e,#081321);
- display:flex;
- flex-direction:column;
- align-items:center;
- justify-content:center;
- text-align:center;
- padding:8px
+.auth-box p{
+  color:#8295ad;
+  line-height:1.45
 }
 
-.roulette-item .ri-emoji{
- font-size:38px;
- line-height:42px
+.auth-buttons{
+  display:grid;
+  gap:11px;
+  margin-top:22px
 }
 
-.roulette-item .ri-name{
- font-size:12px;
- font-weight:800;
- margin-top:5px;
- max-width:105px;
- overflow:hidden;
- text-overflow:ellipsis;
- white-space:nowrap
+.auth-google{
+  background:#fff;
+  color:#17202d
 }
 
-.roulette-item .ri-price{
- font-size:12px;
- color:#55b4ff;
- font-weight:900;
- margin-top:4px
+.auth-guest{
+  background:#12263e;
+  border:1px solid #2d5377
 }
 
-.roulette-item.win{
- border-color:#5ab3ff;
- box-shadow:0 0 25px rgba(60,160,255,.35)
+.auth-status{
+  min-height:20px;
+  margin-top:15px;
+  color:#8295ad;
+  font-size:14px
 }
 
-.case-opening-overlay{
- position:fixed;
- inset:0;
- z-index:90;
- display:none;
- align-items:center;
- justify-content:center;
- background:radial-gradient(circle at 50% 35%,rgba(20,95,170,.24),rgba(2,7,14,.98) 62%);
- padding:14px;
- overflow:hidden
+/* USERNAME */
+
+.username-input-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px
 }
 
-.case-opening-overlay.open{
- display:flex
+.username-prefix{
+  color:#4da6ff;
+  font-size:18px;
+  font-weight:900;
+  flex-shrink:0
 }
 
-.case-opening-stage{
- width:min(760px,100%);
- max-height:96vh;
- display:flex;
- flex-direction:column;
- justify-content:center;
- gap:14px
+.username-input-wrap input{
+  flex:1;
+  min-width:0
 }
 
-.case-opening-head{
- display:flex;
- align-items:center;
- justify-content:space-between
+.username-hint{
+  font-size:12px;
+  color:#526a82;
+  margin-top:7px;
+  line-height:1.5
 }
 
-.case-opening-head h2{
- margin:0;
- font-size:27px
+.username-display{
+  font-size:15px;
+  color:#4da6ff;
+  font-weight:800;
+  margin-top:4px;
+  min-height:20px
 }
 
-.case-close{
- background:#10233a;
- border:1px solid #2d5b86;
- width:44px;
- height:44px;
- padding:0;
- border-radius:50%;
- font-size:25px
+.username-save-btn{
+  flex-shrink:0;
+  padding:12px 18px;
+  font-size:14px
 }
 
-.case-opening-window{
- position:relative;
- overflow:hidden;
- border:1px solid #2d689e;
- border-radius:22px;
- background:#06101d;
- padding:13px 0;
- box-shadow:0 0 45px rgba(20,120,230,.18),inset 0 0 35px rgba(0,100,190,.12)
+/* COMMUNITY */
+
+.community-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:15px
 }
 
-.case-opening-window .roulette-pointer{
- top:0;
- bottom:0
-}
-
-.case-opening-window .roulette-strip{
- transition:transform 4.8s cubic-bezier(.07,.72,.12,1)
-}
-
-.case-opening-status{
- text-align:center;
- color:#91a8c0;
- font-size:15px;
- min-height:22px
-}
-
-.case-win-card{
- display:none;
- text-align:center;
- border:1px solid #2d73ad;
- border-radius:24px;
- background:#0b1726;
- padding:18px;
- box-shadow:0 0 45px rgba(30,130,240,.16)
-}
-
-.case-win-card.show{
- display:block
-}
-
-.case-win-card .win-emoji{
- font-size:62px;
- line-height:1
-}
-
-.case-win-card .win-name{
- font-size:23px;
- font-weight:900;
- margin-top:8px
-}
-
-.case-win-card .win-price{
- font-size:21px;
- color:#59b9ff;
- font-weight:900;
- margin-top:5px
-}
-
-.case-actions{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:10px;
- margin-top:14px
-}
-
-.case-actions button{
- padding:14px 8px;
- font-size:14px
-}
-
-.upgrade-action{
- background:linear-gradient(135deg,#1677e8,#39a6ff)!important
-}
-
-.sell-action{
- background:#17314e!important
-}
-
-.take-action{
- background:#1593e8!important
-}
-
-.upgrade-step{
- display:grid;
- gap:12px
-}
-
-.upgrade-item{
- cursor:pointer
-}
-
-.upgrade-item.selected{
- border-color:#4baeff;
- box-shadow:0 0 22px rgba(50,160,255,.18)
-}
-
-.upgrade-targets{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:10px;
- max-height:48vh;
- overflow:auto
-}
-
-.upgrade-target{
- cursor:pointer;
- display:flex;
- align-items:center;
- gap:10px;
- padding:12px;
- border:1px solid #234664;
- border-radius:17px;
- background:#0a1625
-}
-
-.upgrade-target.selected{
- border-color:#49adff;
- background:#0e2238
-}
-
-.upgrade-chance{
- text-align:center;
- font-size:30px;
- font-weight:900;
- color:#5ab3ff;
- margin:4px 0
-}
-
-.upgrade-vs{
- display:grid;
- grid-template-columns:1fr auto 1fr;
- align-items:center;
- gap:8px
-}
-
-.upgrade-vs .drop{
- margin:0
-}
-
-.upgrade-go{
- width:100%;
- margin-top:4px
-}
-
-/* =========================
-   КОМЬЮНИТИ
-========================= */
-
-.community-header{
- display:flex;
- align-items:center;
- gap:10px;
- margin-bottom:12px
-}
-
-.community-header h2{
- margin:0;
- flex:1
+.community-head h2{
+  flex:1;
+  margin:0
 }
 
 .menu-button{
- width:48px;
- height:48px;
- padding:0;
- display:grid;
- place-items:center;
- font-size:24px;
- background:#102943;
- border:1px solid #2b5a83
-}
-
-.community-gate{
- padding:24px 16px;
- text-align:center;
- border:1px solid #285a86;
- border-radius:24px;
- background:linear-gradient(145deg,#0d1e32,#081321);
- box-shadow:var(--shadow)
-}
-
-.community-gate .gate-icon{
- font-size:58px;
- margin-bottom:10px
-}
-
-.community-gate h3{
- font-size:23px;
- margin:8px 0
-}
-
-.community-gate p{
- color:var(--muted);
- line-height:1.5
-}
-
-.google-button{
- width:100%;
- background:#fff;
- color:#111;
- border:1px solid #ddd;
- margin-top:8px
-}
-
-.username-box{
- margin-top:12px;
- display:grid;
- gap:9px
+  width:46px;
+  height:46px;
+  padding:0;
+  font-size:24px;
+  background:#102943;
+  border:1px solid #28557e
 }
 
 .online-box{
- padding:16px;
- border:1px solid #24527d;
- border-radius:20px;
- background:#0b192a;
- margin-bottom:16px
+  border:1px solid #1c426d;
+  border-radius:22px;
+  background:linear-gradient(145deg,#0b192a,#07121f);
+  padding:14px;
+  margin-bottom:20px
 }
 
 .online-title{
- display:flex;
- justify-content:space-between;
- align-items:center;
- margin-bottom:13px
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px
 }
 
 .online-title b{
- font-size:18px
+  font-size:16px
 }
 
 .online-count{
- color:#52d6ff;
- font-weight:900
+  color:#52b7ff;
+  font-size:13px;
+  font-weight:800
 }
 
-.online-list{
- display:flex;
- gap:14px;
- overflow-x:auto;
- padding:3px 2px 7px;
- scrollbar-width:none
+.online-users{
+  display:flex;
+  gap:13px;
+  overflow-x:auto;
+  padding-bottom:4px
 }
 
-.online-list::-webkit-scrollbar{
- display:none
+.online-users::-webkit-scrollbar{
+  height:4px
+}
+
+.online-users::-webkit-scrollbar-thumb{
+  background:#214c73;
+  border-radius:10px
 }
 
 .online-user{
- flex:none;
- width:76px;
- text-align:center
+  min-width:68px;
+  width:68px;
+  text-align:center
 }
 
 .online-avatar{
- width:58px;
- height:58px;
- margin:auto;
- border-radius:50%;
- border:2px solid #38c5ff;
- background:#102943;
- display:grid;
- place-items:center;
- overflow:hidden;
- position:relative;
- box-shadow:0 0 14px rgba(50,170,255,.18)
-}
-
-.online-avatar:after{
- content:"";
- position:absolute;
- width:11px;
- height:11px;
- border-radius:50%;
- background:#40df83;
- right:-1px;
- bottom:2px;
- border:2px solid #091625
+  width:56px;
+  height:56px;
+  margin:auto;
+  border-radius:50%;
+  background:#122b49;
+  border:2px solid #268cff;
+  display:grid;
+  place-items:center;
+  font-size:25px;
+  overflow:hidden;
+  position:relative
 }
 
 .online-avatar img{
- width:100%;
- height:100%;
- object-fit:cover
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+.online-dot{
+  position:absolute;
+  right:0;
+  bottom:0;
+  width:14px;
+  height:14px;
+  background:#42e878;
+  border:2px solid #07121f;
+  border-radius:50%
 }
 
 .online-name{
- margin-top:6px;
- font-size:12px;
- font-weight:800;
- overflow:hidden;
- text-overflow:ellipsis;
- white-space:nowrap
+  display:block;
+  font-size:11px;
+  margin-top:6px;
+  color:#c8ddf4;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
 }
 
-.community-post-head{
- display:flex;
- align-items:center;
- gap:11px
+.community-posts-title{
+  font-size:25px;
+  font-weight:900;
+  margin:5px 0 13px
+}
+
+.add-post-main{
+  width:100%;
+  margin-bottom:15px;
+  font-size:16px;
+  padding:15px
+}
+
+.post{
+  border:1px solid #1d4266;
+  border-radius:22px;
+  background:linear-gradient(145deg,#0c1929,#081321);
+  padding:15px;
+  margin-bottom:12px;
+  box-shadow:0 8px 25px rgba(0,0,0,.18)
+}
+
+.post-author{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px
 }
 
 .post-avatar{
- width:46px;
- height:46px;
- flex:none;
- border-radius:50%;
- overflow:hidden;
- background:#122b49;
- display:grid;
- place-items:center;
- border:1px solid #2b608d
+  width:43px;
+  height:43px;
+  border-radius:50%;
+  background:#122b49;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:1px solid #285b89;
+  flex:none
 }
 
 .post-avatar img{
- width:100%;
- height:100%;
- object-fit:cover
+  width:100%;
+  height:100%;
+  object-fit:cover
 }
 
-.post-meta{
- min-width:0;
- flex:1
+.post-author-name{
+  font-weight:900;
+  color:#55b4ff
 }
 
-.post-meta b{
- display:block;
- overflow:hidden;
- text-overflow:ellipsis;
- white-space:nowrap
-}
-
-.post-date{
- color:#71869e;
- font-size:12px;
- margin-top:3px
+.post-time{
+  font-size:11px;
+  color:#61778f;
+  margin-top:2px
 }
 
 .post-text{
- margin-top:13px;
- white-space:pre-wrap;
- word-break:break-word;
- line-height:1.5;
- color:#eaf3ff
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.45;
+  font-size:15px;
+  color:#e7f1ff
+}
+
+.skin-card{
+  margin-top:13px;
+  border:1px solid #2b5e8c;
+  border-radius:17px;
+  padding:13px;
+  background:#0a1b2e;
+  display:flex;
+  align-items:center;
+  gap:13px
 }
 
 .skin-preview{
- margin-top:14px;
- padding:13px;
- border:1px solid #28557d;
- border-radius:17px;
- background:#081725
+  width:70px;
+  height:70px;
+  border-radius:14px;
+  background:#122b49;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  font-size:35px;
+  flex:none
 }
 
-.skin-preview-title{
- color:#7fb8e8;
- font-size:13px;
- margin-bottom:8px
+.skin-preview img{
+  width:100%;
+  height:100%;
+  object-fit:cover
 }
 
-.skin-image{
- width:100%;
- max-height:270px;
- object-fit:contain;
- border-radius:12px;
- background:#06101c
+.skin-name{
+  font-weight:900
 }
 
-.skin-placeholder{
- min-height:100px;
- display:grid;
- place-items:center;
- font-size:45px
-}
-
-.post-actions{
- display:flex;
- gap:8px;
- margin-top:14px;
- flex-wrap:wrap
-}
-
-.add-post-button{
- width:100%;
- margin-bottom:13px;
- font-size:16px;
- padding:14px
-}
-
-.skin-options{
- display:grid;
- grid-template-columns:repeat(2,1fr);
- gap:10px;
- margin-top:10px
-}
-
-.skin-option{
- padding:12px;
- border:1px solid #234664;
- border-radius:16px;
- background:#0a1625;
- cursor:pointer;
- text-align:center
-}
-
-.skin-option.selected{
- border-color:#49adff;
- background:#0e2238;
- box-shadow:0 0 18px rgba(40,150,255,.15)
-}
-
-.skin-icon{
- font-size:35px;
- margin-bottom:5px
-}
-
-.locked-button{
- background:#16273b!important;
- color:#8195aa!important;
- border:1px solid #2b4056!important
-}
-
-/* ШТОРКА */
-
-.drawer-overlay{
- position:fixed;
- inset:0;
- z-index:70;
- background:rgba(0,0,0,.65);
- display:none
-}
-
-.drawer-overlay.open{
- display:block
-}
-
-.drawer{
- position:absolute;
- left:0;
- top:0;
- bottom:0;
- width:min(330px,88vw);
- background:#081523;
- border-right:1px solid #28567f;
- box-shadow:20px 0 50px rgba(0,0,0,.45);
- padding:18px;
- overflow:auto
-}
-
-.drawer-head{
- display:flex;
- align-items:center;
- justify-content:space-between;
- padding-bottom:15px;
- border-bottom:1px solid #1c3b59;
- margin-bottom:12px
-}
-
-.drawer-head b{
- font-size:21px
-}
-
-.drawer-close{
- width:40px;
- height:40px;
- padding:0;
- border-radius:50%;
- background:#122a43;
- font-size:24px
-}
-
-.drawer-button{
- width:100%;
- display:flex;
- align-items:center;
- gap:13px;
- text-align:left;
- margin:7px 0;
- background:#0c1e31;
- border:1px solid #1c4264;
- padding:15px
-}
-
-.drawer-button .db-icon{
- font-size:24px
-}
-
-.friend-list{
- display:grid;
- gap:8px;
- margin-top:10px
-}
-
-.friend-item{
- display:flex;
- align-items:center;
- gap:10px;
- padding:10px;
- border-radius:14px;
- background:#0b192a;
- border:1px solid #1d3c5b
-}
-
-.friend-avatar{
- width:42px;
- height:42px;
- border-radius:50%;
- overflow:hidden;
- display:grid;
- place-items:center;
- background:#122b49;
- flex:none
-}
-
-.friend-avatar img{
- width:100%;
- height:100%;
- object-fit:cover
+.skin-sub{
+  color:#8295ad;
+  font-size:12px;
+  margin-top:4px
 }
 
 .trade-card{
- padding:15px;
- border-radius:17px;
- border:1px solid #28567e;
- background:#0b192a;
- margin-top:10px
+  margin-top:13px;
+  border:1px solid #3a6fa0;
+  border-radius:18px;
+  padding:14px;
+  background:linear-gradient(145deg,#102b47,#0a192a)
 }
 
-.trade-card b{
- display:block;
- margin-bottom:5px
+.trade-top{
+  display:flex;
+  align-items:center;
+  gap:10px
 }
 
-.player-shop-card{
- padding:14px;
- border-radius:17px;
- border:1px solid #24527d;
- background:#0b192a;
- margin-top:10px
+.trade-icon{
+  width:48px;
+  height:48px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:#153553;
+  font-size:27px
 }
 
-.player-shop-card .shop-price{
- color:#55b4ff;
- font-weight:900
+.trade-price{
+  margin-left:auto;
+  color:#59bdff;
+  font-weight:900
 }
 
-.line-counter{
- display:flex;
- justify-content:space-between;
- color:#8096ae;
- font-size:13px;
- margin-top:7px
+/* COMMUNITY GATE */
+
+.community-lock{
+  border:1px solid #25517b;
+  border-radius:26px;
+  padding:27px 18px;
+  background:linear-gradient(145deg,#0d1c2f,#081320);
+  text-align:center;
+  box-shadow:var(--shadow)
 }
 
-.toggle-row{
- display:flex;
- align-items:center;
- gap:10px;
- padding:12px;
- border-radius:15px;
- background:#0a1827;
- border:1px solid #1d3d5c;
- margin-top:10px
+.community-lock-icon{
+  font-size:60px;
+  margin-bottom:10px
 }
 
-.toggle-row input{
- width:auto
+.community-lock h3{
+  font-size:23px;
+  margin:5px 0 10px
 }
 
-.auth-user{
- display:flex;
- align-items:center;
- gap:10px;
- margin-bottom:10px
+.community-lock p{
+  color:#8295ad;
+  line-height:1.5
 }
 
-.auth-user-avatar{
- width:45px;
- height:45px;
- border-radius:50%;
- overflow:hidden;
- background:#122b49;
- display:grid;
- place-items:center
+/* DRAWER */
+
+.drawer-bg{
+  position:fixed;
+  inset:0;
+  z-index:150;
+  background:rgba(0,0,0,.68);
+  display:none
 }
 
-.auth-user-avatar img{
- width:100%;
- height:100%;
- object-fit:cover
+.drawer-bg.open{display:block}
+
+.drawer{
+  width:min(330px,86%);
+  height:100%;
+  background:#071321;
+  border-right:1px solid #28557e;
+  box-shadow:20px 0 60px rgba(0,0,0,.5);
+  padding:18px;
+  overflow:auto;
+  animation:drawerIn .18s ease-out
+}
+
+@keyframes drawerIn{
+  from{transform:translateX(-100%)}
+  to{transform:translateX(0)}
+}
+
+.drawer-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding-bottom:18px;
+  border-bottom:1px solid #173651;
+  margin-bottom:14px
+}
+
+.drawer-head-avatar{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  background:#122b49;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  font-size:25px
+}
+
+.drawer-head-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+.drawer-head-name{
+  font-weight:900
+}
+
+.drawer-head-user{
+  color:#55b4ff;
+  font-size:13px;
+  margin-top:3px
+}
+
+.drawer-button{
+  width:100%;
+  text-align:left;
+  margin-bottom:9px;
+  padding:15px;
+  background:#0c1c2e;
+  border:1px solid #1c3f60;
+  color:#e6f2ff
+}
+
+.drawer-button:hover{
+  border-color:#3a91d5;
+  background:#102842
+}
+
+.drawer-close{
+  width:100%;
+  margin-top:12px;
+  background:#14263a;
+  border:1px solid #2b4f70
+}
+
+/* SKIN PICKER */
+
+.skin-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+  margin-top:10px
+}
+
+.skin-choice{
+  padding:12px;
+  border-radius:15px;
+  border:1px solid #214765;
+  background:#0a192a;
+  cursor:pointer;
+  text-align:center
+}
+
+.skin-choice.selected{
+  border-color:#4da6ff;
+  box-shadow:0 0 15px rgba(40,140,255,.18);
+  background:#102b45
+}
+
+.skin-choice-icon{
+  font-size:32px
+}
+
+.skin-choice-name{
+  font-size:12px;
+  margin-top:5px;
+  font-weight:800
+}
+
+.checkbox-row{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:11px 0;
+  color:#b9cce0
+}
+
+.checkbox-row input{
+  width:18px;
+  height:18px
+}
+
+.line-info{
+  display:flex;
+  justify-content:space-between;
+  color:#7189a2;
+  font-size:12px;
+  margin-top:7px
+}
+
+/* FRIENDS */
+
+.friend-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border:1px solid #1d3f60;
+  border-radius:16px;
+  margin:8px 0;
+  background:#0a1828
+}
+
+.friend-avatar{
+  width:43px;
+  height:43px;
+  border-radius:50%;
+  background:#122b49;
+  overflow:hidden;
+  display:grid;
+  place-items:center
+}
+
+.friend-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+.empty-box{
+  padding:25px 15px;
+  text-align:center;
+  color:#71869d;
+  border:1px dashed #254b6c;
+  border-radius:17px;
+  margin-top:10px
+}
+
+/* DOUBLE */
+
+.dbl-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px
+}
+
+.dbl-wheel-outer{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:290px;
+  height:290px
+}
+
+.dbl-fixed-pointer{
+  position:absolute;
+  top:-4px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10;
+  width:0;
+  height:0;
+  border-left:12px solid transparent;
+  border-right:12px solid transparent;
+  border-top:24px solid #55aaff;
+  filter:drop-shadow(0 0 10px #268cff);
+  pointer-events:none
+}
+
+.dbl-canvas{
+  border-radius:50%;
+  display:block;
+  border:2px solid #1a4a7a;
+  box-shadow:0 0 30px rgba(30,100,200,.25)
+}
+
+.dbl-center-overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none
+}
+
+.dbl-num{
+  font-size:44px;
+  font-weight:900;
+  color:#fff
+}
+
+.dbl-chips{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center
+}
+
+.dbl-chip{
+  padding:7px 14px;
+  border-radius:20px;
+  border:1px solid #2a5072;
+  background:#0d1e30;
+  color:#73c0ff;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer
+}
+
+.dbl-chip.sel{
+  background:#1a4a70;
+  border-color:#4da6ff;
+  color:#fff
+}
+
+.dbl-amt{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  justify-content:center
+}
+
+.dbl-amt input{
+  width:120px;
+  text-align:center
+}
+
+.dbl-main-bets{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+  width:100%
+}
+
+.dbl-btn{
+  padding:15px 8px;
+  border-radius:16px;
+  font-weight:900;
+  font-size:15px
+}
+
+.dbl-red{
+  background:linear-gradient(145deg,#8b1c1c,#c03030)
+}
+
+.dbl-black{
+  background:linear-gradient(145deg,#111e30,#1e3048)
+}
+
+.dbl-green{
+  background:linear-gradient(145deg,#0a4d22,#167a35)
+}
+
+.dbl-extra-bets{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+  width:100%
+}
+
+.dbl-extra{
+  padding:11px 6px;
+  border-radius:12px;
+  border:1px solid #24527d;
+  background:#0b192a;
+  color:#73c0ff;
+  font-weight:700;
+  font-size:13px
+}
+
+.dbl-nums{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:5px;
+  width:100%
+}
+
+.dbl-numb{
+  padding:9px 4px;
+  border-radius:9px;
+  border:1px solid #1d3b5d;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+  text-align:center
+}
+
+.dbl-numb.r{
+  background:#5a1010;
+  color:#ff9999
+}
+
+.dbl-numb.b{
+  background:#111e30;
+  color:#99ccff
+}
+
+.dbl-numb.g{
+  background:#0a3a18;
+  color:#99ffcc
+}
+
+.dbl-active{
+  font-size:13px;
+  color:#5ab3ff;
+  min-height:18px;
+  text-align:center;
+  width:100%
+}
+
+.dbl-spin-btn{
+  width:100%;
+  padding:16px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#1367d4,#2e9cf0);
+  font-weight:900;
+  font-size:17px
+}
+
+.dbl-result{
+  padding:13px;
+  border-radius:14px;
+  border:1px solid #1d3b5d;
+  background:#0b1726;
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  text-align:center
+}
+
+/* UPGRADE */
+
+.upg-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:18px;
+  width:100%
+}
+
+.upg-ring-area{
+  position:relative;
+  width:260px;
+  height:260px;
+  display:flex;
+  align-items:center;
+  justify-content:center
+}
+
+.upg-ring-canvas{
+  position:absolute;
+  inset:0
+}
+
+.upg-ring-center{
+  position:relative;
+  z-index:4;
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  background:#0a1828;
+  border:2px solid #1a3a5e;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px
+}
+
+.upg-ring-emoji{font-size:48px}
+.upg-ring-pct{
+  font-size:32px;
+  font-weight:900
+}
+
+.upg-ring-price-lbl{
+  font-size:12px;
+  color:#5ab3ff
+}
+
+.upg-source-list,
+.upg-tgt-list{
+  display:grid;
+  gap:8px;
+  width:100%
+}
+
+.upg-src-row,
+.upg-tgt-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border:1px solid #1d3b5d;
+  border-radius:16px;
+  background:#0b1726;
+  cursor:pointer
+}
+
+.upg-src-row.sel,
+.upg-tgt-row.sel{
+  border-color:#4baeff;
+  background:#0e2238
+}
+
+.upg-src-thumb,
+.upg-tgt-thumb{
+  width:46px;
+  height:46px;
+  border-radius:12px;
+  background:#122b49;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  flex-shrink:0
+}
+
+.upg-src-info{
+  flex:1;
+  min-width:0
+}
+
+.upg-src-info b{
+  display:block;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.upg-src-info span{
+  font-size:12px;
+  color:#8295ad
+}
+
+.upg-tgt-chance{
+  font-size:13px;
+  font-weight:800
+}
+
+.upg-go{
+  width:100%;
+  padding:16px;
+  background:linear-gradient(135deg,#1367d4,#2e9cf0);
+  font-weight:900;
+  font-size:17px
+}
+
+.upg-overlay{
+  position:fixed;
+  inset:0;
+  z-index:95;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(2,8,20,.92)
+}
+
+.upg-overlay.open{display:flex}
+
+.upg-res-box{
+  width:min(360px,92%);
+  text-align:center;
+  padding:28px 22px;
+  border:1px solid #2a68a8;
+  border-radius:28px;
+  background:#0b1c30
+}
+
+.upg-res-label{
+  font-size:26px;
+  font-weight:900;
+  margin:8px 0 4px
+}
+
+.upg-res-name{
+  font-size:17px;
+  font-weight:800
+}
+
+.upg-res-price{
+  color:#5ab3ff;
+  margin-top:4px
+}
+
+/* CASE */
+
+.case-opening-overlay{
+  position:fixed;
+  inset:0;
+  z-index:90;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(2,7,14,.98);
+  padding:14px
+}
+
+.case-opening-overlay.open{display:flex}
+
+.case-opening-stage{
+  width:min(760px,100%);
+  display:flex;
+  flex-direction:column;
+  gap:14px
+}
+
+.case-opening-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between
+}
+
+.case-opening-head h2{margin:0}
+
+.case-close{
+  width:44px;
+  height:44px;
+  padding:0;
+  border-radius:50%;
+  font-size:25px
+}
+
+.case-opening-window{
+  position:relative;
+  overflow:hidden;
+  border:1px solid #2d689e;
+  border-radius:22px;
+  background:#06101d;
+  padding:13px 0
+}
+
+.roulette-pointer{
+  position:absolute;
+  z-index:3;
+  top:0;
+  bottom:0;
+  left:50%;
+  width:3px;
+  background:#55aaff;
+  transform:translateX(-50%)
+}
+
+.roulette-strip{
+  display:flex;
+  gap:9px;
+  width:max-content;
+  transform:translateX(0)
+}
+
+.roulette-item{
+  width:118px;
+  height:126px;
+  flex:none;
+  border:1px solid #25496d;
+  border-radius:15px;
+  background:#0e1c2e;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:8px
+}
+
+.roulette-item .ri-emoji{font-size:38px}
+.roulette-item .ri-name{
+  font-size:12px;
+  font-weight:800;
+  margin-top:5px
+}
+
+.roulette-item .ri-price{
+  font-size:12px;
+  color:#55b4ff;
+  font-weight:900
+}
+
+.case-opening-status{
+  text-align:center;
+  color:#91a8c0
+}
+
+.case-win-card{
+  display:none;
+  text-align:center;
+  border:1px solid #2d73ad;
+  border-radius:24px;
+  background:#0b1726;
+  padding:18px
+}
+
+.case-win-card.show{display:block}
+
+.case-win-card .win-emoji{font-size:62px}
+.case-win-card .win-name{
+  font-size:23px;
+  font-weight:900;
+  margin-top:8px
+}
+
+.case-win-card .win-price{
+  font-size:21px;
+  color:#59b9ff;
+  font-weight:900
+}
+
+.case-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:14px
 }
 
 @media(max-width:520px){
- main{padding:14px 15px}
- .grid{gap:11px}
- .card{
-  min-height:150px;
-  padding:17px;
-  border-radius:22px
- }
- .card b{font-size:19px}
- .icon{font-size:38px}
- .hero h1{font-size:36px}
- .case-opening-stage{gap:10px}
- .case-opening-head h2{font-size:23px}
- .roulette-item{
-  width:104px;
-  height:116px
- }
- .case-actions{
-  grid-template-columns:1fr
- }
- .upgrade-targets{
-  grid-template-columns:1fr
- }
- .skin-options{
-  grid-template-columns:1fr
- }
+  main{padding:14px 15px}
+  .grid{gap:11px}
+  .card{
+    min-height:150px;
+    padding:17px;
+    border-radius:22px
+  }
+  .card b{font-size:19px}
+  .icon{font-size:38px}
+  .hero h1{font-size:36px}
+  .dbl-wheel-outer{
+    width:260px;
+    height:260px
+  }
+  .upg-ring-area{
+    width:230px;
+    height:230px
+  }
+  .upg-ring-center{
+    width:130px;
+    height:130px
+  }
+  .tabs-inner{
+    grid-template-columns:repeat(6,1fr)
+  }
 }
 </style>
 </head>
 
 <body>
 
+<!-- AUTH -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">ProgNozer</div>
+    <h2>Добро пожаловать 👋</h2>
+
+    <p>
+      Выбери, как продолжить.<br>
+      Google нужен для облачного сохранения и Community.
+    </p>
+
+    <div class="auth-buttons">
+      <button class="auth-google" id="authGoogleBtn">
+        🔵 Продолжить с Google
+      </button>
+
+      <button class="auth-guest" id="authGuestBtn">
+        👤 Продолжить как гость
+      </button>
+    </div>
+
+    <div class="auth-status" id="authStatus"></div>
+  </div>
+</div>
+
 <div class="app">
 
 <header class="top">
- <div class="logo">ProgNozer</div>
- <div class="balance" id="balance">5000 💎</div>
+  <div class="logo">ProgNozer</div>
+  <div class="balance" id="balance">100 💎</div>
 </header>
 
 <main>
 
-<!-- ГЛАВНАЯ -->
+<!-- HOME -->
 <section class="screen active" id="home">
- <div class="hero">
-  <div class="small">Добро пожаловать</div>
-  <h1>ProgNozer</h1>
-  <p>Игры • Инвентарь • Магазин</p>
- </div>
- <div class="grid" id="homeGrid"></div>
+
+  <div class="hero">
+    <div class="small">Добро пожаловать</div>
+    <h1>ProgNozer</h1>
+    <p>Игры • Инвентарь • Community</p>
+  </div>
+
+  <div class="grid" id="homeGrid"></div>
+
 </section>
 
-<!-- ИГРЫ -->
+<!-- GAMES -->
 <section class="screen" id="games">
- <h2>🎮 Игры</h2>
- <div class="grid" id="gamesGrid"></div>
+  <h2>🎮 Игры</h2>
+  <div class="grid" id="gamesGrid"></div>
 </section>
 
-<!-- ИНВЕНТАРЬ -->
+<!-- INVENTORY -->
 <section class="screen" id="inventory">
- <h2>🎒 Инвентарь</h2>
- <div class="list" id="inventoryList"></div>
+  <h2>🎒 Инвентарь</h2>
+  <div class="list" id="inventoryList"></div>
 </section>
 
-<!-- ПРОФИЛЬ -->
-<section class="screen" id="profile">
-
- <h2>👤 Профиль</h2>
-
- <div class="row">
-
-  <div class="thumb" id="profileAvatar">
-   👤
-  </div>
-
-  <div class="grow">
-   <b id="profileName">Пользователь</b>
-   <span class="muted" id="profileUid">Получаем ID…</span>
-  </div>
-
-  <span class="status" id="profileOnline">...</span>
-
- </div>
-
- <!-- GOOGLE / USERNAME -->
- <div class="drop">
-
-  <b>🔐 Аккаунт</b>
-
-  <div id="accountBox" style="margin-top:12px"></div>
-
- </div>
-
- <div class="drop">
-
-  <b>🔥 Firebase</b>
-
-  <p class="muted" id="firebaseStatus">
-   Проверяем подключение…
-  </p>
-
-  <p class="muted" id="firebaseUid"></p>
-
-  <button class="secondary" id="syncBtn">
-   Синхронизировать сейчас
-  </button>
-
- </div>
-
- <div class="drop">
-
-  <b>📊 Статистика</b>
-
-  <p class="muted" id="profileStats">
-   Кейсов: 0 • Апгрейдов: 0
-  </p>
-
- </div>
-
- <div class="drop">
-
-  <b>☁️ Что сохраняется</b>
-
-  <p class="muted">
-   💎 баланс • 🎒 инвентарь • покупки • продажи • кейсы • апгрейды
-  </p>
-
- </div>
-
- <div class="drop">
-
-  <b>Настройки</b>
-
-  <p class="muted">
-   Язык: Русский<br>
-   Валюта: 💎
-  </p>
-
-  <button class="danger" id="resetBtn">
-   Сбросить демо
-  </button>
-
- </div>
-
-</section>
-
-<!-- МАГАЗИН -->
-<section class="screen" id="shop">
- <h2>🛒 Магазин</h2>
- <div class="list" id="shopList"></div>
-</section>
-
-<!-- =========================
-     КОМЬЮНИТИ
-========================= -->
-
+<!-- COMMUNITY -->
 <section class="screen" id="community">
 
- <div class="community-header">
+  <div id="communityGate"></div>
 
-  <button class="menu-button" id="communityMenuBtn">
-   ☰
-  </button>
+  <div id="communityContent" style="display:none">
 
-  <h2>🌐 Комьюнити</h2>
-
- </div>
-
- <div id="communityGate"></div>
-
- <div id="communityContent" style="display:none">
-
-  <!-- ОНЛАЙН -->
-  <div class="online-box">
-
-   <div class="online-title">
-
-    <b>🟢 Сейчас онлайн</b>
-
-    <span class="online-count" id="onlineCount">
-     0
-    </span>
-
-   </div>
-
-   <div class="online-list" id="onlineUsers">
-
-    <div class="muted">
-     Никого нет онлайн
+    <div class="community-head">
+      <button class="menu-button" id="communityMenuBtn">☰</button>
+      <h2>🌐 Community</h2>
     </div>
 
-   </div>
+    <div class="online-box">
+
+      <div class="online-title">
+        <b>🟢 Сейчас онлайн</b>
+        <span class="online-count" id="onlineCount">0</span>
+      </div>
+
+      <div class="online-users" id="onlineUsers">
+        <div class="muted">Загрузка...</div>
+      </div>
+
+    </div>
+
+    <div class="community-posts-title">
+      Посты от игроков
+    </div>
+
+    <button class="add-post-main" id="addPostBtn">
+      ✏️ Добавить пост
+    </button>
+
+    <div id="postsList">
+      <div class="empty-box">
+        Постов пока нет.
+      </div>
+    </div>
 
   </div>
 
-  <h3 style="font-size:22px;margin-bottom:12px">
-   Посты от игроков
-  </h3>
+</section>
 
-  <button class="add-post-button" id="addPostBtn">
-   ＋ Добавить пост
-  </button>
+<!-- PROFILE -->
+<section class="screen" id="profile">
 
-  <div class="list" id="communityPosts">
+  <h2>👤 Профиль</h2>
 
-   <div class="drop center muted">
-    Постов пока нет.
-   </div>
+  <div class="row">
+
+    <div class="thumb" id="profileAvatar">👤</div>
+
+    <div class="grow">
+      <b id="profileName">Гость</b>
+      <span class="muted" id="profileUid">Локальный аккаунт</span>
+    </div>
+
+    <span class="status" id="profileOnline">
+      GUEST
+    </span>
 
   </div>
 
- </div>
+  <!-- USERNAME -->
+
+  <div class="drop">
+
+    <b>🏷️ Имя пользователя</b>
+
+    <div class="username-display" id="usernameDisplay"></div>
+
+    <div class="username-input-wrap">
+
+      <span class="username-prefix">@</span>
+
+      <input
+        id="usernameInput"
+        type="text"
+        placeholder="ivan_ivanenko"
+        maxlength="24"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      >
+
+      <button
+        class="username-save-btn"
+        id="usernameSaveBtn"
+      >
+        Сохранить
+      </button>
+
+    </div>
+
+    <div class="username-hint">
+      ⚠️ Username можно создать только после авторизации через Google.
+      После создания изменить его нельзя.
+    </div>
+
+  </div>
+
+  <!-- GOOGLE -->
+
+  <div class="drop">
+
+    <b>🔵 Google Auth</b>
+
+    <p class="muted" id="googleAccountText">
+      Вы используете гостевой режим.
+    </p>
+
+    <button
+      id="googleLoginBtn"
+      style="width:100%;margin-top:8px"
+    >
+      🔵 Войти через Google
+    </button>
+
+    <button
+      class="danger"
+      id="googleLogoutBtn"
+      style="display:none;width:100%;margin-top:8px"
+    >
+      🚪 Выйти из Google
+    </button>
+
+  </div>
+
+  <!-- FIREBASE -->
+
+  <div class="drop">
+
+    <b>🔥 Firebase</b>
+
+    <p class="muted" id="firebaseStatus">
+      Ожидание авторизации…
+    </p>
+
+    <p class="muted" id="firebaseUid"></p>
+
+    <button class="secondary" id="syncBtn">
+      Синхронизировать сейчас
+    </button>
+
+  </div>
+
+  <!-- STATS -->
+
+  <div class="drop">
+
+    <b>📊 Статистика</b>
+
+    <p class="muted" id="profileStats">
+      Кейсов: 0 • Апгрейдов: 0
+    </p>
+
+  </div>
+
+  <div class="drop">
+
+    <b>☁️ Что сохраняется</b>
+
+    <p class="muted">
+      💎 баланс • 🎒 инвентарь • покупки • продажи • кейсы • апгрейды
+    </p>
+
+  </div>
+
+  <div class="drop">
+
+    <b>⚙️ Настройки</b>
+
+    <p class="muted">
+      Язык: 🇷🇺 Русский<br>
+      Валюта: 💎
+    </p>
+
+  </div>
+
+</section>
+
+<!-- SHOP -->
+<section class="screen" id="shop">
+
+  <h2>🛒 Магазин</h2>
+
+  <div class="list" id="shopList"></div>
 
 </section>
 
 </main>
 </div>
 
-<!-- НИЖНЕЕ МЕНЮ -->
+<!-- NAV -->
 
 <nav class="tabs">
 
- <div class="tabs-inner">
+  <div class="tabs-inner">
 
-  <button class="tab active" data-screen="home">
-   <span class="ti">⌂</span>
-   Главная
-  </button>
+    <button class="tab active" data-screen="home">
+      <span class="ti">⌂</span>
+      Главная
+    </button>
 
-  <button class="tab" data-screen="games">
-   <span class="ti">🎮</span>
-   Игры
-  </button>
+    <button class="tab" data-screen="community">
+      <span class="ti">🌐</span>
+      Community
+    </button>
 
-  <button class="tab" data-screen="inventory">
-   <span class="ti">🎒</span>
-   Инвентарь
-  </button>
+    <button class="tab" data-screen="games">
+      <span class="ti">🎮</span>
+      Игры
+    </button>
 
-  <button class="tab" data-screen="community">
-   <span class="ti">🌐</span>
-   Комьюнити
-  </button>
+    <button class="tab" id="chatTab">
+      <span class="ti">💬</span>
+      Чат
+    </button>
 
-  <button class="tab" data-screen="profile">
-   <span class="ti">●</span>
-   Профиль
-  </button>
+    <button class="tab" data-screen="inventory">
+      <span class="ti">🎒</span>
+      Инвентарь
+    </button>
 
- </div>
+    <button class="tab" data-screen="profile">
+      <span class="ti">●</span>
+      Профиль
+    </button>
+
+  </div>
 
 </nav>
 
-<!-- =========================
-     ОТКРЫТИЕ КЕЙСА
-========================= -->
-
-<div class="case-opening-overlay" id="caseOpeningOverlay">
-
- <div class="case-opening-stage">
-
-  <div class="case-opening-head">
-
-   <h2 id="caseOpeningTitle">
-    🎁 Открытие кейса
-   </h2>
-
-   <button class="case-close" id="caseCloseBtn">
-    ×
-   </button>
-
-  </div>
-
-  <div class="case-opening-window">
-
-   <div class="roulette-pointer"></div>
-
-   <div class="roulette-strip" id="caseOpeningStrip"></div>
-
-  </div>
-
-  <div class="case-opening-status" id="caseOpeningStatus">
-   Открываем кейс…
-  </div>
-
-  <div class="case-win-card" id="caseWinCard">
-
-   <div class="win-emoji" id="caseWinEmoji">
-    🎁
-   </div>
-
-   <div class="win-name" id="caseWinName"></div>
-
-   <div class="win-price" id="caseWinPrice"></div>
-
-   <div class="case-actions">
-
-    <button class="upgrade-action" id="caseUpgradeBtn">
-     ⬆️ Апгрейд
-    </button>
-
-    <button class="take-action" id="caseTakeBtn">
-     📦 Забрать
-    </button>
-
-    <button class="sell-action" id="caseSellBtn">
-     💎 Продать
-    </button>
-
-   </div>
-
-  </div>
-
- </div>
-
-</div>
-
-<!-- ОБЩАЯ ШТОРКА -->
+<!-- MODAL -->
 
 <div class="sheet-bg" id="modal">
 
- <div class="sheet">
+  <div class="sheet">
 
-  <button class="close" id="closeBtn">
-   ×
-  </button>
+    <button class="close" id="closeBtn">×</button>
 
-  <div id="modalBody"></div>
-
- </div>
-
-</div>
-
-<!-- ШТОРКА КОМЬЮНИТИ -->
-
-<div class="drawer-overlay" id="communityDrawer">
-
- <aside class="drawer">
-
-  <div class="drawer-head">
-
-   <b>🌐 Комьюнити</b>
-
-   <button class="drawer-close" id="drawerCloseBtn">
-    ×
-   </button>
+    <div id="modalBody"></div>
 
   </div>
 
-  <button class="drawer-button" id="addFriendBtn">
+</div>
 
-   <span class="db-icon">👥</span>
+<!-- DRAWER -->
 
-   <span>Добавить в друзья</span>
+<div class="drawer-bg" id="drawerBg">
 
-  </button>
+  <div class="drawer">
 
-  <button class="drawer-button" id="friendsBtn">
+    <div class="drawer-head">
 
-   <span class="db-icon">🤝</span>
+      <div class="drawer-head-avatar" id="drawerAvatar">
+        👤
+      </div>
 
-   <span>Друзья</span>
+      <div class="grow">
 
-  </button>
+        <div class="drawer-head-name" id="drawerName">
+          Пользователь
+        </div>
 
-  <button class="drawer-button" id="tradeBtn">
+        <div class="drawer-head-user" id="drawerUsername">
+          @username
+        </div>
 
-   <span class="db-icon">🔄</span>
+      </div>
 
-   <span>Трейд</span>
+    </div>
 
-  </button>
+    <button class="drawer-button" id="drawerAddFriend">
+      👥 Добавить в друзья
+    </button>
 
-  <button class="drawer-button" id="playerShopBtn">
+    <button class="drawer-button" id="drawerFriends">
+      👤 Друзья
+    </button>
 
-   <span class="db-icon">🛍️</span>
+    <button class="drawer-button" id="drawerTrade">
+      🔄 Трейд
+    </button>
 
-   <span>Магазин среди игроков</span>
+    <button class="drawer-button" id="drawerPlayerShop">
+      🛒 Магазин среди игроков
+    </button>
 
-  </button>
+    <button class="drawer-close" id="drawerClose">
+      Закрыть
+    </button>
 
- </aside>
+  </div>
+
+</div>
+
+<!-- CASE OVERLAY -->
+
+<div class="case-opening-overlay" id="caseOpeningOverlay">
+
+  <div class="case-opening-stage">
+
+    <div class="case-opening-head">
+
+      <h2 id="caseOpeningTitle">
+        🎁 Открытие кейса
+      </h2>
+
+      <button class="case-close" id="caseCloseBtn">
+        ×
+      </button>
+
+    </div>
+
+    <div class="case-opening-window">
+
+      <div class="roulette-pointer"></div>
+
+      <div
+        class="roulette-strip"
+        id="caseOpeningStrip"
+      ></div>
+
+    </div>
+
+    <div
+      class="case-opening-status"
+      id="caseOpeningStatus"
+    >
+      Открываем кейс…
+    </div>
+
+    <div
+      class="case-win-card"
+      id="caseWinCard"
+    >
+
+      <div
+        class="win-emoji"
+        id="caseWinEmoji"
+      >
+        🎁
+      </div>
+
+      <div
+        class="win-name"
+        id="caseWinName"
+      ></div>
+
+      <div
+        class="win-price"
+        id="caseWinPrice"
+      ></div>
+
+      <div class="case-actions">
+
+        <button id="caseTakeBtn">
+          📦 Забрать
+        </button>
+
+        <button
+          class="secondary"
+          id="caseSellBtn"
+        >
+          💎 Продать
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- UPGRADE -->
+
+<div class="upg-overlay" id="upgOverlay">
+
+  <div class="upg-res-box">
+
+    <div
+      style="
+        width:200px;
+        height:200px;
+        margin:auto;
+        position:relative
+      "
+    >
+
+      <canvas
+        id="upgResCanvas"
+        width="200"
+        height="200"
+      ></canvas>
+
+    </div>
+
+    <div id="upgResLabel"></div>
+
+    <div id="upgResName"></div>
+
+    <div id="upgResPrice"></div>
+
+    <button
+      id="upgResClose"
+      style="display:none;margin-top:18px"
+    >
+      Продолжить
+    </button>
+
+  </div>
 
 </div>
 
@@ -1480,4435 +1922,4389 @@ textarea{
 
 <script>
 
+/* =========================================================
+   FIREBASE
+========================================================= */
+
 const FIREBASE_CONFIG={
- apiKey:"AIzaSyAhKt3V04BH3PkSC4_mAdcJPghOstOd-7A",
- authDomain:"drivezone-ae945.firebaseapp.com",
- databaseURL:"https://drivezone-ae945-default-rtdb.firebaseio.com",
- projectId:"drivezone-ae945",
- storageBucket:"drivezone-ae945.firebasestorage.app",
- messagingSenderId:"917903784504",
- appId:"1:917903784504:web:5ed7d142892b1d7ca004cd"
+  apiKey:"AIzaSyAhKt3V04BH3PkSC4_mAdcJPghOstOd-7A",
+  authDomain:"drivezone-ae945.firebaseapp.com",
+  databaseURL:"https://drivezone-ae945-default-rtdb.firebaseio.com",
+  projectId:"drivezone-ae945",
+  storageBucket:"drivezone-ae945.firebasestorage.app",
+  messagingSenderId:"917903784504",
+  appId:"1:917903784504:web:5ed7d142892b1d7ca004cd"
 };
 
-
-/* =========================
-   ИГРЫ
-========================= */
-
-const games=[
-
- {
-  id:"cases",
-  icon:"🎁",
-  title:"Кейсы",
-  sub:"Открытие кейсов"
- },
-
- {
-  id:"battle",
-  icon:"⚔️",
-  title:"Кейс-баттлы",
-  sub:"Дуэль кейсов"
- },
-
- {
-  id:"double",
-  icon:"🎯",
-  title:"Double",
-  sub:"Виртуальная игра"
- },
-
- {
-  id:"upgrade",
-  icon:"⬆️",
-  title:"Апгрейдер",
-  sub:"Улучшение предмета"
- },
-
- {
-  id:"contracts",
-  icon:"📜",
-  title:"Контракты",
-  sub:"Обмен предметов"
- },
-
- {
-  id:"royal",
-  icon:"👑",
-  title:"Королевская битва",
-  sub:"5 раундов"
- },
-
- {
-  id:"shop",
-  icon:"🛒",
-  title:"Магазин",
-  sub:"Предметы"
- }
-
-];
-
-
-const items=[
-
-["AK-47 | Blue Line","Оружие","🔫",1200],
-["AK-47 | Neon Rider","Оружие","🔫",3200],
-["M4A1-S | Night Wave","Оружие","🔫",1800],
-["AWP | Arctic","Оружие","🔫",4200],
-["AWP | Redline","Оружие","🔫",5200],
-["M4A4 | Cyber","Оружие","🔫",2600],
-["USP-S | Ocean","Оружие","🔫",900],
-["Glock-18 | Fade","Оружие","🔫",2800],
-["P2000 | Marsch FT","Оружие","🔫",700],
-["MP7 | Short Ochre","Оружие","🔫",550],
-["MP9 | Blue Steel","Оружие","🔫",650],
-["MAC-10 | Surf","Оружие","🔫",800],
-["FAMAS | Pulse","Оружие","🔫",1100],
-["Galil AR | Ice","Оружие","🔫",950],
-
-["★ Нож | Blue Steel","Нож","🔪",2200],
-["★ Нож | Night","Нож","🔪",3600],
-["★ Нож | Crimson","Нож","🔪",6500],
-["★ Karambit | Ocean","Нож","🔪",9800],
-["★ Butterfly | Arctic","Нож","🔪",12500],
-["★ M9 Bayonet | Dark","Нож","🔪",16000],
-
-["Sticker | Champion","Наклейка","🏷️",1200],
-["Sticker | Star","Наклейка","🏷️",350],
-["Sticker | Dragon","Наклейка","🏷️",2400],
-["Sticker | Crown","Наклейка","🏷️",3500],
-["Sticker | Blue Wave","Наклейка","🏷️",650],
-["Sticker | Skull","Наклейка","🏷️",900],
-["Sticker | Lightning","Наклейка","🏷️",1500],
-["Sticker | Neon","Наклейка","🏷️",2100]
-
-].map((x,i)=>({
-
- id:i+1,
- name:x[0],
- type:x[1],
- emoji:x[2],
- price:x[3]
-
-}));
-
-
-const cases=[
-
- {
-  name:"Маленький кейс",
-  cost:50,
-  drops:[
-   ["Sticker | Star",350,"🏷️",20],
-   ["MP7 | Short Ochre",550,"🔫",50],
-   ["P2000 | Marsch FT",700,"🔫",25],
-   ["★ Нож | Blue Steel",2200,"🔪",5]
-  ]
- },
-
- {
-  name:"Средний кейс",
-  cost:150,
-  drops:[
-   ["Sticker | Champion",1200,"🏷️",35],
-   ["P2000 | Marsch FT",700,"🔫",35],
-   ["AK-47 | Blue Line",1200,"🔫",28],
-   ["★ Нож | Night",3600,"🔪",2]
-  ]
- },
-
- {
-  name:"Большой кейс",
-  cost:300,
-  drops:[
-   ["Sticker | Dragon",2400,"🏷️",40],
-   ["AK-47 | Neon Rider",3200,"🔫",35],
-   ["★ Нож | Crimson",6500,"🔪",20],
-   ["★ Karambit | Ocean",9800,"🔪",5]
-  ]
- },
-
- {
-  name:"Супер большой кейс",
-  cost:750,
-  drops:[
-   ["Sticker | Crown",3500,"🏷️",45],
-   ["AWP | Arctic",4200,"🔫",30],
-   ["★ M9 Bayonet | Dark",16000,"🔪",20],
-   ["★ Butterfly | Arctic",12500,"🔪",5]
-  ]
- }
-
-];
-
-
-/* =========================
-   СОСТОЯНИЕ
-========================= */
-
-let state={
- balance:5000,
- inventory:[],
- statistics:{
-  casesOpened:0,
-  upgrades:0,
-  purchases:0,
-  sales:0
- },
- createdAt:null
-};
+const GUEST_KEY="prognozer_guest_state";
 
 let db=null;
 let auth=null;
 let firebaseUser=null;
 let firebaseReady=false;
-let saving=false;
-let saveTimer=null;
-
-let pendingDrop=null;
-let pendingUpgradeSource=null;
-let pendingUpgradeTarget=null;
+let guestMode=false;
 
 let profileData={
- username:null,
- photoURL:null,
- displayName:null,
- google:false,
- rank:"bronze"
+  username:"",
+  displayName:"",
+  photoURL:"",
+  google:false,
+  rank:"bronze"
 };
 
-let selectedSkin=null;
-
-
-/* =========================
-   ВСПОМОГАТЕЛЬНЫЕ
-========================= */
-
-const $=id=>document.getElementById(id);
-
-
-function toast(t){
-
- const e=$("toast");
-
- e.textContent=t;
-
- e.classList.add("show");
-
- clearTimeout(window.__toast);
-
- window.__toast=setTimeout(
-  ()=>e.classList.remove("show"),
-  2200
- );
-
-}
-
-
-function escapeHTML(str){
-
- return String(str??"")
-  .replace(/&/g,"&amp;")
-  .replace(/</g,"&lt;")
-  .replace(/>/g,"&gt;")
-  .replace(/"/g,"&quot;")
-  .replace(/'/g,"&#039;");
-
-}
-
-
-function safeImageURL(url){
-
- try{
-
-  const u=new URL(url);
-
-  if(u.protocol==="https:" || u.protocol==="http:")
-   return u.href;
-
- }catch(e){}
-
- return "";
-
-}
-
-
-function normalizeUsername(name){
-
- return String(name||"")
-  .trim()
-  .toLowerCase();
-
-}
-
-
-function usernameValid(name){
-
- return /^[A-Za-zА-Яа-яЁё0-9_]{3,20}$/.test(name);
-
-}
-
-
-function formatDate(time){
-
- if(!time)return "";
-
- const d=new Date(time);
-
- return d.toLocaleString("ru-RU",{
-  day:"2-digit",
-  month:"2-digit",
-  hour:"2-digit",
-  minute:"2-digit"
- });
-
-}
-
-
-/* =========================
-   UI
-========================= */
-
-function updateUI(){
-
- $("balance").textContent=state.balance+" 💎";
-
- renderInventory();
-
- const s=state.statistics||{};
-
- $("profileStats").textContent=
-  `Кейсов: ${s.casesOpened||0} • Апгрейдов: ${s.upgrades||0}`;
-
- renderAccount();
-
-}
-
-
-function localSave(){
-
- localStorage.setItem(
-  "prognozer_state",
-  JSON.stringify(state)
- );
-
- updateUI();
-
- scheduleCloudSave();
-
-}
-
-
-function loadLocal(){
-
- try{
-
-  const x=JSON.parse(
-   localStorage.getItem("prognozer_state")
-  );
-
-  if(x&&typeof x.balance==="number"){
-
-   state={
-    balance:x.balance,
-    inventory:Array.isArray(x.inventory)
-     ?x.inventory
-     :(Array.isArray(x.inv)?x.inv:[]),
-
-    statistics:x.statistics||{
-     casesOpened:0,
-     upgrades:0,
-     purchases:0,
-     sales:0
-    },
-
-    createdAt:x.createdAt||null
-   };
-
-  }
-
- }catch(e){}
-
- updateUI();
-
-}
-
-
-function scheduleCloudSave(){
-
- if(!firebaseUser||!db||saving)return;
-
- clearTimeout(saveTimer);
-
- saveTimer=setTimeout(
-  saveFirebase,
-  300
- );
-
-}
-
-
-function nav(id){
-
- document
-  .querySelectorAll(".screen")
-  .forEach(s=>
-   s.classList.toggle(
-    "active",
-    s.id===id
-   )
-  );
-
- document
-  .querySelectorAll(".tab")
-  .forEach(t=>
-   t.classList.toggle(
-    "active",
-    t.dataset.screen===id
-   )
-  );
-
- if(id==="inventory")
-  renderInventory();
-
- if(id==="shop")
-  renderShop();
-
- if(id==="community")
-  renderCommunity();
-
- window.scrollTo({
-  top:0,
-  behavior:"smooth"
- });
-
-}
-
-
-function makeGameCard(g){
-
- const d=document.createElement("div");
-
- d.className="card";
-
- d.innerHTML=`
-  <div class="icon">${g.icon}</div>
-  <b>${g.title}</b>
-  <span>${g.sub}</span>
- `;
-
- d.onclick=()=>
-  g.id==="shop"
-   ?nav("shop")
-   :openGame(g.id);
-
- return d;
-
-}
-
-
-function renderGrids(){
-
- for(const id of ["homeGrid","gamesGrid"]){
-
-  const e=$(id);
-
-  e.innerHTML="";
-
-  games
-   .filter(g=>
-    id==="homeGrid" ||
-    g.id!=="shop"
-   )
-   .forEach(g=>
-    e.appendChild(
-     makeGameCard(g)
-    )
-   );
-
- }
-
-}
-
-
-function renderInventory(){
-
- const e=$("inventoryList");
-
- if(!e)return;
-
- if(!state.inventory.length){
-
-  e.innerHTML=`
-   <div class="drop center muted">
-    Инвентарь пуст.<br>
-    Открой кейс или купи предмет.
-   </div>
-  `;
-
-  return;
-
- }
-
- e.innerHTML=state.inventory.map(
-  (x,i)=>`
-
-   <div class="row">
-
-    <div class="thumb">
-     ${escapeHTML(x.emoji)}
-    </div>
-
-    <div class="grow">
-
-     <b>${escapeHTML(x.name)}</b>
-
-     <span class="muted">
-      ${escapeHTML(x.type||"Предмет")}
-     </span>
-
-    </div>
-
-    <span class="price">
-     ${x.price} 💎
-    </span>
-
-    <button
-     class="secondary sell"
-     data-i="${i}">
-     Продать
-    </button>
-
-   </div>
-
-  `
- ).join("");
-
- e.querySelectorAll(".sell")
-  .forEach(b=>
-   b.onclick=()=>
-    sell(+b.dataset.i)
-  );
-
-}
-
-
-function renderShop(){
-
- const e=$("shopList");
-
- e.innerHTML=items.map(
-  x=>`
-
-   <div class="row">
-
-    <div class="thumb">
-     ${escapeHTML(x.emoji)}
-    </div>
-
-    <div class="grow">
-
-     <b>${escapeHTML(x.name)}</b>
-
-     <span class="muted">
-      ${escapeHTML(x.type)}
-     </span>
-
-    </div>
-
-    <span class="price">
-     ${x.price} 💎
-    </span>
-
-    <button
-     class="buy"
-     data-id="${x.id}">
-     Купить
-    </button>
-
-   </div>
-
-  `
- ).join("");
-
- e.querySelectorAll(".buy")
-  .forEach(b=>
-   b.onclick=()=>
-    buy(+b.dataset.id)
-  );
-
-}
-
-
-function addItem(name,price,emoji,type){
-
- state.inventory.push({
-  name,
-  price,
-  emoji,
-  type
- });
-
- localSave();
-
-}
-
-
-function sell(i){
-
- const x=state.inventory[i];
-
- if(!x)return;
-
- state.balance+=x.price;
-
- state.inventory.splice(i,1);
-
- state.statistics.sales=
-  (state.statistics.sales||0)+1;
-
- localSave();
-
- toast("Продано: +"+x.price+" 💎");
-
-}
-
-
-function buy(id){
-
- const x=items.find(
-  a=>a.id===id
- );
-
- if(!x)return;
-
- if(state.balance<x.price)
-  return toast("Не хватает 💎");
-
- state.balance-=x.price;
-
- state.inventory.push({
-  name:x.name,
-  price:x.price,
-  emoji:x.emoji,
-  type:x.type
- });
-
- state.statistics.purchases=
-  (state.statistics.purchases||0)+1;
-
- localSave();
-
- toast("Предмет куплен");
-
-}
-
-
-function pick(d){
-
- let r=Math.random()*100;
- let s=0;
-
- for(const x of d){
-
-  s+=x[3];
-
-  if(r<s)
-   return x;
-
- }
-
- return d[d.length-1];
-
-}
-
-
-function itemType(name){
-
- return name.includes("Sticker")
-  ?"Наклейка"
-  :name.includes("Нож")
-   ?"Нож"
-   :"Оружие";
-
-}
-
-
-/* =========================
-   ИГРЫ
-========================= */
-
-function openGame(type){
-
- const m=$("modal");
- const b=$("modalBody");
-
- m.classList.add("open");
-
-
- if(type==="cases")
-
-  b.innerHTML=`
-
-   <h2>🎁 Кейсы</h2>
-
-   ${cases.map((c,i)=>`
-
-    <div class="drop">
-
-     <h3>${c.name}</h3>
-
-     <p class="muted">
-      Цена: ${c.cost} 💎
-     </p>
-
-     ${c.drops.map(d=>`
-
-      <div>
-       ${d[2]}
-       ${d[0]}
-       —
-       ${d[3]}%
-
-       <div class="chancebar">
-        <i style="width:${d[3]*2}%"></i>
-       </div>
-
-      </div>
-
-     `).join("")}
-
-     <br>
-
-     <button
-      class="openCase"
-      data-i="${i}">
-      Открыть кейс
-     </button>
-
-    </div>
-
-   `).join("")}
-
-  `;
-
-
- if(type==="battle")
-
-  b.innerHTML=`
-
-   <h2>⚔️ Кейс-баттл</h2>
-
-   <p class="muted">
-    Ты и бот открываете средний кейс.
-    Дороже дроп — победа.
-   </p>
-
-   <button id="battleBtn">
-    Начать за 100 💎
-   </button>
-
-   <div id="battleResult"></div>
-
-  `;
-
-
- if(type==="double")
-
-  b.innerHTML=`
-
-   <h2>🎯 Double</h2>
-
-   <p class="muted">
-    Выбери ставку.
-   </p>
-
-   <input
-    id="doubleBet"
-    type="number"
-    min="1"
-    value="100">
-
-   <button id="doubleBtn">
-    Играть
-   </button>
-
-   <div id="doubleResult"></div>
-
-  `;
-
-
- if(type==="upgrade")
-
-  b.innerHTML=`
-
-   <h2>⬆️ Апгрейдер</h2>
-
-   <p class="muted">
-    Выбери предмет из инвентаря,
-    затем цель.
-   </p>
-
-   <div id="upgradeList"></div>
-
-  `;
-
-
- if(type==="contracts")
-
-  b.innerHTML=`
-
-   <h2>📜 Контракты</h2>
-
-   <p class="muted">
-    3 предмета превращаются в один более дорогой.
-   </p>
-
-   <button id="contractBtn">
-    Обменять 3 предмета
-   </button>
-
-   <div id="contractResult"></div>
-
-  `;
-
-
- if(type==="royal")
-
-  b.innerHTML=`
-
-   <h2>👑 Королевская битва</h2>
-
-   <p class="muted">
-    5 раундов против ботов.
-    Нужно выиграть минимум 3.
-   </p>
-
-   <button id="royalBtn">
-    Начать за 100 💎
-   </button>
-
-   <div id="royalResult"></div>
-
-  `;
-
-
- b.querySelectorAll(".openCase")
-  .forEach(x=>
-   x.onclick=()=>
-    openCase(+x.dataset.i)
-  );
-
-
- if(type==="battle")
-  $("battleBtn").onclick=battle;
-
- if(type==="double")
-  $("doubleBtn").onclick=doubleGame;
-
- if(type==="upgrade")
-  renderUpgrade();
-
- if(type==="contracts")
-  $("contractBtn").onclick=contract;
-
- if(type==="royal")
-  $("royalBtn").onclick=royal;
-
-}
-
-
-/* =========================
-   КЕЙС
-========================= */
-
-function showCaseResult(drop){
-
- $("caseOpeningStatus")
-  .textContent="🎉 Выпал предмет!";
-
- $("caseWinEmoji")
-  .textContent=drop[2];
-
- $("caseWinName")
-  .textContent=drop[0];
-
- $("caseWinPrice")
-  .textContent=drop[1]+" 💎";
-
- $("caseWinCard")
-  .classList.add("show");
-
-}
-
-
-function openCase(i){
-
- const c=cases[i];
-
- if(state.balance<c.cost)
-  return toast("Не хватает 💎");
-
- state.balance-=c.cost;
-
- state.statistics.casesOpened=
-  (state.statistics.casesOpened||0)+1;
-
- localSave();
-
- pendingDrop=pick(c.drops);
-
- const overlay=$("caseOpeningOverlay");
- const strip=$("caseOpeningStrip");
-
- $("caseOpeningTitle")
-  .textContent="🎁 "+c.name;
-
- $("caseOpeningStatus")
-  .textContent="Открываем кейс…";
-
- $("caseWinCard")
-  .classList.remove("show");
-
- overlay.classList.add("open");
-
- const sequence=[];
-
- for(let n=0;n<14;n++)
-  sequence.push(...c.drops);
-
- const winnerIndex=
-  sequence.length-c.drops.length+
-  Math.max(
-   0,
-   c.drops.indexOf(pendingDrop)
-  );
-
- sequence[winnerIndex]=pendingDrop;
-
- strip.style.transition="none";
-
- strip.style.transform="translateX(0)";
-
- strip.innerHTML=
-  sequence.map(x=>`
-
-   <div class="roulette-item">
-
-    <div class="ri-emoji">
-     ${x[2]}
-    </div>
-
-    <div class="ri-name">
-     ${escapeHTML(x[0])}
-    </div>
-
-    <div class="ri-price">
-     ${x[1]} 💎
-    </div>
-
-   </div>
-
-  `).join("");
-
- requestAnimationFrame(()=>
-  requestAnimationFrame(()=>{
-
-   const card=
-    strip.children[winnerIndex];
-
-   const v=strip.parentElement;
-
-   const target=
-    card.offsetLeft+
-    card.offsetWidth/2-
-    v.clientWidth/2;
-
-   strip.style.transition=
-    "transform 4.8s cubic-bezier(.07,.72,.12,1)";
-
-   strip.style.transform=
-    `translateX(${-Math.max(0,target)}px)`;
-
-  })
- );
-
- clearTimeout(window.__caseTimer);
-
- window.__caseTimer=setTimeout(()=>{
-
-  strip.children[winnerIndex]
-   ?.classList.add("win");
-
-  showCaseResult(pendingDrop);
-
- },4900);
-
-}
-
-
-function closeCaseOverlay(){
-
- $("caseOpeningOverlay")
-  .classList.remove("open");
-
- pendingDrop=null;
- pendingUpgradeSource=null;
- pendingUpgradeTarget=null;
-
-}
-
-
-function takeCaseDrop(){
-
- if(!pendingDrop)return;
-
- addItem(
-  pendingDrop[0],
-  pendingDrop[1],
-  pendingDrop[2],
-  itemType(pendingDrop[0])
- );
-
- toast("Предмет добавлен в инвентарь");
-
- closeCaseOverlay();
-
-}
-
-
-function sellCaseDrop(){
-
- if(!pendingDrop)return;
-
- state.balance+=pendingDrop[1];
-
- state.statistics.sales=
-  (state.statistics.sales||0)+1;
-
- localSave();
-
- toast(
-  "Продано: +"+pendingDrop[1]+" 💎"
- );
-
- closeCaseOverlay();
-
-}
-
-
-function startUpgradeFromCase(){
-
- if(!pendingDrop)return;
-
- closeCaseOverlay();
-
- openGame("upgrade");
-
-}
-
-
-/* =========================
-   АПГРЕЙД
-========================= */
-
-function renderUpgrade(sourceIndex=null){
-
- const e=$("upgradeList");
-
- if(!e)return;
-
- if(!state.inventory.length){
-
-  e.innerHTML=`
-   <div class="drop center muted">
-    Инвентарь пуст.
-    Получи или купи предмет.
-   </div>
-  `;
-
-  return;
-
- }
-
- if(sourceIndex===null){
-
-  e.innerHTML=`
-
-   <div class="upgrade-step">
-
-    <div class="drop">
-
-     <b>Шаг 1. Что улучшаем?</b>
-
-     <p class="muted">
-      Выбери предмет из своего инвентаря.
-     </p>
-
-    </div>
-
-    <div class="list">
-
-     ${state.inventory.map((x,i)=>`
-
-      <div
-       class="row upgrade-item"
-       data-i="${i}">
-
-       <div class="thumb">
-        ${x.emoji}
-       </div>
-
-       <div class="grow">
-
-        <b>${escapeHTML(x.name)}</b>
-
-        <span class="muted">
-         ${escapeHTML(x.type||"Предмет")}
-         • ${x.price} 💎
-        </span>
-
-       </div>
-
-       <span>›</span>
-
-      </div>
-
-     `).join("")}
-
-    </div>
-
-   </div>
-
-  `;
-
-  e.querySelectorAll(".upgrade-item")
-   .forEach(x=>
-    x.onclick=()=>
-     renderUpgrade(+x.dataset.i)
-   );
-
-  return;
-
- }
-
-
- const source=
-  state.inventory[sourceIndex];
-
- if(!source)
-  return renderUpgrade();
-
- pendingUpgradeSource=
-  sourceIndex;
-
- const targets=
-  items.filter(
-   x=>x.price>source.price
-  );
-
- e.innerHTML=`
-
-  <div class="upgrade-step">
-
-   <div class="drop center">
-
-    <b>
-     Шаг 2. На что улучшаем?
-    </b>
-
-    <p class="muted">
-     ${source.emoji}
-     ${escapeHTML(source.name)}
-     • ${source.price} 💎
-    </p>
-
-   </div>
-
-   <div class="upgrade-targets">
-
-    ${targets.map(x=>{
-
-     const chance=
-      Math.min(
-       100,
-       source.price/x.price*100
-      );
-
-     return `
-
-      <div
-       class="upgrade-target"
-       data-id="${x.id}">
-
-       <div class="thumb">
-        ${x.emoji}
-       </div>
-
-       <div class="grow">
-
-        <b>${escapeHTML(x.name)}</b>
-
-        <span class="muted">
-         ${x.type}
-         • ${x.price} 💎
-        </span>
-
-       </div>
-
-       <span class="price">
-        ${chance.toFixed(
-         chance%1?1:0
-        )}%
-       </span>
-
-      </div>
-
-     `
-
-    }).join("")}
-
-   </div>
-
-   <div class="upgrade-vs">
-
-    <div class="drop center">
-
-     <div class="big">
-      ${source.emoji}
-     </div>
-
-     <b>
-      ${source.price} 💎
-     </b>
-
-     <br>
-
-     <span class="muted">
-      Твой предмет
-     </span>
-
-    </div>
-
-    <b>→</b>
-
-    <div
-     class="drop center"
-     id="upgradeTargetPreview">
-
-     <div class="big">
-      ❔
-     </div>
-
-     <b>
-      Выбери
-     </b>
-
-    </div>
-
-   </div>
-
-   <div
-    class="upgrade-chance"
-    id="upgradeChance">
-    —
-   </div>
-
-   <button
-    class="upgrade-go"
-    id="upgradeGo"
-    disabled>
-    ⬆️ АПГРЕЙД
-   </button>
-
-  </div>
-
- `;
-
- e.querySelectorAll(".upgrade-target")
-  .forEach(x=>
-   x.onclick=()=>{
-
-    e.querySelectorAll(
-     ".upgrade-target"
-    ).forEach(z=>
-     z.classList.remove("selected")
-    );
-
-    x.classList.add("selected");
-
-    pendingUpgradeTarget=
-     items.find(
-      a=>a.id===+x.dataset.id
-     );
-
-    const ch=
-     Math.min(
-      100,
-      source.price/
-      pendingUpgradeTarget.price*
-      100
-     );
-
-    $("upgradeChance")
-     .textContent=
-      ch.toFixed(ch%1?1:0)+
-      "% ШАНС";
-
-    $("upgradeTargetPreview")
-     .innerHTML=`
-
-      <div class="big">
-       ${pendingUpgradeTarget.emoji}
-      </div>
-
-      <b>
-       ${pendingUpgradeTarget.price} 💎
-      </b>
-
-      <br>
-
-      <span class="muted">
-       ${escapeHTML(
-        pendingUpgradeTarget.name
-       )}
-      </span>
-
-     `;
-
-    $("upgradeGo").disabled=false;
-
-   }
-  );
-
- $("upgradeGo").onclick=runUpgrade;
-
-}
-
-
-function runUpgrade(){
-
- if(
-  pendingUpgradeSource===null||
-  !pendingUpgradeTarget
- )return;
-
- const source=
-  state.inventory[pendingUpgradeSource];
-
- if(!source)
-  return renderUpgrade();
-
- const target=
-  pendingUpgradeTarget;
-
- const chance=
-  Math.min(
-   100,
-   source.price/target.price*100
-  );
-
- const success=
-  Math.random()*100<chance;
-
- const overlay=
-  $("caseOpeningOverlay");
-
- const strip=
-  $("caseOpeningStrip");
-
- $("caseOpeningTitle")
-  .textContent="⬆️ Апгрейд";
-
- $("caseOpeningStatus")
-  .textContent=
-   "Проверяем шанс "+
-   chance.toFixed(chance%1?1:0)+
-   "%…";
-
- $("caseWinCard")
-  .classList.remove("show");
-
- overlay.classList.add("open");
-
- const pool=[
-  source,
-  target,
-  ...items
-   .filter(x=>x.price>=source.price)
-   .slice(0,8)
- ];
-
- const seq=[];
-
- for(let n=0;n<12;n++)
-  seq.push(pool[n%pool.length]);
-
- const winner=
-  success
-   ?target
-   :source;
-
- const winnerIndex=
-  seq.length-
-  pool.length+
-  pool.indexOf(winner);
-
- seq[winnerIndex]=winner;
-
- strip.style.transition="none";
-
- strip.style.transform=
-  "translateX(0)";
-
- strip.innerHTML=
-  seq.map(x=>`
-
-   <div class="roulette-item">
-
-    <div class="ri-emoji">
-     ${x.emoji}
-    </div>
-
-    <div class="ri-name">
-     ${escapeHTML(x.name)}
-    </div>
-
-    <div class="ri-price">
-     ${x.price} 💎
-    </div>
-
-   </div>
-
-  `).join("");
-
- requestAnimationFrame(()=>
-  requestAnimationFrame(()=>{
-
-   const card=
-    strip.children[winnerIndex];
-
-   const v=
-    strip.parentElement;
-
-   const targetX=
-    card.offsetLeft+
-    card.offsetWidth/2-
-    v.clientWidth/2;
-
-   strip.style.transition=
-    "transform 4.8s cubic-bezier(.07,.72,.12,1)";
-
-   strip.style.transform=
-    `translateX(${-Math.max(0,targetX)}px)`;
-
-  })
- );
-
- clearTimeout(window.__upgradeTimer);
-
- window.__upgradeTimer=
-  setTimeout(()=>{
-
-   strip.children[winnerIndex]
-    ?.classList.add("win");
-
-   $("caseWinEmoji")
-    .textContent=winner.emoji;
-
-   $("caseWinName")
-    .textContent=
-     success
-      ?target.name
-      :"Апгрейд не удался";
-
-   $("caseWinPrice")
-    .textContent=
-     success
-      ?target.price+" 💎"
-      :"Предмет потерян";
-
-   $("caseOpeningStatus")
-    .textContent=
-     success
-      ?"🎉 Успешный апгрейд!"
-      :"💥 Неудача";
-
-   $("caseWinCard")
-    .classList.add("show");
-
-   state.statistics.upgrades=
-    (state.statistics.upgrades||0)+1;
-
-   if(success){
-
-    state.inventory[
-     pendingUpgradeSource
-    ]={
-     name:target.name,
-     price:target.price,
-     emoji:target.emoji,
-     type:target.type
-    };
-
-   }else{
-
-    state.inventory.splice(
-     pendingUpgradeSource,
-     1
-    );
-
-   }
-
-   localSave();
-
-   document.querySelector(
-    ".case-actions"
-   ).innerHTML=`
-
-    <button
-     class="take-action"
-     id="upgradeFinishBtn"
-     style="grid-column:1/-1">
-
-     ✓ Продолжить
-
-    </button>
-
-   `;
-
-   $("upgradeFinishBtn").onclick=()=>{
-
-    document.querySelector(
-     ".case-actions"
-    ).innerHTML=`
-
-     <button
-      class="upgrade-action"
-      id="caseUpgradeBtn">
-      ⬆️ Апгрейд
-     </button>
-
-     <button
-      class="take-action"
-      id="caseTakeBtn">
-      📦 Забрать
-     </button>
-
-     <button
-      class="sell-action"
-      id="caseSellBtn">
-      💎 Продать
-     </button>
-
-    `;
-
-    bindCaseButtons();
-
-    closeCaseOverlay();
-
-    openGame("upgrade");
-
-   };
-
-  },4900);
-
-}
-
-
-/* =========================
-   ОСТАЛЬНЫЕ ИГРЫ
-========================= */
-
-function battle(){
-
- if(state.balance<100)
-  return toast("Не хватает 💎");
-
- state.balance-=100;
-
- const a=
-  pick(cases[1].drops);
-
- const bot=
-  pick(cases[1].drops);
-
- const win=
-  a[1]>=bot[1];
-
- if(win)
-
-  state.inventory.push({
-   name:a[0],
-   price:a[1],
-   emoji:a[2],
-   type:itemType(a[0])
-  });
-
- localSave();
-
- $("battleResult").innerHTML=`
-
-  <div class="drop">
-
-   Твой дроп:
-   ${a[2]}
-   ${a[0]}
-   —
-   ${a[1]} 💎
-
-   <br>
-
-   Бот:
-   ${bot[2]}
-   ${bot[0]}
-   —
-   ${bot[1]} 💎
-
-   <hr>
-
-   <b>
-    ${win
-     ?"🏆 Ты победил и забрал дроп!"
-     :"💥 Бот победил."
-    }
-   </b>
-
-  </div>
-
- `;
-
-}
-
-
-function doubleGame(){
-
- const bet=
-  Math.floor(
-   +$("doubleBet").value
-  );
-
- if(
-  !bet||
-  bet<1||
-  state.balance<bet
- )
-  return toast("Неверная ставка");
-
- state.balance-=bet;
-
- const mult=
-  (1+Math.random()).toFixed(2);
-
- const win=
-  Math.random()<.48;
-
- if(win){
-
-  const prize=
-   Math.floor(bet*mult);
-
-  state.balance+=prize;
-
-  $("doubleResult").innerHTML=`
-
-   <div class="drop center">
-
-    🎉
-
-    <b>${mult}×</b>
-
-    <br>
-
-    +${prize} 💎
-
-   </div>
-
-  `;
-
- }else{
-
-  $("doubleResult").innerHTML=`
-
-   <div class="drop center">
-    💥 Ставка проиграна
-   </div>
-
-  `;
-
- }
-
- localSave();
-
-}
-
-
-function contract(){
-
- if(state.inventory.length<3)
-  return toast("Нужно 3 предмета");
-
- const chosen=
-  state.inventory.splice(0,3);
-
- const value=
-  Math.floor(
-   chosen.reduce(
-    (s,x)=>s+x.price,
-    0
-   )*.75
-  );
-
- const pool=
-  items.filter(
-   x=>x.price<=Math.max(value,1)
-  );
-
- const target=
-  pool[
-   Math.floor(
-    Math.random()*pool.length
-   )
-  ];
-
- state.inventory.push({
-  name:target.name,
-  price:target.price,
-  emoji:target.emoji,
-  type:target.type
- });
-
- localSave();
-
- $("contractResult").innerHTML=`
-
-  <div class="drop center">
-
-   📜 Получено:
-
-   ${target.emoji}
-
-   ${target.name}
-
-   —
-
-   ${target.price} 💎
-
-  </div>
-
- `;
-
-}
-
-
-function royal(){
-
- if(state.balance<100)
-  return toast("Не хватает 💎");
-
- state.balance-=100;
-
- let wins=0;
-
- for(let i=0;i<5;i++)
-  if(Math.random()<.55)
-   wins++;
-
- if(wins>=3)
-  state.balance+=200;
-
- localSave();
-
- $("royalResult").innerHTML=`
-
-  <div class="drop center">
-
-   ${wins>=3
-    ?"👑 Победа! +200 💎"
-    :"💥 Поражение"
-   }
-
-   <br>
-
-   Побед в раундах:
-   ${wins}/5
-
-  </div>
-
- `;
-
-}
-
-
-/* =========================
-   FIREBASE
-========================= */
-
-function firebaseError(e){
-
- const c=e?.code||"";
- const m=e?.message||String(e);
-
- if(c==="auth/operation-not-allowed")
-  return "Этот способ входа не включён в Firebase";
-
- if(c==="auth/popup-blocked")
-  return "Всплывающее окно заблокировано";
-
- if(c==="auth/popup-closed-by-user")
-  return "Окно входа закрыто";
-
- if(c==="auth/credential-already-in-use")
-  return "Этот Google-аккаунт уже используется";
-
- if(c==="PERMISSION_DENIED"||
-   /permission_denied/i.test(m))
-  return "нет доступа к RTDB — проверь Rules";
-
- if(/network|offline|fetch/i.test(m))
-  return "ошибка сети";
-
- return m;
-
-}
-
-
-function setFirebaseStatus(text,on=false){
-
- $("firebaseStatus")
-  .textContent=text;
-
- $("profileOnline")
-  .textContent=
-   on
-    ?"ONLINE"
-    :"OFFLINE";
-
-}
-
-
-/* =========================
-   GOOGLE AUTH
-========================= */
-
-async function loginGoogle(){
-
- if(!auth)
-  return toast("Firebase ещё не готов");
-
- const provider=
-  new firebase.auth.GoogleAuthProvider();
-
- provider.setCustomParameters({
-  prompt:"select_account"
- });
-
- try{
-
-  /*
-   Если сейчас анонимный аккаунт,
-   сначала пытаемся привязать Google.
-   Так сохраняется UID.
-  */
-
-  if(
-   firebaseUser &&
-   firebaseUser.isAnonymous
-  ){
-
-   try{
-
-    await firebaseUser.linkWithPopup(
-     provider
-    );
-
-   }catch(e){
-
-    /*
-     Если Google уже связан
-     с другим Firebase UID,
-     просто выполняем обычный вход.
-    */
-
-    if(
-     e.code===
-     "auth/credential-already-in-use"
-    ){
-
-     await auth.signInWithPopup(
-      provider
-     );
-
-    }else{
-
-     throw e;
-
-    }
-
-   }
-
-  }else{
-
-   await auth.signInWithPopup(
-    provider
-   );
-
-  }
-
-  toast("✅ Google успешно подключён");
-
- }catch(e){
-
-  console.error(e);
-
-  toast(
-   "Ошибка Google: "+
-   firebaseError(e)
-  );
-
- }
-
-}
-
-
-/* =========================
-   USERNAME
-========================= */
-
-async function saveUsername(){
-
- if(
-  !firebaseUser||
-  firebaseUser.isAnonymous
- ){
-
-  return toast(
-   "Сначала войди через Google"
-  );
-
- }
-
- const input=
-  $("usernameInput");
-
- if(!input)return;
-
- const username=
-  input.value.trim();
-
- if(!usernameValid(username)){
-
-  return toast(
-   "Username: 3–20 символов, буквы, цифры и _"
-  );
-
- }
-
- const normalized=
-  normalizeUsername(username);
-
- try{
-
-  const usernameRef=
-   db.ref(
-    "prognozer/usernames/"+
-    normalized
-   );
-
-  const result=
-   await usernameRef.transaction(
-    current=>{
-
-     if(current===null)
-      return firebaseUser.uid;
-
-     return;
-
-    }
-   );
-
-  if(!result.committed){
-
-   return toast(
-    "❌ Такой username уже занят"
-   );
-
-  }
-
-  if(
-   result.snapshot.val()!==
-   firebaseUser.uid
-  ){
-
-   return toast(
-    "❌ Такой username уже занят"
-   );
-
-  }
-
-  profileData.username=username;
-
-  profileData.google=true;
-
-  profileData.displayName=
-   firebaseUser.displayName||
-   username;
-
-  profileData.photoURL=
-   firebaseUser.photoURL||
-   null;
-
-  await db
-   .ref(
-    "prognozer/users/"+
-    firebaseUser.uid+
-    "/profile"
-   )
-   .update({
-
-    username:username,
-    usernameNormalized:normalized,
-    displayName:
-     profileData.displayName,
-    photoURL:
-     profileData.photoURL||"",
-    google:true,
-    rank:profileData.rank||"bronze",
-    updatedAt:
-     firebase.database.ServerValue.TIMESTAMP
-
-   });
-
-  toast(
-   "✅ Username создан"
-  );
-
-  renderAccount();
-
-  updateCommunityAccess();
-
-  updatePresence();
-
- }catch(e){
-
-  console.error(e);
-
-  toast(
-   "Ошибка username: "+
-   firebaseError(e)
-  );
-
- }
-
-}
-
-
-/* =========================
-   АККАУНТ
-========================= */
-
-function renderAccount(){
-
- const box=$("accountBox");
-
- if(!box)return;
-
- if(
-  !firebaseUser||
-  firebaseUser.isAnonymous
- ){
-
-  box.innerHTML=`
-
-   <p class="muted">
-    Сейчас используется временный аккаунт.
-   </p>
-
-   <button
-    class="google-button"
-    id="googleLoginBtn">
-
-    🔵 Войти через Google
-
-   </button>
-
-   <p class="muted" style="font-size:13px">
-    Google нужен для доступа к Комьюнити.
-   </p>
-
-  `;
-
-  $("googleLoginBtn").onclick=
-   loginGoogle;
-
-  return;
-
- }
-
- const avatar=
-  safeImageURL(
-   firebaseUser.photoURL||
-   profileData.photoURL
-  );
-
- box.innerHTML=`
-
-  <div class="auth-user">
-
-   <div class="auth-user-avatar">
-
-    ${
-     avatar
-      ?`<img src="${avatar}">`
-      :"👤"
-    }
-
-   </div>
-
-   <div class="grow">
-
-    <b>
-     ${escapeHTML(
-      firebaseUser.displayName||
-      profileData.displayName||
-      "Google"
-     )}
-    </b>
-
-    <span class="muted">
-     Google авторизован
-    </span>
-
-   </div>
-
-  </div>
-
-  ${
-   profileData.username
-    ?`
-
-     <div class="drop">
-
-      <b>
-       👤 Username
-      </b>
-
-      <p style="font-size:19px">
-       @${escapeHTML(
-        profileData.username
-       )}
-      </p>
-
-      <span class="muted">
-       Username уже установлен
-      </span>
-
-     </div>
-
-    `
-    :`
-
-     <div class="username-box">
-
-      <b>
-       Придумай Username
-      </b>
-
-      <input
-       id="usernameInput"
-       maxlength="20"
-       placeholder="Например: Player_123">
-
-      <button id="saveUsernameBtn">
-       Сохранить username
-      </button>
-
-      <span class="muted" style="font-size:13px">
-       После создания изменить его пока нельзя.
-      </span>
-
-     </div>
-
-    `
-  }
-
- `;
-
- if($("saveUsernameBtn"))
-  $("saveUsernameBtn").onclick=
-   saveUsername;
-
-}
-
-
-/* =========================
-   ЗАГРУЗКА ПРОФИЛЯ
-========================= */
-
-async function loadProfileData(){
-
- if(
-  !firebaseUser||
-  firebaseUser.isAnonymous||
-  !db
- ){
-
-  profileData={
-   username:null,
-   photoURL:null,
-   displayName:null,
-   google:false,
-   rank:"bronze"
-  };
-
-  return;
-
- }
-
- try{
-
-  const snap=
-   await db
-    .ref(
-     "prognozer/users/"+
-     firebaseUser.uid+
-     "/profile"
-    )
-    .once("value");
-
-  const p=snap.val()||{};
-
-  profileData={
-   username:p.username||null,
-   photoURL:
-    p.photoURL||
-    firebaseUser.photoURL||
-    null,
-   displayName:
-    p.displayName||
-    firebaseUser.displayName||
-    null,
-   google:true,
-   rank:p.rank||"bronze"
-  };
-
- }catch(e){
-
-  console.error(
-   "Profile load:",
-   e
-  );
-
- }
-
- renderAccount();
-
-}
-
-
-/* =========================
-   ДОСТУП К КОМЬЮНИТИ
-========================= */
-
-function hasCommunityAccess(){
-
- return !!(
-  firebaseUser &&
-  !firebaseUser.isAnonymous &&
-  profileData.username
- );
-
-}
-
-
-function updateCommunityAccess(){
-
- const gate=
-  $("communityGate");
-
- const content=
-  $("communityContent");
-
- if(hasCommunityAccess()){
-
-  gate.innerHTML="";
-
-  content.style.display="block";
-
-  loadCommunityPosts();
-
-  loadOnlineUsers();
-
- }else{
-
-  content.style.display="none";
-
-  let text="";
-
-  if(
-   !firebaseUser||
-   firebaseUser.isAnonymous
-  ){
-
-   text=`
-
-    <div class="community-gate">
-
-     <div class="gate-icon">
-      🔐
-     </div>
-
-     <h3>
-      Доступ закрыт
-     </h3>
-
-     <p>
-      Чтобы пользоваться Комьюнити,
-      нужно войти через Google.
-     </p>
-
-     <button
-      class="google-button"
-      id="communityGoogleBtn">
-
-      🔵 Войти через Google
-
-     </button>
-
-    </div>
-
-   `;
-
-  }else{
-
-   text=`
-
-    <div class="community-gate">
-
-     <div class="gate-icon">
-      👤
-     </div>
-
-     <h3>
-      Остался один шаг
-     </h3>
-
-     <p>
-      Google уже подключён.
-      Теперь придумай username,
-      который будут видеть другие игроки.
-     </p>
-
-     <div class="username-box">
-
-      <input
-       id="communityUsernameInput"
-       maxlength="20"
-       placeholder="Твой username">
-
-      <button
-       id="communitySaveUsername">
-
-       Создать username
-
-      </button>
-
-     </div>
-
-    </div>
-
-   `;
-
-  }
-
-  gate.innerHTML=text;
-
-  if($("communityGoogleBtn"))
-   $("communityGoogleBtn").onclick=
-    loginGoogle;
-
-  if($("communitySaveUsername"))
-   $("communitySaveUsername").onclick=
-    async()=>{
-
-     const input=
-      $("communityUsernameInput");
-
-     $("usernameInput")?.remove();
-
-     const username=
-      input.value.trim();
-
-     if(!usernameValid(username))
-      return toast(
-       "Username: 3–20 символов"
-      );
-
-     try{
-
-      const normalized=
-       normalizeUsername(username);
-
-      const ref=
-       db.ref(
-        "prognozer/usernames/"+
-        normalized
-       );
-
-      const result=
-       await ref.transaction(
-        current=>
-         current===null
-          ?firebaseUser.uid
-          :undefined
-       );
-
-      if(
-       !result.committed||
-       result.snapshot.val()!==firebaseUser.uid
-      ){
-
-       return toast(
-        "❌ Такой username уже занят"
-       );
-
-      }
-
-      profileData.username=
-       username;
-
-      profileData.google=true;
-
-      profileData.displayName=
-       firebaseUser.displayName||
-       username;
-
-      profileData.photoURL=
-       firebaseUser.photoURL||
-       "";
-
-      await db
-       .ref(
-        "prognozer/users/"+
-        firebaseUser.uid+
-        "/profile"
-       )
-       .update({
-
-        username:username,
-        usernameNormalized:normalized,
-        displayName:
-         profileData.displayName,
-        photoURL:
-         profileData.photoURL,
-        google:true,
-        rank:"bronze",
-        updatedAt:
-         firebase.database.ServerValue.TIMESTAMP
-
-       });
-
-      toast(
-       "✅ Username создан"
-      );
-
-      renderAccount();
-
-      updateCommunityAccess();
-
-      updatePresence();
-
-     }catch(e){
-
-      toast(
-       "Ошибка: "+
-       firebaseError(e)
-      );
-
-     }
-
-    };
-
- }
-
-}
-
-
-/* =========================
-   PRESENCE / ONLINE
-========================= */
-
-function updatePresence(){
-
- if(
-  !db||
-  !firebaseUser||
-  firebaseUser.isAnonymous||
-  !profileData.username
- ){
-
-  return;
-
- }
-
- const statusRef=
-  db.ref(
-   "prognozer/status/"+
-   firebaseUser.uid
-  );
-
- const connectedRef=
-  db.ref(".info/connected");
-
- connectedRef.off();
-
- connectedRef.on(
-  "value",
-  snap=>{
-
-   if(snap.val()!==true)
-    return;
-
-   statusRef
-    .onDisconnect()
-    .set({
-     online:false,
-     username:
-      profileData.username,
-     photoURL:
-      profileData.photoURL||"",
-     updatedAt:
-      firebase.database.ServerValue.TIMESTAMP
-    });
-
-   statusRef.set({
-
-    online:true,
-
-    username:
-     profileData.username,
-
-    photoURL:
-     profileData.photoURL||"",
-
-    displayName:
-     profileData.displayName||"",
-
-    updatedAt:
-     firebase.database.ServerValue.TIMESTAMP
-
-   });
-
-  }
- );
-
-}
-
-
-function loadOnlineUsers(){
-
- if(
-  !db||
-  !hasCommunityAccess()
- )return;
-
- db
-  .ref("prognozer/status")
-  .on("value",async snap=>{
-
-   const users=[];
-
-   snap.forEach(child=>{
-
-    const x=child.val();
-
-    if(
-     x &&
-     x.online===true &&
-     x.username
-    ){
-
-     users.push({
-      uid:child.key,
-      ...x
-     });
-
-    }
-
-   });
-
-   users.sort((a,b)=>{
-
-    if(a.uid===firebaseUser.uid)return -1;
-
-    if(b.uid===firebaseUser.uid)return 1;
-
-    return String(a.username)
-     .localeCompare(
-      String(b.username),
-      "ru"
-     );
-
-   });
-
-   renderOnlineUsers(
-    users.slice(0,30)
-   );
-
-  });
-
-}
-
-
-function renderOnlineUsers(users){
-
- const e=$("onlineUsers");
-
- $("onlineCount")
-  .textContent=users.length;
-
- if(!users.length){
-
-  e.innerHTML=`
-   <div class="muted">
-    Никого нет онлайн
-   </div>
-  `;
-
-  return;
-
- }
-
- e.innerHTML=
-  users.map(u=>{
-
-   const avatar=
-    safeImageURL(
-     u.photoURL
-    );
-
-   return `
-
-    <div
-     class="online-user"
-     title="${escapeHTML(u.username)}">
-
-     <div class="online-avatar">
-
-      ${
-       avatar
-        ?`<img src="${avatar}" loading="lazy">`
-        :"👤"
-      }
-
-     </div>
-
-     <div class="online-name">
-      ${escapeHTML(u.username)}
-     </div>
-
-    </div>
-
-   `;
-
-  }).join("");
-
-}
-
-
-/* =========================
-   ПОСТЫ
-========================= */
-
-function renderCommunity(){
-
- updateCommunityAccess();
-
-}
-
-
-function loadCommunityPosts(){
-
- if(
-  !db||
-  !hasCommunityAccess()
- )return;
-
- db
-  .ref("prognozer/posts")
-  .orderByChild("createdAt")
-  .limitToLast(50)
-  .on("value",snap=>{
-
-   const posts=[];
-
-   snap.forEach(child=>{
-
-    const p=child.val();
-
-    if(p)
-     posts.push({
-      id:child.key,
-      ...p
-     });
-
-   });
-
-   posts.reverse();
-
-   renderPosts(posts);
-
-  });
-
-}
-
-
-function renderPosts(posts){
-
- const e=$("communityPosts");
-
- if(!posts.length){
-
-  e.innerHTML=`
-
-   <div class="drop center muted">
-    Постов пока нет.<br>
-    Будь первым!
-   </div>
-
-  `;
-
-  return;
-
- }
-
- e.innerHTML=
-  posts.map(renderPost)
-   .join("");
-
-}
-
-
-function renderPost(p){
-
- const avatar=
-  safeImageURL(
-   p.avatar
-  );
-
- let skinHTML="";
-
- if(
-  p.skin &&
-  p.skin.enabled
- ){
-
-  const skinURL=
-   safeImageURL(
-    p.skin.url
-   );
-
-  skinHTML=`
-
-   <div class="skin-preview">
-
-    <div class="skin-preview-title">
-     🎨 Скин игрока
-     ${
-      p.skin.name
-       ?"• "+escapeHTML(p.skin.name)
-       :""
-     }
-    </div>
-
-    ${
-     skinURL
-      ?`
-
-       <img
-        class="skin-image"
-        src="${skinURL}"
-        loading="lazy">
-
-      `
-      :`
-
-       <div class="skin-placeholder">
-        ${escapeHTML(
-         p.skin.emoji||"🎨"
-        )}
-       </div>
-
-      `
-    }
-
-   </div>
-
-  `;
-
- }
-
- let tradeHTML="";
-
- if(p.trade){
-
-  tradeHTML=`
-
-   <div class="trade-card">
-
-    <b>
-     🏷️ Торговое предложение
-    </b>
-
-    <div class="muted">
-     ${escapeHTML(
-      p.trade.title||
-      "Предмет игрока"
-     )}
-    </div>
-
-    ${
-     p.trade.price
-      ?`
-
-       <div class="price"
-        style="margin-top:8px">
-
-        ${p.trade.price} 💎
-
-       </div>
-
-      `
-      :""
-    }
-
-   </div>
-
-  `;
-
- }
-
- return `
-
-  <div class="drop">
-
-   <div class="community-post-head">
-
-    <div class="post-avatar">
-
-     ${
-      avatar
-       ?`<img src="${avatar}" loading="lazy">`
-       :"👤"
-     }
-
-    </div>
-
-    <div class="post-meta">
-
-     <b>
-      ${escapeHTML(
-       p.username||
-       "Игрок"
-      )}
-     </b>
-
-     <div class="post-date">
-      ${formatDate(p.createdAt)}
-     </div>
-
-    </div>
-
-   </div>
-
-   <div class="post-text">
-    ${escapeHTML(p.text||"")}
-   </div>
-
-   ${skinHTML}
-
-   ${tradeHTML}
-
-  </div>
-
- `;
-
-}
-
-
-/* =========================
-   ДОБАВИТЬ ПОСТ
-========================= */
-
-function openPostComposer(){
-
- if(!hasCommunityAccess()){
-
-  toast(
-   "Сначала войди через Google и создай username"
-  );
-
-  return;
-
- }
-
- selectedSkin=null;
-
- $("modalBody").innerHTML=`
-
-  <h2>＋ Добавить пост</h2>
-
-  <p class="muted">
-   Напиши любую информацию для игроков.
-   Максимум — 600 строк.
-  </p>
-
-  <textarea
-   id="postText"
-   maxlength="30000"
-   placeholder="Напиши свой пост..."></textarea>
-
-  <div class="line-counter">
-
-   <span id="postLineCount">
-    0 / 600 строк
-   </span>
-
-   <span>
-    максимум 30 000 символов
-   </span>
-
-  </div>
-
-  <div class="toggle-row">
-
-   <input
-    type="checkbox"
-    id="showSkinCheckbox">
-
-   <label for="showSkinCheckbox">
-    🎨 Показать скин
-   </label>
-
-  </div>
-
-  <div
-   id="skinSelector"
-   style="display:none">
-
-   <h3>
-    Выбери скин
-   </h3>
-
-   <div class="skin-options">
-
-    <div
-     class="skin-option"
-     data-skin="blue">
-
-     <div class="skin-icon">
-      🔵
-     </div>
-
-     Синий
-
-    </div>
-
-    <div
-     class="skin-option"
-     data-skin="red">
-
-     <div class="skin-icon">
-      🔴
-     </div>
-
-     Красный
-
-    </div>
-
-    <div
-     class="skin-option"
-     data-skin="dark">
-
-     <div class="skin-icon">
-      ⚫
-     </div>
-
-     Чёрный
-
-    </div>
-
-    <div
-     class="skin-option"
-     data-skin="gold">
-
-     <div class="skin-icon">
-      🟡
-     </div>
-
-     Золотой
-
-    </div>
-
-    <div
-     class="skin-option"
-     data-skin="neon">
-
-     <div class="skin-icon">
-      🟣
-     </div>
-
-     Неон
-
-    </div>
-
-    <div
-     class="skin-option"
-     data-skin="custom">
-
-     <div class="skin-icon">
-      🖼️
-     </div>
-
-     Свой скин
-
-    </div>
-
-   </div>
-
-   <div
-    id="customSkinBox"
-    style="display:none;margin-top:12px">
-
-    <input
-     id="customSkinUrl"
-     placeholder="HTTPS-ссылка на изображение скина">
-
-    <input
-     id="customSkinName"
-     style="margin-top:8px"
-     maxlength="40"
-     placeholder="Название скина">
-
-   </div>
-
-  </div>
-
-  <div style="margin-top:12px">
-
-   <button
-    class="locked-button"
-    id="tradePostBtn"
-    style="width:100%">
-
-    🔒 Показать свою торговлю
-    — доступно со званием Сильвер
-
-   </button>
-
-  </div>
-
-  <button
-   id="publishPostBtn"
-   style="width:100%;margin-top:12px">
-
-   Опубликовать
-
-  </button>
-
- `;
-
- $("modal").classList.add("open");
-
- const textarea=$("postText");
-
- textarea.oninput=()=>{
-
-  const lines=
-   textarea.value
-    .split(/\r?\n/)
-    .length;
-
-  $("postLineCount")
-   .textContent=
-    lines+
-    " / 600 строк";
-
-  $("postLineCount").style.color=
-   lines>600
-    ?" #ff6b7d"
-    :"";
-
- };
-
- $("showSkinCheckbox").onchange=e=>{
-
-  $("skinSelector").style.display=
-   e.target.checked
-    ?"block"
-    :"none";
-
- };
-
- document
-  .querySelectorAll(".skin-option")
-  .forEach(option=>{
-
-   option.onclick=()=>{
-
-    document
-     .querySelectorAll(".skin-option")
-     .forEach(x=>
-      x.classList.remove("selected")
-     );
-
-    option.classList.add("selected");
-
-    selectedSkin=
-     option.dataset.skin;
-
-    $("customSkinBox").style.display=
-     selectedSkin==="custom"
-      ?"block"
-      :"none";
-
-   };
-
-  });
-
- $("publishPostBtn").onclick=
-  publishPost;
-
-}
-
-
-/* =========================
-   СКИН
-========================= */
-
-const skinPresets={
-
- blue:{
-  name:"Синий",
-  emoji:"🔵",
-  url:""
- },
-
- red:{
-  name:"Красный",
-  emoji:"🔴",
-  url:""
- },
-
- dark:{
-  name:"Чёрный",
-  emoji:"⚫",
-  url:""
- },
-
- gold:{
-  name:"Золотой",
-  emoji:"🟡",
-  url:""
- },
-
- neon:{
-  name:"Неон",
-  emoji:"🟣",
-  url:""
- }
-
-};
-
-
-function getSelectedSkin(){
-
- if(
-  !$("showSkinCheckbox")||
-  !$("showSkinCheckbox").checked
- ){
-
-  return null;
-
- }
-
- if(!selectedSkin){
-
-  toast(
-   "Выбери скин"
-  );
-
-  return false;
-
- }
-
- if(selectedSkin==="custom"){
-
-  const url=
-   safeImageURL(
-    $("customSkinUrl").value.trim()
-   );
-
-  if(!url){
-
-   toast(
-    "Введи правильную HTTPS-ссылку на скин"
-   );
-
-   return false;
-
-  }
-
-  return {
-
-   enabled:true,
-   name:
-    $("customSkinName").value.trim()||
-    "Свой скин",
-   url:url,
-   emoji:"🖼️"
-
-  };
-
- }
-
- const skin=
-  skinPresets[selectedSkin];
-
- if(!skin)return null;
-
- return {
-
-  enabled:true,
-  name:skin.name,
-  emoji:skin.emoji,
-  url:skin.url
-
- };
-
-}
-
-
-/* =========================
-   ОПУБЛИКОВАТЬ
-========================= */
-
-async function publishPost(){
-
- if(!hasCommunityAccess()){
-
-  return toast(
-   "Нет доступа к Комьюнити"
-  );
-
- }
-
- const text=
-  $("postText").value;
-
- const lines=
-  text.split(/\r?\n/).length;
-
- if(!text.trim()){
-
-  return toast(
-   "Пост пустой"
-  );
-
- }
-
- if(lines>600){
-
-  return toast(
-   "Максимум 600 строк"
-  );
-
- }
-
- if(text.length>30000){
-
-  return toast(
-   "Пост слишком большой"
-  );
-
- }
-
- const skin=
-  getSelectedSkin();
-
- if(skin===false)
-  return;
-
- const post={
-
-  uid:firebaseUser.uid,
-
-  username:
-   profileData.username,
-
-  avatar:
-   profileData.photoURL||
-   firebaseUser.photoURL||
-   "",
-
-  text:text,
-
-  skin:skin||null,
-
-  trade:null,
-
-  createdAt:
-   firebase.database.ServerValue.TIMESTAMP
-
- };
-
- try{
-
-  await db
-   .ref("prognozer/posts")
-   .push(post);
-
-  $("modal")
-   .classList.remove("open");
-
-  toast(
-   "✅ Пост опубликован"
-  );
-
- }catch(e){
-
-  console.error(e);
-
-  toast(
-   "Ошибка публикации: "+
-   firebaseError(e)
-  );
-
- }
-
-}
-
-
-/* =========================
-   ДРУЗЬЯ
-========================= */
-
-function openCommunityDrawer(){
-
- if(!hasCommunityAccess()){
-
-  toast(
-   "Комьюнити доступно после Google + username"
-  );
-
-  return;
-
- }
-
- $("communityDrawer")
-  .classList.add("open");
-
-}
-
-
-function closeCommunityDrawer(){
-
- $("communityDrawer")
-  .classList.remove("open");
-
-}
-
-
-async function addFriend(){
-
- closeCommunityDrawer();
-
- if(!hasCommunityAccess())
-  return toast("Нет доступа");
-
- $("modalBody").innerHTML=`
-
-  <h2>👥 Добавить в друзья</h2>
-
-  <p class="muted">
-   Введи точный username игрока.
-  </p>
-
-  <input
-   id="friendUsername"
-   maxlength="20"
-   placeholder="@username">
-
-  <button
-   id="findFriendBtn"
-   style="width:100%;margin-top:10px">
-
-   Добавить
-
-  </button>
-
-  <div id="friendResult"></div>
-
- `;
-
- $("modal").classList.add("open");
-
- $("findFriendBtn").onclick=
-  async()=>{
-
-   const input=
-    $("friendUsername");
-
-   const username=
-    input.value.trim();
-
-   if(!usernameValid(username))
-    return toast(
-     "Неверный username"
-    );
-
-   const normalized=
-    normalizeUsername(username);
-
-   try{
-
-    const snap=
-     await db
-      .ref(
-       "prognozer/usernames/"+
-       normalized
-      )
-      .once("value");
-
-    const friendUid=
-     snap.val();
-
-    if(!friendUid){
-
-     return toast(
-      "Игрок не найден"
-     );
-
-    }
-
-    if(
-     friendUid===
-     firebaseUser.uid
-    ){
-
-     return toast(
-      "Нельзя добавить себя"
-     );
-
-    }
-
-    const profileSnap=
-     await db
-      .ref(
-       "prognozer/users/"+
-       friendUid+
-       "/profile"
-      )
-      .once("value");
-
-    const p=
-     profileSnap.val()||{};
-
-    const friendData={
-
-     uid:friendUid,
-
-     username:
-      p.username||
-      username,
-
-     photoURL:
-      p.photoURL||
-      "",
-
-     addedAt:
-      firebase.database.ServerValue.TIMESTAMP
-
-    };
-
-    await db
-     .ref(
-      "prognozer/friends/"+
-      firebaseUser.uid+
-      "/"+
-      friendUid
-     )
-     .set(friendData);
-
-    await db
-     .ref(
-      "prognozer/friends/"+
-      friendUid+
-      "/"+
-      firebaseUser.uid
-     )
-     .set({
-
-      uid:firebaseUser.uid,
-
-      username:
-       profileData.username,
-
-      photoURL:
-       profileData.photoURL||
-       "",
-
-      addedAt:
-       firebase.database.ServerValue.TIMESTAMP
-
-     });
-
-    $("friendResult").innerHTML=`
-
-     <div class="drop center">
-
-      ✅
-
-      ${escapeHTML(
-       friendData.username
-      )}
-
-      добавлен в друзья
-
-     </div>
-
-    `;
-
-   }catch(e){
-
-    toast(
-     "Ошибка: "+
-     firebaseError(e)
-    );
-
-   }
-
-  };
-
-}
-
-
-async function showFriends(){
-
- closeCommunityDrawer();
-
- if(!hasCommunityAccess())
-  return toast("Нет доступа");
-
- $("modalBody").innerHTML=`
-
-  <h2>🤝 Друзья</h2>
-
-  <div
-   id="friendsList"
-   class="friend-list">
-
-   <div class="muted">
-    Загружаем...
-   </div>
-
-  </div>
-
- `;
-
- $("modal").classList.add("open");
-
- try{
-
-  const snap=
-   await db
-    .ref(
-     "prognozer/friends/"+
-     firebaseUser.uid
-    )
-    .once("value");
-
-  const list=[];
-
-  snap.forEach(child=>{
-
-   const x=child.val();
-
-   if(x)
-    list.push(x);
-
-  });
-
-  const e=$("friendsList");
-
-  if(!list.length){
-
-   e.innerHTML=`
-
-    <div class="drop center muted">
-
-     У тебя пока нет друзей.
-
-    </div>
-
-   `;
-
-   return;
-
-  }
-
-  e.innerHTML=
-   list.map(x=>{
-
-    const avatar=
-     safeImageURL(
-      x.photoURL
-     );
-
-    return `
-
-     <div class="friend-item">
-
-      <div class="friend-avatar">
-
-       ${
-        avatar
-         ?`<img src="${avatar}">`
-         :"👤"
-       }
-
-      </div>
-
-      <div class="grow">
-
-       <b>
-        ${escapeHTML(
-         x.username||
-         "Игрок"
-        )}
-       </b>
-
-       <span class="muted">
-        Друг
-       </span>
-
-      </div>
-
-     </div>
-
-    `;
-
-   }).join("");
-
- }catch(e){
-
-  $("friendsList").innerHTML=`
-
-   <div class="drop">
-    Ошибка загрузки друзей.
-   </div>
-
-  `;
-
- }
-
-}
-
-
-/* =========================
-   ТРЕЙД
-========================= */
-
-function openTrade(){
-
- closeCommunityDrawer();
-
- $("modalBody").innerHTML=`
-
-  <h2>🔄 Трейд</h2>
-
-  <div class="drop center">
-
-   <div class="big">
-    🔄
-   </div>
-
-   <h3>
-    Трейд между игроками
-   </h3>
-
-   <p class="muted">
-    Здесь будет обмен предметами
-    между двумя игроками.
-   </p>
-
-   <button
-    class="locked-button"
-    disabled>
-
-    Скоро
-
-   </button>
-
-  </div>
-
- `;
-
- $("modal").classList.add("open");
-
-}
-
-
-/* =========================
-   МАГАЗИН ИГРОКОВ
-========================= */
-
-async function openPlayerShop(){
-
- closeCommunityDrawer();
-
- $("modalBody").innerHTML=`
-
-  <h2>🛍️ Магазин среди игроков</h2>
-
-  <p class="muted">
-   Здесь будут товары,
-   которые выставили игроки.
-  </p>
-
-  <div
-   id="playerShopList">
-
-   <div class="drop center muted">
-    Загружаем...
-   </div>
-
-  </div>
-
- `;
-
- $("modal").classList.add("open");
-
- try{
-
-  const snap=
-   await db
-    .ref("prognozer/playerShop")
-    .limitToLast(50)
-    .once("value");
-
-  const list=[];
-
-  snap.forEach(child=>{
-
-   const x=child.val();
-
-   if(x)
-    list.push({
-     id:child.key,
-     ...x
-    });
-
-  });
-
-  list.reverse();
-
-  const e=
-   $("playerShopList");
-
-  if(!list.length){
-
-   e.innerHTML=`
-
-    <div class="drop center muted">
-
-     🛍️ Пока никто ничего
-     не выставил на продажу.
-
-    </div>
-
-   `;
-
-   return;
-
-  }
-
-  e.innerHTML=
-   list.map(x=>`
-
-    <div class="player-shop-card">
-
-     <b>
-      ${escapeHTML(
-       x.itemName||
-       "Предмет"
-      )}
-     </b>
-
-     <div class="muted">
-      Продавец:
-      ${escapeHTML(
-       x.username||
-       "Игрок"
-      )}
-     </div>
-
-     <div
-      class="shop-price"
-      style="margin-top:8px">
-
-      ${x.price||0} 💎
-
-     </div>
-
-    </div>
-
-   `).join("");
-
- }catch(e){
-
-  $("playerShopList").innerHTML=`
-
-   <div class="drop">
-
-    Не удалось загрузить магазин.
-
-   </div>
-
-  `;
-
- }
-
-}
-
-
-/* =========================
-   ТОРГОВЛЯ В ПОСТЕ
-   СИЛЬВЕР
-========================= */
-
-async function openTradePostSelector(){
-
- if(
-  !profileData.rank||
-  profileData.rank.toLowerCase()!=="silver"
- ){
-
-  toast(
-   "🔒 Функция доступна со званием Сильвер"
-  );
-
-  return;
-
- }
-
- toast(
-  "Раздел торговли будет подключён к аукциону"
- );
-
-}
-
-
-/* =========================
-   FIREBASE USER
-========================= */
-
-async function loadFirebaseUser(){
-
- if(!firebaseUser||!db)
-  throw new Error(
-   "Firebase не готов"
-  );
-
- saving=true;
-
- try{
-
-  const ref=
-   db.ref(
-    "prognozer/users/"+
-    firebaseUser.uid
-   );
-
-  const snap=
-   await ref.once("value");
-
-  const remote=
-   snap.val();
-
-  if(remote){
-
-   state={
-
-    balance:
-     typeof remote.balance==="number"
-      ?remote.balance
-      :5000,
-
-    inventory:
-     Array.isArray(remote.inventory)
-      ?remote.inventory
-      :[],
-
-    statistics:
-     remote.statistics||
-     {
-      casesOpened:0,
-      upgrades:0,
-      purchases:0,
-      sales:0
-     },
-
-    createdAt:
-     remote.createdAt||
-     Date.now()
-
-   };
-
-   localStorage.setItem(
-    "prognozer_state",
-    JSON.stringify(state)
-   );
-
-   updateUI();
-
-  }else{
-
-   state.createdAt=
-    Date.now();
-
-   await saveFirebase();
-
-  }
-
-  await loadProfileData();
-
- }finally{
-
-  saving=false;
-
- }
-
-}
-
-
-async function saveFirebase(){
-
- if(!firebaseUser||!db)
-  return false;
-
- saving=true;
-
- try{
-
-  await db
-   .ref(
-    "prognozer/users/"+
-    firebaseUser.uid
-   )
-   .update({
-
-    balance:
-     Number(state.balance)||0,
-
-    inventory:
-     Array.isArray(state.inventory)
-      ?state.inventory
-      :[],
-
-    statistics:
-     state.statistics||{},
-
-    createdAt:
-     state.createdAt||
-     Date.now(),
-
-    updatedAt:
-     firebase.database.ServerValue.TIMESTAMP
-
-   });
-
-  $("firebaseStatus")
-   .textContent=
-    "🟢 Firebase подключена • ☁️ данные синхронизированы";
-
-  $("profileOnline")
-   .textContent="ONLINE";
-
-  return true;
-
- }catch(e){
-
-  $("firebaseStatus")
-   .textContent=
-    "Ошибка сохранения: "+
-    firebaseError(e);
-
-  return false;
-
- }finally{
-
-  saving=false;
-
- }
-
-}
-
-
-/* =========================
-   INIT FIREBASE
-========================= */
-
-async function initFirebase(){
-
- if(!window.firebase){
-
-  return setFirebaseStatus(
-   "❌ Firebase SDK не загрузился. Проверь интернет."
-  );
-
- }
-
- try{
-
-  if(!firebase.apps.length)
-   firebase.initializeApp(
-    FIREBASE_CONFIG
-   );
-
-  db=firebase.database();
-
-  auth=firebase.auth();
-
-  firebaseReady=true;
-
-  /*
-   Firebase Auth не работает
-   нормально при file:// / content://
-  */
-
-  const protocol=
-   location.protocol;
-
-  if(
-   protocol==="file:"||
-   protocol==="content:"
-  ){
-
-   setFirebaseStatus(
-    "⚠️ HTML открыт как файл. Для Firebase Auth открой его через HTTPS/localhost.",
-    false
-   );
-
-   $("profileUid")
-    .textContent=
-     "Firebase ждёт веб-адрес";
-
-   $("firebaseUid")
-    .textContent=
-     "Загрузите HTML на Firebase Hosting / GitHub Pages";
-
-   return;
-
-  }
-
-
-  db
-   .ref(".info/connected")
-   .on(
-    "value",
-    s=>{
-
-     if(
-      s.val()===true&&
-      firebaseUser
-     ){
-
-      setFirebaseStatus(
-       "🟢 Подключено • база доступна",
-       true
-      );
-
-     }else if(!firebaseUser){
-
-      setFirebaseStatus(
-       "🔐 Авторизация…",
-       false
-      );
-
-     }else{
-
-      setFirebaseStatus(
-       "🔴 База недоступна",
-       false
-      );
-
-     }
-
-    }
-   );
-
-
-  let authTimer=
-   setTimeout(()=>{
-
-    if(!firebaseUser){
-
-     setFirebaseStatus(
-      "❌ Авторизация не отвечает. Проверь Anonymous Provider и Authorized domains.",
-      false
-     );
-
-     $("profileUid")
-      .textContent=
-       "UID не получен";
-
-    }
-
-   },12000);
-
-
-  auth.onAuthStateChanged(
-   async user=>{
-
-    clearTimeout(authTimer);
-
-    firebaseUser=user;
-
-    if(!user){
-
-     setFirebaseStatus(
-      "🔐 Входим анонимно…",
-      false
-     );
-
-     try{
-
-      const result=
-       await Promise.race([
-
-        auth.signInAnonymously(),
-
-        new Promise(
-         (_,reject)=>
-          setTimeout(
-           ()=>reject(
-            new Error(
-             "Тайм-аут Anonymous Auth (12 сек)"
-            )
-           ),
-           12000
-          )
-        )
-
-       ]);
-
-      console.log(
-       "Firebase UID:",
-       result.user.uid
-      );
-
-     }catch(e){
-
-      const msg=
-       firebaseError(e);
-
-      setFirebaseStatus(
-       "❌ Ошибка входа: "+msg,
-       false
-      );
-
-      $("profileUid")
-       .textContent=
-        "UID не получен";
-
-      $("firebaseUid")
-       .textContent=
-        "Проверьте Authentication → Sign-in method → Anonymous";
-
-      console.error(
-       "Firebase Auth error:",
-       e
-      );
-
-     }
-
-     return;
-
-    }
-
-
-    $("profileUid")
-     .textContent=
-      "UID: "+user.uid;
-
-    $("firebaseUid")
-     .textContent=
-      "UID: "+user.uid;
-
-    setFirebaseStatus(
-     "☁️ Авторизован • загружаем данные…",
-     true
-    );
-
-
-    try{
-
-     await loadFirebaseUser();
-
-     setFirebaseStatus(
-      "🟢 Firebase подключена • ☁️ данные синхронизированы",
-      true
-     );
-
-     renderAccount();
-
-     updateCommunityAccess();
-
-     updatePresence();
-
-    }catch(e){
-
-     setFirebaseStatus(
-      "❌ Ошибка базы: "+
-      firebaseError(e),
-      false
-     );
-
-     console.error(
-      "Firebase RTDB error:",
-      e
-     );
-
-    }
-
-   }
-  );
-
- }catch(e){
-
-  firebaseReady=false;
-
-  setFirebaseStatus(
-   "❌ Ошибка Firebase: "+
-   firebaseError(e),
-   false
-  );
-
-  console.error(e);
-
- }
-
-}
-
-
-/* =========================
-   КНОПКИ
-========================= */
-
-function bindCaseButtons(){
-
- $("caseTakeBtn").onclick=
-  takeCaseDrop;
-
- $("caseSellBtn").onclick=
-  sellCaseDrop;
-
- $("caseUpgradeBtn").onclick=
-  startUpgradeFromCase;
-
-}
-
-
-/* =========================
-   НАВИГАЦИЯ
-========================= */
-
-document
- .querySelectorAll(".tab")
- .forEach(t=>
-
-  t.onclick=()=>{
-
-   /*
-    Комьюнити не открываем
-    как рабочую область,
-    если нет Google + username.
-    Вместо этого покажем экран
-    авторизации.
-   */
-
-   nav(t.dataset.screen);
-
-  }
-
- );
-
-
-/* =========================
-   CASE BUTTONS
-========================= */
-
-$("caseCloseBtn").onclick=()=>{
-
- if(
-  $("caseWinCard")
-   .classList
-   .contains("show")
- ){
-
-  closeCaseOverlay();
-
- }
-
-};
-
-bindCaseButtons();
-
-
-/* =========================
-   MODAL
-========================= */
-
-$("closeBtn").onclick=()=>
- $("modal")
-  .classList.remove("open");
-
-
-$("modal").onclick=e=>{
-
- if(e.target.id==="modal")
-  $("modal")
-   .classList.remove("open");
-
-};
-
-
-/* =========================
-   PROFILE
-========================= */
-
-$("resetBtn").onclick=
- async()=>{
-
-  state={
-
-   balance:5000,
-
-   inventory:[],
-
-   statistics:{
+let state={
+  balance:100,
+  inventory:[],
+  statistics:{
     casesOpened:0,
     upgrades:0,
     purchases:0,
     sales:0
-   },
+  },
+  createdAt:Date.now()
+};
 
-   createdAt:Date.now()
+let presenceRef=null;
+let postsListener=null;
+let pendingDrop=null;
 
+
+/* =========================================================
+   DATA
+========================================================= */
+
+const items=[
+  ["AK-47 | Blue Line","Оружие","🔫",1200],
+  ["AK-47 | Neon Rider","Оружие","🔫",3200],
+  ["M4A1-S | Night Wave","Оружие","🔫",1800],
+  ["AWP | Arctic","Оружие","🔫",4200],
+  ["AWP | Redline","Оружие","🔫",5200],
+  ["M4A4 | Cyber","Оружие","🔫",2600],
+  ["USP-S | Ocean","Оружие","🔫",900],
+  ["Glock-18 | Fade","Оружие","🔫",2800],
+  ["P2000 | Marsch FT","Оружие","🔫",700],
+  ["MP7 | Short Ochre","Оружие","🔫",550],
+  ["MP9 | Blue Steel","Оружие","🔫",650],
+  ["MAC-10 | Surf","Оружие","🔫",800],
+  ["FAMAS | Pulse","Оружие","🔫",1100],
+  ["Galil AR | Ice","Оружие","🔫",950],
+  ["★ Нож | Blue Steel","Нож","🔪",2200],
+  ["★ Нож | Night","Нож","🔪",3600],
+  ["★ Нож | Crimson","Нож","🔪",6500],
+  ["★ Karambit | Ocean","Нож","🔪",9800],
+  ["★ Butterfly | Arctic","Нож","🔪",12500],
+  ["★ M9 Bayonet | Dark","Нож","🔪",16000],
+  ["Sticker | Champion","Наклейка","🏷️",1200],
+  ["Sticker | Star","Наклейка","🏷️",350],
+  ["Sticker | Dragon","Наклейка","🏷️",2400],
+  ["Sticker | Crown","Наклейка","🏷️",3500],
+  ["Sticker | Blue Wave","Наклейка","🏷️",650],
+  ["Sticker | Skull","Наклейка","🏷️",900],
+  ["Sticker | Lightning","Наклейка","🏷️",1500],
+  ["Sticker | Neon","Наклейка","🏷️",2100]
+].map((x,i)=>({
+  id:i+1,
+  name:x[0],
+  type:x[1],
+  emoji:x[2],
+  price:x[3]
+}));
+
+const cases=[
+  {
+    name:"Маленький кейс",
+    cost:50,
+    drops:[
+      ["Sticker | Star",350,"🏷️",20],
+      ["MP7 | Short Ochre",550,"🔫",50],
+      ["P2000 | Marsch FT",700,"🔫",25],
+      ["★ Нож | Blue Steel",2200,"🔪",5]
+    ]
+  },
+  {
+    name:"Средний кейс",
+    cost:150,
+    drops:[
+      ["Sticker | Champion",1200,"🏷️",35],
+      ["P2000 | Marsch FT",700,"🔫",35],
+      ["AK-47 | Blue Line",1200,"🔫",28],
+      ["★ Нож | Night",3600,"🔪",2]
+    ]
+  },
+  {
+    name:"Большой кейс",
+    cost:300,
+    drops:[
+      ["Sticker | Dragon",2400,"🏷️",40],
+      ["AK-47 | Neon Rider",3200,"🔫",35],
+      ["★ Нож | Crimson",6500,"🔪",20],
+      ["★ Karambit | Ocean",9800,"🔪",5]
+    ]
+  },
+  {
+    name:"Супер большой кейс",
+    cost:750,
+    drops:[
+      ["Sticker | Crown",3500,"🏷️",45],
+      ["AWP | Arctic",4200,"🔫",30],
+      ["★ M9 Bayonet | Dark",16000,"🔪",20],
+      ["★ Butterfly | Arctic",12500,"🔪",5]
+    ]
+  }
+];
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const $=id=>document.getElementById(id);
+
+function toast(text){
+  const e=$("toast");
+  e.textContent=text;
+  e.classList.add("show");
+
+  clearTimeout(window.__toastTimer);
+
+  window.__toastTimer=setTimeout(()=>{
+    e.classList.remove("show");
+  },2200);
+}
+
+function escapeHtml(text){
+  return String(text??"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function safeUrl(url){
+  try{
+    const u=new URL(url);
+
+    if(u.protocol==="http:"||u.protocol==="https:")
+      return u.href;
+
+  }catch(e){}
+
+  return "";
+}
+
+function formatDate(ts){
+  if(!ts)return"только что";
+
+  const d=new Date(ts);
+
+  return d.toLocaleString("ru-RU",{
+    day:"2-digit",
+    month:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+}
+
+function avatarHtml(url,fallback="👤"){
+  const safe=safeUrl(url);
+
+  if(safe){
+    return `<img src="${escapeHtml(safe)}" alt="">`;
+  }
+
+  return fallback;
+}
+
+function normalizeState(x){
+
+  if(!x||typeof x.balance!=="number")
+    return{
+      balance:100,
+      inventory:[],
+      statistics:{
+        casesOpened:0,
+        upgrades:0,
+        purchases:0,
+        sales:0
+      },
+      createdAt:Date.now()
+    };
+
+  return{
+    balance:x.balance,
+    inventory:Array.isArray(x.inventory)?x.inventory:[],
+    statistics:{
+      casesOpened:Number(x.statistics?.casesOpened)||0,
+      upgrades:Number(x.statistics?.upgrades)||0,
+      purchases:Number(x.statistics?.purchases)||0,
+      sales:Number(x.statistics?.sales)||0
+    },
+    createdAt:x.createdAt||Date.now()
   };
+}
+
+
+/* =========================================================
+   BASIC STATE
+========================================================= */
+
+function updateUI(){
+
+  $("balance").textContent=
+    Math.floor(state.balance)+" 💎";
+
+  renderInventory();
+
+  const s=state.statistics||{};
+
+  $("profileStats").textContent=
+    `Кейсов: ${s.casesOpened||0} • Апгрейдов: ${s.upgrades||0}`;
+}
+
+function loadGuest(){
+
+  try{
+
+    const raw=localStorage.getItem(GUEST_KEY);
+
+    if(raw)
+      state=normalizeState(JSON.parse(raw));
+    else
+      state=normalizeState(null);
+
+  }catch(e){
+    state=normalizeState(null);
+  }
+
+  updateUI();
+}
+
+function saveGuest(){
+
+  try{
+    localStorage.setItem(
+      GUEST_KEY,
+      JSON.stringify(state)
+    );
+  }catch(e){}
+
+  updateUI();
+}
+
+function localSave(){
+
+  if(guestMode){
+    saveGuest();
+    return;
+  }
+
+  updateUI();
+  scheduleCloudSave();
+}
+
+function scheduleCloudSave(){
+
+  clearTimeout(window.__saveTimer);
+
+  window.__saveTimer=setTimeout(()=>{
+    saveFirebase();
+  },400);
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function nav(id){
+
+  if(id==="community"){
+    renderCommunity();
+  }
+
+  document.querySelectorAll(".screen")
+    .forEach(s=>{
+      s.classList.toggle(
+        "active",
+        s.id===id
+      );
+    });
+
+  document.querySelectorAll(".tab")
+    .forEach(t=>{
+      t.classList.toggle(
+        "active",
+        t.dataset.screen===id
+      );
+    });
+
+  if(id==="inventory")
+    renderInventory();
+
+  if(id==="shop")
+    renderShop();
+
+  if(id==="profile")
+    loadUsernameDisplay();
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+
+/* =========================================================
+   GAMES
+========================================================= */
+
+const games=[
+  {id:"cases",icon:"🎁",title:"Кейсы",sub:"Открытие кейсов"},
+  {id:"battle",icon:"⚔️",title:"Кейс-баттлы",sub:"Дуэль кейсов"},
+  {id:"double",icon:"🎯",title:"Double",sub:"Виртуальная игра"},
+  {id:"upgrade",icon:"⬆️",title:"Апгрейдер",sub:"Улучшение предмета"},
+  {id:"contracts",icon:"📜",title:"Контракты",sub:"Обмен предметов"},
+  {id:"royal",icon:"👑",title:"Королевская битва",sub:"5 раундов"},
+  {id:"shop",icon:"🛒",title:"Магазин",sub:"Предметы"}
+];
+
+function makeGameCard(g){
+
+  const d=document.createElement("div");
+
+  d.className="card";
+
+  d.innerHTML=`
+    <div class="icon">${g.icon}</div>
+    <b>${g.title}</b>
+    <span>${g.sub}</span>
+  `;
+
+  d.onclick=()=>{
+    if(g.id==="shop")
+      nav("shop");
+    else
+      openGame(g.id);
+  };
+
+  return d;
+}
+
+function renderGrids(){
+
+  for(const id of["homeGrid","gamesGrid"]){
+
+    const e=$(id);
+
+    e.innerHTML="";
+
+    games
+      .filter(g=>
+        id==="homeGrid" ||
+        g.id!=="shop"
+      )
+      .forEach(g=>{
+        e.appendChild(
+          makeGameCard(g)
+        );
+      });
+  }
+}
+
+
+/* =========================================================
+   INVENTORY / SHOP
+========================================================= */
+
+function renderInventory(){
+
+  const e=$("inventoryList");
+
+  if(!state.inventory.length){
+
+    e.innerHTML=`
+      <div class="drop center muted">
+        Инвентарь пуст.<br>
+        Открой кейс или купи предмет.
+      </div>
+    `;
+
+    return;
+  }
+
+  e.innerHTML=state.inventory.map((x,i)=>`
+
+    <div class="row">
+
+      <div class="thumb">
+        ${escapeHtml(x.emoji||"🎁")}
+      </div>
+
+      <div class="grow">
+        <b>${escapeHtml(x.name)}</b>
+        <span class="muted">
+          ${escapeHtml(x.type||"Предмет")}
+        </span>
+      </div>
+
+      <span class="price">
+        ${x.price} 💎
+      </span>
+
+      <button
+        class="secondary sell"
+        data-i="${i}"
+      >
+        Продать
+      </button>
+
+    </div>
+
+  `).join("");
+
+  e.querySelectorAll(".sell")
+    .forEach(b=>{
+      b.onclick=()=>{
+        sell(+b.dataset.i);
+      };
+    });
+}
+
+function renderShop(){
+
+  const e=$("shopList");
+
+  e.innerHTML=items.map(x=>`
+
+    <div class="row">
+
+      <div class="thumb">
+        ${escapeHtml(x.emoji)}
+      </div>
+
+      <div class="grow">
+        <b>${escapeHtml(x.name)}</b>
+        <span class="muted">
+          ${escapeHtml(x.type)}
+        </span>
+      </div>
+
+      <span class="price">
+        ${x.price} 💎
+      </span>
+
+      <button
+        class="buy"
+        data-id="${x.id}"
+      >
+        Купить
+      </button>
+
+    </div>
+
+  `).join("");
+
+  e.querySelectorAll(".buy")
+    .forEach(b=>{
+      b.onclick=()=>{
+        buy(+b.dataset.id);
+      };
+    });
+}
+
+function addItem(
+  name,
+  price,
+  emoji,
+  type
+){
+
+  state.inventory.push({
+    name,
+    price,
+    emoji,
+    type
+  });
+
+  localSave();
+}
+
+function sell(i){
+
+  const x=state.inventory[i];
+
+  if(!x)return;
+
+  state.balance+=x.price;
+
+  state.inventory.splice(i,1);
+
+  state.statistics.sales=
+    (state.statistics.sales||0)+1;
 
   localSave();
 
-  const ok=
-   await saveFirebase();
-
   toast(
-   ok
-    ?"Данные сброшены и сохранены в Firebase"
-    :"Демо сброшено локально"
+    "Продано: +"+x.price+" 💎"
+  );
+}
+
+function buy(id){
+
+  const x=items.find(
+    a=>a.id===id
   );
 
- };
+  if(!x)return;
+
+  if(state.balance<x.price)
+    return toast("Не хватает 💎");
+
+  state.balance-=x.price;
+
+  state.inventory.push({
+    name:x.name,
+    price:x.price,
+    emoji:x.emoji,
+    type:x.type
+  });
+
+  state.statistics.purchases=
+    (state.statistics.purchases||0)+1;
+
+  localSave();
+
+  toast("Предмет куплен");
+}
+
+function pick(d){
+
+  const r=Math.random()*100;
+
+  let s=0;
+
+  for(const x of d){
+
+    s+=x[3];
+
+    if(r<s)
+      return x;
+  }
+
+  return d[d.length-1];
+}
+
+function itemType(name){
+
+  if(name.includes("Sticker"))
+    return"Наклейка";
+
+  if(name.includes("Нож"))
+    return"Нож";
+
+  return"Оружие";
+}
 
 
-$("syncBtn").onclick=
- async()=>{
+/* =========================================================
+   USERNAME
+========================================================= */
+
+function usernameKey(username){
+
+  return username
+    .trim()
+    .toLowerCase();
+}
+
+function validateUsername(u){
+
+  return /^[a-zA-Z0-9_а-яёА-ЯЁ]{3,24}$/
+    .test(u);
+}
+
+async function getProfile(){
+
+  if(
+    !firebaseUser ||
+    firebaseUser.isAnonymous ||
+    !db
+  )
+    return null;
+
+  const snap=
+    await db.ref(
+      "prognozer/users/"+firebaseUser.uid+"/profile"
+    ).once("value");
+
+  const x=snap.val()||{};
+
+  return{
+    username:x.username||"",
+    displayName:
+      x.displayName||
+      firebaseUser.displayName||
+      "",
+    photoURL:
+      x.photoURL||
+      firebaseUser.photoURL||
+      "",
+    google:true,
+    rank:x.rank||"bronze"
+  };
+}
+
+async function loadUsernameDisplay(){
+
+  const display=$("usernameDisplay");
+  const input=$("usernameInput");
+  const btn=$("usernameSaveBtn");
+
+  if(!display||!input)
+    return;
+
+  if(guestMode){
+
+    display.textContent="";
+    input.value="";
+    input.disabled=true;
+
+    if(btn)
+      btn.disabled=true;
+
+    return;
+  }
+
+  if(
+    !firebaseUser||
+    firebaseUser.isAnonymous
+  ){
+
+    display.textContent="";
+    input.value="";
+    input.disabled=true;
+
+    if(btn)
+      btn.disabled=true;
+
+    return;
+  }
+
+  input.disabled=false;
+
+  if(btn)
+    btn.disabled=false;
+
+  try{
+
+    const profile=
+      await getProfile();
+
+    profileData=
+      profile||profileData;
+
+    if(profileData.username){
+
+      display.textContent=
+        "@"+profileData.username;
+
+      input.value=
+        profileData.username;
+
+      /*
+        Username нельзя изменить.
+      */
+
+      input.disabled=true;
+
+      if(btn)
+        btn.disabled=true;
+
+    }else{
+
+      display.textContent="";
+      input.value="";
+      input.disabled=false;
+
+      if(btn)
+        btn.disabled=false;
+    }
+
+  }catch(e){}
+}
+
+async function saveUsername(){
+
+  if(
+    !firebaseUser ||
+    firebaseUser.isAnonymous ||
+    guestMode
+  ){
+
+    return toast(
+      "🔒 Сначала войдите через Google"
+    );
+  }
+
+  if(profileData.username){
+
+    return toast(
+      "Username уже установлен"
+    );
+  }
+
+  const input=$("usernameInput");
+
+  let username=
+    (input.value||"")
+      .trim()
+      .replace(/^@/,"");
+
+  if(!username)
+    return toast(
+      "Введите username"
+    );
+
+  if(!validateUsername(username))
+    return toast(
+      "3–24 символа: буквы, цифры и _"
+    );
+
+  const btn=$("usernameSaveBtn");
+
+  btn.disabled=true;
+
+  const key=usernameKey(username);
+
+  try{
+
+    /*
+      Регистрируем username.
+      transaction нужен для того,
+      чтобы два пользователя не заняли
+      один username одновременно.
+    */
+
+    const ref=
+      db.ref(
+        "prognozer/usernames/"+key
+      );
+
+    const result=
+      await ref.transaction(
+        current=>{
+          if(current===null)
+            return firebaseUser.uid;
+
+          return;
+        }
+      );
+
+    if(!result.committed){
+
+      btn.disabled=false;
+
+      return toast(
+        "❌ Этот username уже занят"
+      );
+    }
+
+    const profile={
+      username,
+      displayName:
+        firebaseUser.displayName||"",
+      photoURL:
+        firebaseUser.photoURL||"",
+      google:true,
+      rank:profileData.rank||"bronze"
+    };
+
+    await db.ref(
+      "prognozer/users/"+firebaseUser.uid+"/profile"
+    ).update(profile);
+
+    /*
+      Оставляем старый путь username,
+      чтобы совместимость с предыдущей
+      версией приложения сохранилась.
+    */
+
+    await db.ref(
+      "prognozer/users/"+firebaseUser.uid+"/username"
+    ).set(username);
+
+    profileData=profile;
+
+    input.value=username;
+
+    $("usernameDisplay").textContent=
+      "@"+username;
+
+    input.disabled=true;
+    btn.disabled=true;
+
+    updateGoogleUI(firebaseUser);
+
+    await startPresence();
+
+    renderCommunity();
+
+    toast(
+      "✅ Username создан"
+    );
+
+  }catch(e){
+
+    /*
+      Если произошла ошибка после регистрации
+      username, удаляем индекс.
+    */
+
+    try{
+      const snap=
+        await db.ref(
+          "prognozer/usernames/"+key
+        ).once("value");
+
+      if(snap.val()===firebaseUser.uid){
+
+        await db.ref(
+          "prognozer/usernames/"+key
+        ).remove();
+      }
+
+    }catch(err){}
+
+    btn.disabled=false;
+
+    toast(
+      "Ошибка: "+firebaseError(e)
+    );
+  }
+}
+
+
+/* =========================================================
+   GOOGLE AUTH
+========================================================= */
+
+function firebaseError(e){
+
+  const c=e?.code||"";
+  const m=e?.message||String(e);
+
+  if(c==="auth/operation-not-allowed")
+    return"Google-вход не включён в Firebase";
+
+  if(c==="auth/unauthorized-domain")
+    return"Домен не добавлен в Authorized domains";
+
+  if(c==="auth/popup-blocked")
+    return"Браузер заблокировал окно Google";
+
+  if(c==="auth/popup-closed-by-user")
+    return"Окно Google закрыто";
+
+  if(c==="auth/cancelled-popup-request")
+    return"Запрос отменён";
+
+  if(c==="auth/credential-already-in-use")
+    return"Этот Google уже используется";
+
+  if(c==="auth/network-request-failed")
+    return"Ошибка сети";
+
+  if(c==="auth/invalid-api-key")
+    return"Неверный Firebase API key";
+
+  if(/permission_denied/i.test(m))
+    return"Нет доступа к Firebase";
+
+  return m;
+}
+
+function setFirebaseStatus(
+  text,
+  online=false
+){
+
+  $("firebaseStatus").textContent=text;
+
+  $("profileOnline").textContent=
+    guestMode
+      ?"GUEST"
+      :(online?"ONLINE":"OFFLINE");
+}
+
+function updateGoogleUI(user){
+
+  if(guestMode){
+
+    $("profileName").textContent="Гость";
+    $("profileUid").textContent=
+      "Локальный аккаунт";
+
+    $("firebaseUid").textContent="";
+
+    $("googleAccountText").textContent=
+      "👤 Вы используете гостевой режим.";
+
+    $("googleLoginBtn").style.display="block";
+    $("googleLogoutBtn").style.display="none";
+
+    $("profileAvatar").innerHTML="👤";
+
+    return;
+  }
+
+  if(!user){
+
+    $("profileName").textContent=
+      "Пользователь";
+
+    $("profileUid").textContent=
+      "Вход не выполнен";
+
+    $("firebaseUid").textContent="";
+
+    $("googleAccountText").textContent=
+      "Войдите через Google для облачного сохранения.";
+
+    $("googleLoginBtn").style.display="block";
+    $("googleLogoutBtn").style.display="none";
+
+    $("profileAvatar").innerHTML="👤";
+
+    return;
+  }
+
+  $("profileUid").textContent=
+    "UID: "+user.uid;
+
+  $("firebaseUid").textContent=
+    "Google: "+(user.email||"")+" • UID: "+user.uid;
+
+  $("profileName").textContent=
+    profileData.username
+      ? "@"+profileData.username
+      : (
+        user.displayName||
+        (user.email
+          ?user.email.split("@")[0]
+          :"Пользователь")
+      );
+
+  $("googleAccountText").textContent=
+    user.email
+      ?"🔵 Google: "+user.email
+      :"🔵 Google подключён";
+
+  $("googleLoginBtn").style.display="none";
+  $("googleLogoutBtn").style.display="block";
+
+  $("profileAvatar").innerHTML=
+    avatarHtml(
+      user.photoURL,
+      "🔵"
+    );
+}
+
+async function loginWithGoogle(){
+
+  if(!auth||!firebaseReady){
+
+    $("authStatus").textContent=
+      "⏳ Firebase ещё загружается…";
+
+    return;
+  }
+
+  const provider=
+    new firebase.auth.GoogleAuthProvider();
+
+  provider.setCustomParameters({
+    prompt:"select_account"
+  });
+
+  $("authStatus").textContent=
+    "🔵 Открываем Google…";
+
+  try{
+
+    /*
+      Если пользователь уже вошёл анонимно,
+      пытаемся привязать Google к этому UID.
+      Так сохраняется его текущий прогресс.
+    */
+
+    if(
+      auth.currentUser &&
+      auth.currentUser.isAnonymous
+    ){
+
+      try{
+
+        await auth.currentUser
+          .linkWithPopup(provider);
+
+      }catch(e){
+
+        if(
+          e.code==="auth/credential-already-in-use"
+        ){
+
+          await auth.signInWithPopup(
+            provider
+          );
+
+        }else{
+
+          throw e;
+        }
+      }
+
+    }else{
+
+      await auth.signInWithPopup(
+        provider
+      );
+    }
+
+    $("authStatus").textContent="";
+
+    toast(
+      "✅ Google авторизация выполнена"
+    );
+
+  }catch(e){
+
+    const msg=firebaseError(e);
+
+    $("authStatus").textContent=
+      "❌ "+msg;
+
+    toast("Ошибка: "+msg);
+  }
+}
+
+async function logoutGoogle(){
+
+  if(!auth)return;
+
+  try{
+
+    await stopPresence();
+
+    await auth.signOut();
+
+    firebaseUser=null;
+
+    profileData={
+      username:"",
+      displayName:"",
+      photoURL:"",
+      google:false,
+      rank:"bronze"
+    };
+
+    guestMode=false;
+
+    state=normalizeState(null);
+
+    updateUI();
+
+    updateGoogleUI(null);
+
+    setFirebaseStatus(
+      "Выберите способ входа",
+      false
+    );
+
+    $("authScreen")
+      .classList.add("open");
+
+    toast(
+      "Вы вышли из Google"
+    );
+
+  }catch(e){
+
+    toast(
+      "Ошибка выхода: "+
+      firebaseError(e)
+    );
+  }
+}
+
+async function continueGuest(){
+
+  guestMode=true;
+
+  firebaseUser=null;
+
+  try{
+
+    if(
+      auth &&
+      auth.currentUser &&
+      !auth.currentUser.isAnonymous
+    ){
+
+      await auth.signOut();
+    }
+
+  }catch(e){}
+
+  loadGuest();
+
+  $("authScreen")
+    .classList.remove("open");
+
+  updateGoogleUI(null);
 
   setFirebaseStatus(
-   "☁️ Синхронизация…",
-   true
+    "👤 Гостевой режим",
+    false
   );
 
-  const ok=
-   await saveFirebase();
+  await stopPresence();
 
   toast(
-   ok
-    ?"Синхронизация завершена"
-    :"Синхронизация не выполнена"
+    "Вы вошли как гость"
   );
 
- };
+  loadUsernameDisplay();
+}
+
+async function continueGoogle(){
+
+  await loginWithGoogle();
+}
 
 
-/* =========================
-   COMMUNITY BUTTONS
-========================= */
+/* =========================================================
+   FIREBASE INIT
+========================================================= */
+
+async function initFirebase(){
+
+  try{
+
+    if(!firebase.apps.length)
+      firebase.initializeApp(
+        FIREBASE_CONFIG
+      );
+
+    db=firebase.database();
+    auth=firebase.auth();
+
+    firebaseReady=true;
+
+    auth.onAuthStateChanged(
+      async user=>{
+        await handleAuthUser(user);
+      }
+    );
+
+  }catch(e){
+
+    firebaseReady=false;
+
+    $("authStatus").textContent=
+      "❌ "+firebaseError(e);
+  }
+}
+
+async function handleAuthUser(user){
+
+  if(
+    user &&
+    user.isAnonymous
+  ){
+
+    /*
+      Анонимный аккаунт используется только
+      для технической авторизации старой
+      версии приложения.
+    */
+
+    firebaseUser=user;
+
+    guestMode=false;
+
+    $("authScreen")
+      .classList.remove("open");
+
+    updateGoogleUI(user);
+
+    setFirebaseStatus(
+      "👤 Гостевой Firebase",
+      true
+    );
+
+    return;
+  }
+
+  if(user){
+
+    firebaseUser=user;
+    guestMode=false;
+
+    $("authScreen")
+      .classList.remove("open");
+
+    setFirebaseStatus(
+      "🔵 Google • загружаем данные…",
+      true
+    );
+
+    await loadFirebaseUser();
+
+    try{
+
+      const p=
+        await getProfile();
+
+      if(p)
+        profileData=p;
+
+    }catch(e){}
+
+    updateGoogleUI(user);
+
+    await loadUsernameDisplay();
+
+    if(
+      profileData.username
+    ){
+
+      await startPresence();
+
+    }
+
+    renderCommunity();
+
+    setFirebaseStatus(
+      "🟢 Google подключён • синхронизировано",
+      true
+    );
+
+    return;
+  }
+
+  /*
+    Первый запуск.
+    Вход через Google или гостевой режим.
+  */
+
+  firebaseUser=null;
+  guestMode=false;
+
+  loadGuest();
+
+  updateGoogleUI(null);
+
+  $("authScreen")
+    .classList.add("open");
+
+  setFirebaseStatus(
+    "Выберите способ входа",
+    false
+  );
+}
+
+
+/* =========================================================
+   FIREBASE GAME SAVE
+========================================================= */
+
+async function loadFirebaseUser(){
+
+  if(
+    !firebaseUser||
+    !db
+  )
+    return;
+
+  try{
+
+    const snap=
+      await db.ref(
+        "prognozer/users/"+firebaseUser.uid
+      ).once("value");
+
+    const remote=snap.val();
+
+    if(remote){
+
+      state=normalizeState(remote);
+
+    }else{
+
+      state=normalizeState(null);
+
+      await saveFirebase();
+    }
+
+    updateUI();
+
+  }catch(e){
+
+    setFirebaseStatus(
+      "❌ Ошибка базы: "+
+      firebaseError(e),
+      false
+    );
+  }
+}
+
+async function saveFirebase(){
+
+  if(
+    !firebaseUser||
+    !db||
+    guestMode
+  )
+    return false;
+
+  try{
+
+    await db.ref(
+      "prognozer/users/"+firebaseUser.uid
+    ).update({
+
+      balance:Number(state.balance)||0,
+
+      inventory:Array.isArray(
+        state.inventory
+      )
+        ?state.inventory
+        :[],
+
+      statistics:
+        state.statistics||{},
+
+      createdAt:
+        state.createdAt||Date.now(),
+
+      updatedAt:
+        firebase.database.ServerValue.TIMESTAMP,
+
+      profile:{
+        username:
+          profileData.username||"",
+        displayName:
+          firebaseUser.displayName||"",
+        photoURL:
+          firebaseUser.photoURL||"",
+        google:true,
+        rank:
+          profileData.rank||"bronze"
+      }
+
+    });
+
+    return true;
+
+  }catch(e){
+
+    setFirebaseStatus(
+      "❌ Ошибка: "+firebaseError(e),
+      false
+    );
+
+    return false;
+  }
+}
+
+
+/* =========================================================
+   COMMUNITY ACCESS
+========================================================= */
+
+function communityReady(){
+
+  return !!(
+    firebaseUser &&
+    !firebaseUser.isAnonymous &&
+    profileData.google===true &&
+    profileData.username
+  );
+}
+
+function renderCommunity(){
+
+  const gate=$("communityGate");
+  const content=$("communityContent");
+
+  if(!gate||!content)
+    return;
+
+  if(!firebaseUser){
+
+    content.style.display="none";
+
+    gate.innerHTML=`
+
+      <div class="community-lock">
+
+        <div class="community-lock-icon">
+          🔐
+        </div>
+
+        <h3>
+          Community закрыт
+        </h3>
+
+        <p>
+          Для входа в Community необходимо
+          авторизоваться через Google.
+        </p>
+
+        <button id="communityLoginBtn">
+          🔵 Войти через Google
+        </button>
+
+      </div>
+
+    `;
+
+    $("communityLoginBtn").onclick=
+      loginWithGoogle;
+
+    return;
+  }
+
+  if(firebaseUser.isAnonymous){
+
+    content.style.display="none";
+
+    gate.innerHTML=`
+
+      <div class="community-lock">
+
+        <div class="community-lock-icon">
+          🔵
+        </div>
+
+        <h3>
+          Нужна Google авторизация
+        </h3>
+
+        <p>
+          Гостевой аккаунт не может использовать
+          Community.
+        </p>
+
+        <button id="communityLoginBtn">
+          🔵 Войти через Google
+        </button>
+
+      </div>
+
+    `;
+
+    $("communityLoginBtn").onclick=
+      loginWithGoogle;
+
+    return;
+  }
+
+  if(!profileData.username){
+
+    content.style.display="none";
+
+    gate.innerHTML=`
+
+      <div class="community-lock">
+
+        <div class="community-lock-icon">
+          🏷️
+        </div>
+
+        <h3>
+          Создай username
+        </h3>
+
+        <p>
+          Для доступа к Community нужно
+          сначала создать уникальный username.
+        </p>
+
+        <button id="communityProfileBtn">
+          👤 Открыть профиль
+        </button>
+
+      </div>
+
+    `;
+
+    $("communityProfileBtn").onclick=
+      ()=>nav("profile");
+
+    return;
+  }
+
+  gate.innerHTML="";
+  content.style.display="block";
+
+  updateCommunityUser();
+
+  loadOnlineUsers();
+
+  loadPosts();
+
+}
+
+
+/* =========================================================
+   COMMUNITY USER
+========================================================= */
+
+function updateCommunityUser(){
+
+  $("drawerName").textContent=
+    firebaseUser?.displayName||
+    profileData.username||
+    "Пользователь";
+
+  $("drawerUsername").textContent=
+    "@"+profileData.username;
+
+  $("drawerAvatar").innerHTML=
+    avatarHtml(
+      profileData.photoURL||
+      firebaseUser?.photoURL,
+      "👤"
+    );
+}
+
+
+/* =========================================================
+   ONLINE PRESENCE
+========================================================= */
+
+async function startPresence(){
+
+  if(
+    !communityReady()||
+    !db
+  )
+    return;
+
+  try{
+
+    const uid=firebaseUser.uid;
+
+    presenceRef=
+      db.ref(
+        "prognozer/status/"+uid
+      );
+
+    const connectedRef=
+      db.ref(".info/connected");
+
+    connectedRef.off();
+
+    connectedRef.on(
+      "value",
+      async snap=>{
+
+        if(snap.val()!==true)
+          return;
+
+        try{
+
+          await presenceRef
+            .onDisconnect()
+            .set({
+              online:false,
+              username:
+                profileData.username||"",
+              avatar:
+                profileData.photoURL||"",
+              updatedAt:
+                firebase.database.ServerValue.TIMESTAMP
+            });
+
+          await presenceRef.set({
+            online:true,
+            username:
+              profileData.username||"",
+            avatar:
+              profileData.photoURL||"",
+            updatedAt:
+              firebase.database.ServerValue.TIMESTAMP
+          });
+
+          loadOnlineUsers();
+
+        }catch(e){}
+      }
+    );
+
+  }catch(e){}
+}
+
+async function stopPresence(){
+
+  try{
+
+    if(
+      presenceRef
+    ){
+
+      await presenceRef.update({
+        online:false,
+        updatedAt:
+          firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+
+  }catch(e){}
+}
+
+async function loadOnlineUsers(){
+
+  const box=$("onlineUsers");
+
+  if(!box||!communityReady())
+    return;
+
+  try{
+
+    const snap=
+      await db.ref(
+        "prognozer/status"
+      ).once("value");
+
+    const data=snap.val()||{};
+
+    const users=
+      Object.entries(data)
+      .filter(([uid,x])=>
+        x &&
+        x.online===true &&
+        x.username
+      )
+      .slice(0,50);
+
+    $("onlineCount").textContent=
+      users.length;
+
+    if(!users.length){
+
+      box.innerHTML=`
+        <div class="muted">
+          Пока никого нет онлайн
+        </div>
+      `;
+
+      return;
+    }
+
+    box.innerHTML=
+      users.map(([uid,u])=>`
+
+        <div class="online-user">
+
+          <div class="online-avatar">
+
+            ${avatarHtml(
+              u.avatar,
+              "👤"
+            )}
+
+            <div class="online-dot"></div>
+
+          </div>
+
+          <span class="online-name">
+            @${escapeHtml(u.username)}
+          </span>
+
+        </div>
+
+      `).join("");
+
+  }catch(e){
+
+    box.innerHTML=`
+      <div class="muted">
+        Не удалось загрузить онлайн
+      </div>
+    `;
+  }
+}
+
+
+/* =========================================================
+   POSTS
+========================================================= */
+
+function loadPosts(){
+
+  if(
+    !communityReady()||
+    !db
+  )
+    return;
+
+  const ref=
+    db.ref("prognozer/posts")
+      .limitToLast(50);
+
+  if(postsListener)
+    ref.off();
+
+  postsListener=ref;
+
+  ref.on(
+    "value",
+    snap=>{
+
+      const data=snap.val()||{};
+
+      const posts=
+        Object.entries(data)
+        .map(([id,p])=>({
+          id,
+          ...p
+        }))
+        .sort(
+          (a,b)=>
+            (b.createdAt||0)-
+            (a.createdAt||0)
+        );
+
+      renderPosts(posts);
+    }
+  );
+}
+
+function renderPosts(posts){
+
+  const box=$("postsList");
+
+  if(!posts.length){
+
+    box.innerHTML=`
+      <div class="empty-box">
+        Постов пока нет.<br>
+        Будь первым!
+      </div>
+    `;
+
+    return;
+  }
+
+  box.innerHTML=
+    posts.map(renderPost).join("");
+}
+
+function renderPost(post){
+
+  let skinHtml="";
+
+  if(post.skin){
+
+    const skin=post.skin;
+
+    const image=
+      safeUrl(skin.url);
+
+    skinHtml=`
+
+      <div class="skin-card">
+
+        <div class="skin-preview">
+
+          ${
+            image
+              ?`<img src="${escapeHtml(image)}">`
+              :escapeHtml(skin.emoji||"🎨")
+          }
+
+        </div>
+
+        <div>
+
+          <div class="skin-name">
+            🎨 ${escapeHtml(
+              skin.name||"Скин"
+            )}
+          </div>
+
+          <div class="skin-sub">
+            Скин игрока
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+  }
+
+  let tradeHtml="";
+
+  if(post.trade){
+
+    const t=post.trade;
+
+    tradeHtml=`
+
+      <div class="trade-card">
+
+        <div class="trade-top">
+
+          <div class="trade-icon">
+            ${escapeHtml(
+              t.emoji||"🛒"
+            )}
+          </div>
+
+          <div>
+
+            <b>
+              🛒 Торговое предложение
+            </b>
+
+            <div class="muted">
+              ${escapeHtml(
+                t.name||"Предмет"
+              )}
+            </div>
+
+          </div>
+
+          <div class="trade-price">
+            ${Number(t.price)||0} 💎
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+  }
+
+  return`
+
+    <article class="post">
+
+      <div class="post-author">
+
+        <div class="post-avatar">
+
+          ${avatarHtml(
+            post.avatar,
+            "👤"
+          )}
+
+        </div>
+
+        <div>
+
+          <div class="post-author-name">
+            @${escapeHtml(
+              post.username||"unknown"
+            )}
+          </div>
+
+          <div class="post-time">
+            ${formatDate(post.createdAt)}
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="post-text">
+        ${escapeHtml(post.text||"")}
+      </div>
+
+      ${skinHtml}
+
+      ${tradeHtml}
+
+    </article>
+
+  `;
+}
+
+
+/* =========================================================
+   ADD POST
+========================================================= */
+
+function openAddPost(){
+
+  if(!communityReady()){
+
+    renderCommunity();
+
+    return;
+  }
+
+  let selectedSkin=null;
+
+  $("modal").classList.add("open");
+
+  $("modalBody").innerHTML=`
+
+    <h2>
+      ✏️ Добавить пост
+    </h2>
+
+    <p class="muted">
+      Напиши любую информацию для игроков.
+      Максимум — 600 строк.
+    </p>
+
+    <textarea
+      id="postText"
+      maxlength="30000"
+      placeholder="Напиши что-нибудь..."
+    ></textarea>
+
+    <div class="line-info">
+      <span id="postLineCount">
+        0 / 600 строк
+      </span>
+
+      <span id="postCharCount">
+        0 / 30000
+      </span>
+    </div>
+
+    <div class="drop">
+
+      <b>
+        🎨 Скин
+      </b>
+
+      <div class="checkbox-row">
+
+        <input
+          type="checkbox"
+          id="showSkinCheck"
+        >
+
+        <label for="showSkinCheck">
+          Показать скин
+        </label>
+
+      </div>
+
+      <div
+        class="skin-grid"
+        id="skinGrid"
+      >
+
+        <div
+          class="skin-choice selected"
+          data-skin="blue"
+        >
+          <div class="skin-choice-icon">
+            🔵
+          </div>
+          <div class="skin-choice-name">
+            Blue Wave
+          </div>
+        </div>
+
+        <div
+          class="skin-choice"
+          data-skin="red"
+        >
+          <div class="skin-choice-icon">
+            🔴
+          </div>
+          <div class="skin-choice-name">
+            Crimson
+          </div>
+        </div>
+
+        <div
+          class="skin-choice"
+          data-skin="gold"
+        >
+          <div class="skin-choice-icon">
+            🟡
+          </div>
+          <div class="skin-choice-name">
+            Gold
+          </div>
+        </div>
+
+        <div
+          class="skin-choice"
+          data-skin="neon"
+        >
+          <div class="skin-choice-icon">
+            🟣
+          </div>
+          <div class="skin-choice-name">
+            Neon
+          </div>
+        </div>
+
+        <div
+          class="skin-choice"
+          data-skin="dark"
+        >
+          <div class="skin-choice-icon">
+            ⚫
+          </div>
+          <div class="skin-choice-name">
+            Dark
+          </div>
+        </div>
+
+        <div
+          class="skin-choice"
+          data-skin="diamond"
+        >
+          <div class="skin-choice-icon">
+            💎
+          </div>
+          <div class="skin-choice-name">
+            Diamond
+          </div>
+        </div>
+
+      </div>
+
+      <input
+        id="customSkinName"
+        placeholder="Название своего скина"
+        style="width:100%;margin-top:10px"
+      >
+
+      <input
+        id="customSkinUrl"
+        placeholder="Ссылка на изображение скина (необязательно)"
+        style="width:100%;margin-top:8px"
+      >
+
+    </div>
+
+    <div class="drop">
+
+      <b>
+        🛒 Торговля
+      </b>
+
+      <p
+        class="muted"
+        id="tradeStatus"
+      >
+        🔒 Доступно со званием Сильвер
+      </p>
+
+      <button
+        class="secondary"
+        id="showTradeBtn"
+        style="width:100%"
+        disabled
+      >
+        🛒 Показать свою торговлю
+      </button>
+
+    </div>
+
+    <button
+      id="publishPostBtn"
+      style="width:100%;margin-top:5px"
+    >
+      🚀 Опубликовать
+    </button>
+
+  `;
+
+  selectedSkin={
+    name:"Blue Wave",
+    emoji:"🔵",
+    url:""
+  };
+
+  const text=$("postText");
+
+  function updateCounter(){
+
+    const lines=
+      text.value
+        ?text.value.split(/\r?\n/).length
+        :0;
+
+    $("postLineCount").textContent=
+      `${lines} / 600 строк`;
+
+    $("postCharCount").textContent=
+      `${text.value.length} / 30000`;
+
+    $("postLineCount").style.color=
+      lines>600
+        ?"red"
+        :"";
+
+  }
+
+  text.oninput=updateCounter;
+
+  document.querySelectorAll(
+    ".skin-choice"
+  ).forEach(el=>{
+
+    el.onclick=()=>{
+
+      document.querySelectorAll(
+        ".skin-choice"
+      ).forEach(x=>
+        x.classList.remove(
+          "selected"
+        )
+      );
+
+      el.classList.add(
+        "selected"
+      );
+
+      const type=
+        el.dataset.skin;
+
+      const skins={
+        blue:{
+          name:"Blue Wave",
+          emoji:"🔵"
+        },
+        red:{
+          name:"Crimson",
+          emoji:"🔴"
+        },
+        gold:{
+          name:"Gold",
+          emoji:"🟡"
+        },
+        neon:{
+          name:"Neon",
+          emoji:"🟣"
+        },
+        dark:{
+          name:"Dark",
+          emoji:"⚫"
+        },
+        diamond:{
+          name:"Diamond",
+          emoji:"💎"
+        }
+      };
+
+      selectedSkin={
+        ...skins[type],
+        url:""
+      };
+    };
+  });
+
+  $("publishPostBtn").onclick=
+    async()=>{
+
+      const postText=
+        text.value.trim();
+
+      if(!postText)
+        return toast(
+          "Напиши текст поста"
+        );
+
+      const lines=
+        postText.split(/\r?\n/).length;
+
+      if(lines>600)
+        return toast(
+          "Максимум 600 строк"
+        );
+
+      if(postText.length>30000)
+        return toast(
+          "Слишком длинный текст"
+        );
+
+      const showSkin=
+        $("showSkinCheck").checked;
+
+      let skin=null;
+
+      if(showSkin){
+
+        const customName=
+          $("customSkinName")
+            .value.trim();
+
+        const customUrl=
+          safeUrl(
+            $("customSkinUrl")
+              .value.trim()
+          );
+
+        skin={
+          name:
+            customName||
+            selectedSkin.name,
+          emoji:
+            selectedSkin.emoji,
+          url:
+            customUrl
+        };
+      }
+
+      const btn=
+        $("publishPostBtn");
+
+      btn.disabled=true;
+      btn.textContent=
+        "⏳ Публикуем...";
+
+      try{
+
+        await db.ref(
+          "prognozer/posts"
+        ).push({
+
+          uid:
+            firebaseUser.uid,
+
+          username:
+            profileData.username,
+
+          avatar:
+            profileData.photoURL||
+            firebaseUser.photoURL||
+            "",
+
+          text:
+            postText,
+
+          skin:skin||null,
+
+          trade:null,
+
+          createdAt:
+            firebase.database.ServerValue.TIMESTAMP
+
+        });
+
+        $("modal")
+          .classList.remove("open");
+
+        toast(
+          "✅ Пост опубликован"
+        );
+
+      }catch(e){
+
+        toast(
+          "Ошибка: "+
+          firebaseError(e)
+        );
+
+        btn.disabled=false;
+        btn.textContent=
+          "🚀 Опубликовать";
+      }
+    };
+
+  updateCounter();
+}
+
+
+/* =========================================================
+   TRADE
+========================================================= */
+
+function isSilver(){
+
+  return(
+    profileData.rank==="silver"
+  );
+}
+
+async function openTradeSelector(){
+
+  if(!isSilver()){
+
+    return toast(
+      "🔒 Функция доступна со званием Сильвер"
+    );
+  }
+
+  try{
+
+    const snap=
+      await db.ref(
+        "prognozer/auctions"
+      )
+      .orderByChild("sellerUid")
+      .equalTo(firebaseUser.uid)
+      .once("value");
+
+    const auctions=snap.val()||{};
+
+    const list=
+      Object.entries(auctions)
+      .map(([id,x])=>({
+        id,
+        ...x
+      }));
+
+    if(!list.length){
+
+      return toast(
+        "У тебя пока нет товаров на аукционе"
+      );
+    }
+
+    $("tradeStatus").textContent=
+      "Выбери товар:";
+
+    /*
+      Здесь позже можно сделать выбор
+      конкретной карточки аукциона.
+    */
+
+  }catch(e){
+
+    toast(
+      "Ошибка аукциона"
+    );
+  }
+}
+
+
+/* =========================================================
+   DRAWER
+========================================================= */
+
+function openDrawer(){
+
+  if(!communityReady())
+    return;
+
+  updateCommunityUser();
+
+  $("drawerBg")
+    .classList.add("open");
+}
+
+function closeDrawer(){
+
+  $("drawerBg")
+    .classList.remove("open");
+}
 
 $("communityMenuBtn").onclick=
- openCommunityDrawer;
+  openDrawer;
 
+$("drawerClose").onclick=
+  closeDrawer;
 
-$("drawerCloseBtn").onclick=
- closeCommunityDrawer;
+$("drawerBg").onclick=e=>{
 
-
-$("communityDrawer").onclick=e=>{
-
- if(
-  e.target.id===
-  "communityDrawer"
- ){
-
-  closeCommunityDrawer();
-
- }
-
+  if(e.target.id==="drawerBg")
+    closeDrawer();
 };
 
 
+/* =========================================================
+   ADD FRIEND
+========================================================= */
+
+async function addFriendDialog(){
+
+  closeDrawer();
+
+  $("modal").classList.add("open");
+
+  $("modalBody").innerHTML=`
+
+    <h2>
+      👥 Добавить в друзья
+    </h2>
+
+    <p class="muted">
+      Введи username игрока.
+    </p>
+
+    <input
+      id="friendUsernameInput"
+      placeholder="@username"
+      style="width:100%"
+    >
+
+    <button
+      id="friendAddBtn"
+      style="width:100%;margin-top:10px"
+    >
+      ➕ Добавить
+    </button>
+
+    <div
+      id="friendResult"
+      style="margin-top:12px"
+    ></div>
+
+  `;
+
+  $("friendAddBtn").onclick=
+    async()=>{
+
+      let username=
+        $("friendUsernameInput")
+          .value
+          .trim()
+          .replace(/^@/,"");
+
+      if(!username)
+        return toast(
+          "Введите username"
+        );
+
+      const result=
+        $("friendResult");
+
+      try{
+
+        const snap=
+          await db.ref(
+            "prognozer/usernames/"+
+            usernameKey(username)
+          ).once("value");
+
+        const friendUid=
+          snap.val();
+
+        if(!friendUid){
+
+          result.innerHTML=`
+            <div class="empty-box">
+              ❌ Пользователь не найден
+            </div>
+          `;
+
+          return;
+        }
+
+        if(
+          friendUid===
+          firebaseUser.uid
+        ){
+
+          return toast(
+            "Нельзя добавить себя"
+          );
+        }
+
+        const updates={};
+
+        updates[
+          "prognozer/friends/"+
+          firebaseUser.uid+
+          "/"+
+          friendUid
+        ]={
+          createdAt:
+            firebase.database.ServerValue.TIMESTAMP
+        };
+
+        updates[
+          "prognozer/friends/"+
+          friendUid+
+          "/"+
+          firebaseUser.uid
+        ]={
+          createdAt:
+            firebase.database.ServerValue.TIMESTAMP
+        };
+
+        await db.ref().update(
+          updates
+        );
+
+        result.innerHTML=`
+          <div class="drop center">
+            ✅ @${escapeHtml(username)}
+            добавлен в друзья
+          </div>
+        `;
+
+      }catch(e){
+
+        toast(
+          "Ошибка: "+
+          firebaseError(e)
+        );
+      }
+    };
+}
+
+
+/* =========================================================
+   FRIENDS LIST
+========================================================= */
+
+async function showFriends(){
+
+  closeDrawer();
+
+  $("modal").classList.add("open");
+
+  $("modalBody").innerHTML=`
+    <h2>👤 Друзья</h2>
+    <div class="muted">
+      Загрузка...
+    </div>
+  `;
+
+  try{
+
+    const snap=
+      await db.ref(
+        "prognozer/friends/"+
+        firebaseUser.uid
+      ).once("value");
+
+    const data=snap.val()||{};
+
+    const ids=
+      Object.keys(data);
+
+    if(!ids.length){
+
+      $("modalBody").innerHTML=`
+
+        <h2>👤 Друзья</h2>
+
+        <div class="empty-box">
+          У тебя пока нет друзей.
+        </div>
+
+      `;
+
+      return;
+    }
+
+    const profiles=
+      await Promise.all(
+        ids.slice(0,50).map(
+          async uid=>{
+
+            const p=
+              await db.ref(
+                "prognozer/users/"+
+                uid+
+                "/profile"
+              ).once("value");
+
+            return{
+              uid,
+              ...(p.val()||{})
+            };
+          }
+        )
+      );
+
+    $("modalBody").innerHTML=`
+
+      <h2>👤 Друзья</h2>
+
+      ${
+        profiles.map(p=>`
+
+          <div class="friend-row">
+
+            <div class="friend-avatar">
+
+              ${avatarHtml(
+                p.photoURL,
+                "👤"
+              )}
+
+            </div>
+
+            <div class="grow">
+
+              <b>
+                ${escapeHtml(
+                  p.displayName||
+                  p.username||
+                  "Игрок"
+                )}
+              </b>
+
+              <span class="muted">
+                @${escapeHtml(
+                  p.username||""
+                )}
+              </span>
+
+            </div>
+
+          </div>
+
+        `).join("")
+      }
+
+    `;
+
+  }catch(e){
+
+    $("modalBody").innerHTML=`
+
+      <h2>👤 Друзья</h2>
+
+      <div class="empty-box">
+        Не удалось загрузить друзей.
+      </div>
+
+    `;
+  }
+}
+
+
+/* =========================================================
+   TRADE DRAWER
+========================================================= */
+
+function openPlayerTrade(){
+
+  closeDrawer();
+
+  $("modal").classList.add("open");
+
+  $("modalBody").innerHTML=`
+
+    <h2>🔄 Трейд</h2>
+
+    <div class="drop center">
+
+      <div class="big">
+        🔄
+      </div>
+
+      <h3>
+        Трейд между игроками
+      </h3>
+
+      <p class="muted">
+        Здесь будет обмен предметами
+        между двумя игроками.
+      </p>
+
+      <button
+        id="findTradePlayer"
+      >
+        Найти игрока
+      </button>
+
+    </div>
+
+  `;
+
+  $("findTradePlayer").onclick=
+    ()=>{
+      toast(
+        "🚧 Система трейдов готовится"
+      );
+    };
+}
+
+
+/* =========================================================
+   PLAYER SHOP
+========================================================= */
+
+async function openPlayerShop(){
+
+  closeDrawer();
+
+  $("modal").classList.add("open");
+
+  $("modalBody").innerHTML=`
+
+    <h2>
+      🛒 Магазин среди игроков
+    </h2>
+
+    <div
+      id="playerShopContent"
+      class="empty-box"
+    >
+      Загрузка...
+    </div>
+
+  `;
+
+  try{
+
+    const snap=
+      await db.ref(
+        "prognozer/playerShop"
+      ).limitToLast(50)
+      .once("value");
+
+    const data=snap.val()||{};
+
+    const list=
+      Object.entries(data)
+      .map(([id,x])=>({
+        id,
+        ...x
+      }))
+      .reverse();
+
+    const box=
+      $("playerShopContent");
+
+    if(!list.length){
+
+      box.innerHTML=`
+        Здесь пока нет товаров.
+      `;
+
+      return;
+    }
+
+    box.className="list";
+
+    box.innerHTML=
+      list.map(x=>`
+
+        <div class="row">
+
+          <div class="thumb">
+            ${escapeHtml(
+              x.emoji||"🎁"
+            )}
+          </div>
+
+          <div class="grow">
+
+            <b>
+              ${escapeHtml(
+                x.name||"Предмет"
+              )}
+            </b>
+
+            <span class="muted">
+              @${escapeHtml(
+                x.username||"unknown"
+              )}
+            </span>
+
+          </div>
+
+          <span class="price">
+            ${Number(x.price)||0} 💎
+          </span>
+
+        </div>
+
+      `).join("");
+
+  }catch(e){
+
+    $("playerShopContent").innerHTML=
+      "Не удалось загрузить магазин.";
+  }
+}
+
+
+/* =========================================================
+   CASES
+========================================================= */
+
+function openGame(type){
+
+  const modal=$("modal");
+  const b=$("modalBody");
+
+  modal.classList.add("open");
+
+  if(type==="cases"){
+
+    b.innerHTML=`
+
+      <h2>🎁 Кейсы</h2>
+
+      ${
+        cases.map((c,i)=>`
+
+          <div class="drop">
+
+            <h3>
+              ${c.name}
+            </h3>
+
+            <p class="muted">
+              Цена: ${c.cost} 💎
+            </p>
+
+            ${
+              c.drops.map(d=>`
+
+                <div>
+                  ${d[2]}
+                  ${escapeHtml(d[0])}
+                  —
+                  ${d[3]}%
+                </div>
+
+              `).join("")
+            }
+
+            <br>
+
+            <button
+              class="openCase"
+              data-i="${i}"
+            >
+              Открыть кейс
+            </button>
+
+          </div>
+
+        `).join("")
+      }
+
+    `;
+
+    b.querySelectorAll(
+      ".openCase"
+    ).forEach(x=>{
+      x.onclick=
+        ()=>openCase(
+          +x.dataset.i
+        );
+    });
+
+    return;
+  }
+
+  if(type==="battle"){
+
+    b.innerHTML=`
+
+      <h2>⚔️ Кейс-баттл</h2>
+
+      <p class="muted">
+        Ты и бот открываете средний кейс.
+      </p>
+
+      <button id="battleBtn">
+        Начать за 100 💎
+      </button>
+
+      <div id="battleResult"></div>
+
+    `;
+
+    $("battleBtn").onclick=
+      battle;
+
+    return;
+  }
+
+  if(type==="double"){
+
+    renderDoubleUI(b);
+
+    return;
+  }
+
+  if(type==="upgrade"){
+
+    renderUpgradeUI(b);
+
+    return;
+  }
+
+  if(type==="contracts"){
+
+    b.innerHTML=`
+
+      <h2>📜 Контракты</h2>
+
+      <p class="muted">
+        3 предмета превращаются в один.
+      </p>
+
+      <button id="contractBtn">
+        Обменять 3 предмета
+      </button>
+
+      <div id="contractResult"></div>
+
+    `;
+
+    $("contractBtn").onclick=
+      contract;
+
+    return;
+  }
+
+  if(type==="royal"){
+
+    b.innerHTML=`
+
+      <h2>👑 Королевская битва</h2>
+
+      <p class="muted">
+        5 раундов против ботов.
+      </p>
+
+      <button id="royalBtn">
+        Начать за 100 💎
+      </button>
+
+      <div id="royalResult"></div>
+
+    `;
+
+    $("royalBtn").onclick=
+      royal;
+  }
+}
+
+
+/* =========================================================
+   CASE OPENING
+========================================================= */
+
+function openCase(i){
+
+  const c=cases[i];
+
+  if(state.balance<c.cost)
+    return toast(
+      "Не хватает 💎"
+    );
+
+  state.balance-=c.cost;
+
+  state.statistics.casesOpened=
+    (state.statistics.casesOpened||0)+1;
+
+  localSave();
+
+  pendingDrop=pick(c.drops);
+
+  const overlay=
+    $("caseOpeningOverlay");
+
+  const strip=
+    $("caseOpeningStrip");
+
+  $("caseOpeningTitle").textContent=
+    "🎁 "+c.name;
+
+  $("caseOpeningStatus").textContent=
+    "Открываем кейс…";
+
+  $("caseWinCard")
+    .classList.remove("show");
+
+  overlay.classList.add("open");
+
+  const sequence=[];
+
+  for(let n=0;n<15;n++)
+    sequence.push(...c.drops);
+
+  const winnerIndex=
+    sequence.length-
+    c.drops.length+
+    Math.max(
+      0,
+      c.drops.indexOf(
+        pendingDrop
+      )
+    );
+
+  sequence[winnerIndex]=
+    pendingDrop;
+
+  strip.style.transition="none";
+
+  strip.style.transform=
+    "translateX(0)";
+
+  strip.innerHTML=
+    sequence.map(x=>`
+
+      <div class="roulette-item">
+
+        <div class="ri-emoji">
+          ${x[2]}
+        </div>
+
+        <div class="ri-name">
+          ${escapeHtml(x[0])}
+        </div>
+
+        <div class="ri-price">
+          ${x[1]} 💎
+        </div>
+
+      </div>
+
+    `).join("");
+
+  requestAnimationFrame(()=>{
+
+    const card=
+      strip.children[
+        winnerIndex
+      ];
+
+    const v=
+      strip.parentElement;
+
+    const target=
+      card.offsetLeft+
+      card.offsetWidth/2-
+      v.clientWidth/2;
+
+    strip.style.transition=
+      "transform 4.8s cubic-bezier(.07,.72,.12,1)";
+
+    strip.style.transform=
+      `translateX(${-Math.max(
+        0,
+        target
+      )}px)`;
+  });
+
+  clearTimeout(
+    window.__caseTimer
+  );
+
+  window.__caseTimer=
+    setTimeout(()=>{
+
+      strip.children[
+        winnerIndex
+      ]?.classList.add("win");
+
+      showCaseResult(
+        pendingDrop
+      );
+
+    },4900);
+}
+
+function showCaseResult(drop){
+
+  $("caseOpeningStatus").textContent=
+    "🎉 Выпал предмет!";
+
+  $("caseWinEmoji").textContent=
+    drop[2];
+
+  $("caseWinName").textContent=
+    drop[0];
+
+  $("caseWinPrice").textContent=
+    drop[1]+" 💎";
+
+  $("caseWinCard")
+    .classList.add("show");
+}
+
+function closeCaseOverlay(){
+
+  $("caseOpeningOverlay")
+    .classList.remove("open");
+
+  pendingDrop=null;
+}
+
+function takeCaseDrop(){
+
+  if(!pendingDrop)return;
+
+  addItem(
+    pendingDrop[0],
+    pendingDrop[1],
+    pendingDrop[2],
+    itemType(
+      pendingDrop[0]
+    )
+  );
+
+  toast(
+    "Предмет добавлен в инвентарь"
+  );
+
+  closeCaseOverlay();
+}
+
+function sellCaseDrop(){
+
+  if(!pendingDrop)return;
+
+  state.balance+=
+    pendingDrop[1];
+
+  state.statistics.sales=
+    (state.statistics.sales||0)+1;
+
+  localSave();
+
+  toast(
+    "Продано: +"+
+    pendingDrop[1]+
+    " 💎"
+  );
+
+  closeCaseOverlay();
+}
+
+
+/* =========================================================
+   BATTLE
+========================================================= */
+
+function battle(){
+
+  if(state.balance<100)
+    return toast(
+      "Не хватает 💎"
+    );
+
+  state.balance-=100;
+
+  const a=
+    pick(cases[1].drops);
+
+  const bot=
+    pick(cases[1].drops);
+
+  const win=
+    a[1]>=bot[1];
+
+  if(win){
+
+    state.inventory.push({
+      name:a[0],
+      price:a[1],
+      emoji:a[2],
+      type:itemType(a[0])
+    });
+  }
+
+  localSave();
+
+  $("battleResult").innerHTML=`
+
+    <div class="drop">
+
+      Твой дроп:
+      ${a[2]}
+      ${escapeHtml(a[0])}
+      —
+      ${a[1]} 💎
+
+      <br><br>
+
+      Бот:
+      ${bot[2]}
+      ${escapeHtml(bot[0])}
+      —
+      ${bot[1]} 💎
+
+      <hr>
+
+      <b>
+        ${
+          win
+            ?"🏆 Ты победил!"
+            :"💥 Бот победил."
+        }
+      </b>
+
+    </div>
+
+  `;
+}
+
+
+/* =========================================================
+   CONTRACT / ROYAL
+========================================================= */
+
+function contract(){
+
+  if(state.inventory.length<3)
+    return toast(
+      "Нужно 3 предмета"
+    );
+
+  const chosen=
+    state.inventory.splice(
+      0,
+      3
+    );
+
+  const value=
+    Math.floor(
+      chosen.reduce(
+        (s,x)=>s+x.price,
+        0
+      )*.75
+    );
+
+  const pool=
+    items.filter(
+      x=>x.price<=Math.max(
+        value,
+        1
+      )
+    );
+
+  const target=
+    pool[
+      Math.floor(
+        Math.random()*pool.length
+      )
+    ];
+
+  state.inventory.push({
+    name:target.name,
+    price:target.price,
+    emoji:target.emoji,
+    type:target.type
+  });
+
+  localSave();
+
+  $("contractResult").innerHTML=`
+
+    <div class="drop center">
+
+      📜 Получено:
+
+      ${target.emoji}
+      ${escapeHtml(target.name)}
+
+      —
+      ${target.price} 💎
+
+    </div>
+
+  `;
+}
+
+function royal(){
+
+  if(state.balance<100)
+    return toast(
+      "Не хватает 💎"
+    );
+
+  state.balance-=100;
+
+  let wins=0;
+
+  for(let i=0;i<5;i++){
+
+    if(Math.random()<.55)
+      wins++;
+  }
+
+  if(wins>=3)
+    state.balance+=200;
+
+  localSave();
+
+  $("royalResult").innerHTML=`
+
+    <div class="drop center">
+
+      ${
+        wins>=3
+          ?"👑 Победа! +200 💎"
+          :"💥 Поражение"
+      }
+
+      <br>
+
+      Побед:
+      ${wins}/5
+
+    </div>
+
+  `;
+}
+
+
+/* =========================================================
+   DOUBLE
+========================================================= */
+
+const WHEEL_SEGS=[
+  0,1,2,3,4,5,6,7,
+  8,9,10,11,12,13,14
+];
+
+let dblAngle=0;
+let dblSpinning=false;
+let dblBets=[];
+
+function drawWheelCanvas(
+  canvas,
+  angle,
+  highlight=null
+){
+
+  const S=canvas.width;
+  const ctx=canvas.getContext("2d");
+
+  const cx=S/2;
+  const cy=S/2;
+  const R=S/2-4;
+
+  ctx.clearRect(
+    0,0,S,S
+  );
+
+  const n=WHEEL_SEGS.length;
+  const arc=2*Math.PI/n;
+
+  for(let i=0;i<n;i++){
+
+    const num=
+      WHEEL_SEGS[i];
+
+    const a0=
+      angle-
+      Math.PI/2+
+      i*arc;
+
+    const a1=
+      a0+arc;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      cx,
+      cy
+    );
+
+    ctx.arc(
+      cx,
+      cy,
+      R,
+      a0,
+      a1
+    );
+
+    ctx.closePath();
+
+    ctx.fillStyle=
+      highlight===num
+        ?"rgba(255,255,255,.18)"
+        :(num===0
+          ?" #17803a"
+          :(num%2
+            ?" #b02020"
+            :" #152030"));
+
+    ctx.fillStyle=
+      num===0
+        ?" #17803a"
+        :(num%2
+          ?" #b02020"
+          :" #152030");
+
+    ctx.fill();
+
+    ctx.strokeStyle="#2d5070";
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+
+    ctx.save();
+
+    ctx.translate(cx,cy);
+    ctx.rotate(
+      a0+arc/2
+    );
+
+    ctx.translate(
+      R*.7,
+      0
+    );
+
+    ctx.rotate(
+      Math.PI/2
+    );
+
+    ctx.fillStyle="#fff";
+    ctx.font=
+      `bold ${Math.floor(S/16)}px Arial`;
+
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+
+    ctx.fillText(
+      num,
+      0,
+      0
+    );
+
+    ctx.restore();
+  }
+
+  ctx.beginPath();
+
+  ctx.arc(
+    cx,
+    cy,
+    R*.28,
+    0,
+    2*Math.PI
+  );
+
+  ctx.fillStyle="#07111f";
+  ctx.fill();
+
+  ctx.strokeStyle="#1a4a7a";
+  ctx.lineWidth=2;
+  ctx.stroke();
+}
+
+function renderDoubleUI(b){
+
+  dblBets=[];
+
+  b.innerHTML=`
+
+    <h2>🎯 Double</h2>
+
+    <div class="dbl-wrap">
+
+      <div class="dbl-wheel-outer">
+
+        <canvas
+          id="dblCanvas"
+          width="290"
+          height="290"
+          class="dbl-canvas"
+        ></canvas>
+
+        <div class="dbl-fixed-pointer"></div>
+
+        <div class="dbl-center-overlay">
+          <span
+            class="dbl-num"
+            id="dblNum"
+          >
+            —
+          </span>
+        </div>
+
+      </div>
+
+      <div class="dbl-chips">
+
+        <div class="dbl-chip" data-v="10">
+          10
+        </div>
+
+        <div class="dbl-chip" data-v="50">
+          50
+        </div>
+
+        <div class="dbl-chip" data-v="100">
+          100
+        </div>
+
+        <div class="dbl-chip" data-v="250">
+          250
+        </div>
+
+        <div class="dbl-chip" data-v="500">
+          500
+        </div>
+
+      </div>
+
+      <div class="dbl-amt">
+
+        <span class="muted">
+          Ставка:
+        </span>
+
+        <input
+          id="dblBetAmt"
+          type="number"
+          value="100"
+          min="1"
+        >
+
+        <span>
+          💎
+        </span>
+
+      </div>
+
+      <div class="dbl-main-bets">
+
+        <button
+          class="dbl-btn dbl-red"
+          id="dblBetRed"
+        >
+          🔴 Красный
+        </button>
+
+        <button
+          class="dbl-btn dbl-black"
+          id="dblBetBlack"
+        >
+          ⚫ Чёрный
+        </button>
+
+        <button
+          class="dbl-btn dbl-green"
+          id="dblBetGreen"
+        >
+          🟢 Зелёный
+        </button>
+
+      </div>
+
+      <div class="dbl-nums" id="dblNums"></div>
+
+      <div
+        class="dbl-active"
+        id="dblActive"
+      >
+        Ставок нет
+      </div>
+
+      <button
+        class="dbl-spin-btn"
+        id="dblSpinBtn"
+      >
+        🎰 КРУТИТЬ
+      </button>
+
+      <div
+        class="dbl-result"
+        id="dblResult"
+      >
+        Сделайте ставку
+      </div>
+
+    </div>
+  `;
+
+  drawWheelCanvas(
+    $("dblCanvas"),
+    dblAngle
+  );
+
+  b.querySelectorAll(
+    ".dbl-chip"
+  ).forEach(c=>{
+
+    c.onclick=()=>{
+
+      $("dblBetAmt").value=
+        c.dataset.v;
+
+      b.querySelectorAll(
+        ".dbl-chip"
+      ).forEach(x=>
+        x.classList.remove("sel")
+      );
+
+      c.classList.add("sel");
+    };
+  });
+
+  $("dblBetRed").onclick=
+    ()=>addDblBet(
+      "color",
+      "🔴",
+      "red",
+      2
+    );
+
+  $("dblBetBlack").onclick=
+    ()=>addDblBet(
+      "color",
+      "⚫",
+      "black",
+      2
+    );
+
+  $("dblBetGreen").onclick=
+    ()=>addDblBet(
+      "color",
+      "🟢",
+      "green",
+      14
+    );
+
+  WHEEL_SEGS.forEach(n=>{
+
+    const d=
+      document.createElement("div");
+
+    d.className=
+      "dbl-numb "+
+      (
+        n===0
+          ?"g"
+          :(n%2
+            ?"r"
+            :"b")
+      );
+
+    d.textContent=n;
+
+    d.onclick=()=>{
+
+      const amt=
+        parseInt(
+          $("dblBetAmt").value
+        )||0;
+
+      if(amt<1)return;
+
+      dblBets.push({
+        type:"num",
+        label:"#"+n,
+        val:n,
+        mult:14,
+        amt
+      });
+
+      renderDblBets();
+    };
+
+    $("dblNums")
+      .appendChild(d);
+  });
+
+  $("dblSpinBtn").onclick=
+    dblSpin;
+
+  renderDblBets();
+}
+
+function addDblBet(
+  type,
+  label,
+  val,
+  mult
+){
+
+  const amt=
+    parseInt(
+      $("dblBetAmt").value
+    )||0;
+
+  if(amt<1)return;
+
+  dblBets.push({
+    type,
+    label,
+    val,
+    mult,
+    amt
+  });
+
+  renderDblBets();
+}
+
+function renderDblBets(){
+
+  const el=$("dblActive");
+
+  if(!el)return;
+
+  if(!dblBets.length){
+
+    el.textContent=
+      "Ставок нет";
+
+    return;
+  }
+
+  el.textContent=
+    "Ставки: "+
+    dblBets.map(
+      b=>b.label+
+      " "+
+      b.amt+
+      "💎"
+    ).join(" | ");
+}
+
+function dblSpin(){
+
+  if(dblSpinning)return;
+
+  if(!dblBets.length)
+    return toast(
+      "Сначала сделайте ставку"
+    );
+
+  const total=
+    dblBets.reduce(
+      (s,b)=>s+b.amt,
+      0
+    );
+
+  if(state.balance<total)
+    return toast(
+      "Не хватает 💎"
+    );
+
+  state.balance-=total;
+
+  localSave();
+
+  dblSpinning=true;
+
+  $("dblSpinBtn")
+    .disabled=true;
+
+  const index=
+    Math.floor(
+      Math.random()*
+      WHEEL_SEGS.length
+    );
+
+  const result=
+    WHEEL_SEGS[index];
+
+  const arc=
+    2*Math.PI/
+    WHEEL_SEGS.length;
+
+  const target=
+    -(index*arc+arc/2);
+
+  const final=
+    target-
+    5*2*Math.PI;
+
+  const start=
+    dblAngle;
+
+  const startTime=
+    performance.now();
+
+  const duration=
+    3000;
+
+  function step(now){
+
+    const t=
+      Math.min(
+        1,
+        (now-startTime)/
+        duration
+      );
+
+    const ease=
+      1-Math.pow(
+        1-t,
+        4
+      );
+
+    dblAngle=
+      start+
+      (final-start)*ease;
+
+    drawWheelCanvas(
+      $("dblCanvas"),
+      dblAngle,
+      t>.9?result:null
+    );
+
+    $("dblNum").textContent=
+      t>.9
+        ?result
+        :"";
+
+    if(t<1){
+
+      requestAnimationFrame(
+        step
+      );
+
+      return;
+    }
+
+    let gain=0;
+
+    dblBets.forEach(b=>{
+
+      let win=false;
+
+      if(
+        b.type==="color"
+      ){
+
+        if(
+          b.val==="red"&&
+          result>0&&
+          result%2===1
+        )
+          win=true;
+
+        if(
+          b.val==="black"&&
+          result>0&&
+          result%2===0
+        )
+          win=true;
+
+        if(
+          b.val==="green"&&
+          result===0
+        )
+          win=true;
+      }
+
+      if(
+        b.type==="num"&&
+        b.val===result
+      )
+        win=true;
+
+      gain+=
+        win
+          ?b.amt*(b.mult-1)
+          :-b.amt;
+    });
+
+    state.balance+=
+      Math.max(
+        0,
+        total+gain
+      );
+
+    localSave();
+
+    $("dblResult").textContent=
+      gain>=0
+        ?`🎉 +${gain} 💎 — ${result}`
+        :`💥 ${gain} 💎 — ${result}`;
+
+    dblBets=[];
+
+    renderDblBets();
+
+    dblSpinning=false;
+
+    $("dblSpinBtn")
+      .disabled=false;
+  }
+
+  requestAnimationFrame(step);
+}
+
+
+/* =========================================================
+   UPGRADE
+========================================================= */
+
+function renderUpgradeUI(b){
+
+  b.innerHTML=`
+
+    <h2>⬆️ Апгрейдер</h2>
+
+    <div class="upg-wrap">
+
+      <div class="upg-ring-area">
+
+        <canvas
+          id="upgCanvas"
+          width="260"
+          height="260"
+          class="upg-ring-canvas"
+        ></canvas>
+
+        <div class="upg-ring-center">
+
+          <span
+            class="upg-ring-emoji"
+            id="upgRingEmoji"
+          >
+            ❔
+          </span>
+
+          <span
+            class="upg-ring-pct"
+            id="upgRingPct"
+          >
+            ?%
+          </span>
+
+          <span
+            class="upg-ring-price-lbl"
+            id="upgRingPrice"
+          >
+            Выбери предмет
+          </span>
+
+        </div>
+
+      </div>
+
+      <b style="align-self:flex-start">
+        🎒 Что улучшаем:
+      </b>
+
+      <div
+        class="upg-source-list"
+        id="upgSrcList"
+      ></div>
+
+      <b
+        id="upgTgtLbl"
+        style="display:none;align-self:flex-start"
+      >
+        🎯 Цель:
+      </b>
+
+      <div
+        class="upg-tgt-list"
+        id="upgTgtList"
+      ></div>
+
+      <button
+        class="upg-go"
+        id="upgGoBtn"
+        disabled
+      >
+        ⬆️ АПГРЕЙД
+      </button>
+
+    </div>
+
+  `;
+
+  drawUpgrade(
+    $("upgCanvas"),
+    0
+  );
+
+  renderUpgSources();
+}
+
+function drawUpgrade(
+  canvas,
+  pct
+){
+
+  const ctx=
+    canvas.getContext("2d");
+
+  const S=canvas.width;
+  const c=S/2;
+  const r=S/2-20;
+
+  ctx.clearRect(
+    0,0,S,S
+  );
+
+  ctx.beginPath();
+
+  ctx.arc(
+    c,
+    c,
+    r,
+    0,
+    Math.PI*2
+  );
+
+  ctx.strokeStyle="#331414";
+  ctx.lineWidth=22;
+  ctx.stroke();
+
+  if(pct>0){
+
+    ctx.beginPath();
+
+    ctx.arc(
+      c,
+      c,
+      r,
+      -Math.PI/2,
+      -Math.PI/2+
+      Math.PI*2*
+      pct/100
+    );
+
+    ctx.strokeStyle="#00e676";
+    ctx.lineWidth=22;
+    ctx.stroke();
+  }
+}
+
+function renderUpgSources(){
+
+  const el=
+    $("upgSrcList");
+
+  if(!state.inventory.length){
+
+    el.innerHTML=`
+      <div class="empty-box">
+        Инвентарь пуст.
+      </div>
+    `;
+
+    return;
+  }
+
+  el.innerHTML=
+    state.inventory.map(
+      (x,i)=>`
+
+        <div
+          class="upg-src-row"
+          data-i="${i}"
+        >
+
+          <div class="upg-src-thumb">
+            ${escapeHtml(x.emoji)}
+          </div>
+
+          <div class="upg-src-info">
+
+            <b>
+              ${escapeHtml(x.name)}
+            </b>
+
+            <span>
+              ${x.price} 💎
+            </span>
+
+          </div>
+
+        </div>
+
+      `
+    ).join("");
+
+  el.querySelectorAll(
+    ".upg-src-row"
+  ).forEach(row=>{
+
+    row.onclick=()=>{
+
+      const i=
+        +row.dataset.i;
+
+      const src=
+        state.inventory[i];
+
+      const targets=
+        items.filter(
+          x=>x.price>src.price
+        ).slice(0,8);
+
+      el.querySelectorAll(
+        ".upg-src-row"
+      ).forEach(
+        x=>x.classList.remove(
+          "sel"
+        )
+      );
+
+      row.classList.add("sel");
+
+      $("upgTgtLbl")
+        .style.display="block";
+
+      $("upgTgtList").innerHTML=
+        targets.map(t=>{
+
+          const chance=
+            Math.min(
+              100,
+              Math.round(
+                src.price/
+                t.price*
+                100
+              )
+            );
+
+          return`
+
+            <div
+              class="upg-tgt-row"
+              data-id="${t.id}"
+            >
+
+              <div class="upg-tgt-thumb">
+                ${t.emoji}
+              </div>
+
+              <div class="upg-src-info">
+
+                <b>
+                  ${escapeHtml(t.name)}
+                </b>
+
+                <span>
+                  ${t.price} 💎
+                </span>
+
+              </div>
+
+              <b>
+                ${chance}%
+              </b>
+
+            </div>
+
+          `;
+        }).join("");
+
+      $("upgTgtList")
+        .querySelectorAll(
+          ".upg-tgt-row"
+        )
+        .forEach(target=>{
+
+          target.onclick=()=>{
+
+            const item=
+              items.find(
+                x=>
+                  x.id===
+                  +target.dataset.id
+              );
+
+            const chance=
+              Math.min(
+                100,
+                Math.round(
+                  src.price/
+                  item.price*
+                  100
+                )
+              );
+
+            $("upgTgtList")
+              .querySelectorAll(
+                ".upg-tgt-row"
+              )
+              .forEach(
+                x=>x.classList.remove(
+                  "sel"
+                )
+              );
+
+            target.classList.add("sel");
+
+            $("upgRingEmoji")
+              .textContent=
+              item.emoji;
+
+            $("upgRingPct")
+              .textContent=
+              chance+"%";
+
+            $("upgRingPrice")
+              .textContent=
+              item.price+" 💎";
+
+            drawUpgrade(
+              $("upgCanvas"),
+              chance
+            );
+
+            $("upgGoBtn").disabled=false;
+
+            $("upgGoBtn").onclick=
+              ()=>{
+
+                const success=
+                  Math.random()*100<
+                  chance;
+
+                if(success){
+
+                  state.inventory[i]={
+                    name:item.name,
+                    price:item.price,
+                    emoji:item.emoji,
+                    type:item.type
+                  };
+
+                  toast(
+                    "🎉 Апгрейд успешен!"
+                  );
+
+                }else{
+
+                  state.inventory.splice(
+                    i,
+                    1
+                  );
+
+                  toast(
+                    "💥 Предмет потерян"
+                  );
+                }
+
+                state.statistics.upgrades=
+                  (state.statistics.upgrades||0)+1;
+
+                localSave();
+
+                renderUpgSources();
+
+                $("upgGoBtn").disabled=true;
+              };
+          };
+        });
+    };
+}
+
+
+/* =========================================================
+   BINDINGS
+========================================================= */
+
+document.querySelectorAll(
+  ".tab[data-screen]"
+).forEach(t=>{
+
+  t.onclick=()=>{
+    nav(
+      t.dataset.screen
+    );
+  };
+});
+
+$("chatTab").onclick=()=>{
+  toast(
+    "💬 Чат пока в разработке"
+  );
+};
+
 $("addPostBtn").onclick=
- openPostComposer;
+  openAddPost;
+
+$("closeBtn").onclick=()=>{
+  $("modal")
+    .classList.remove("open");
+};
+
+$("modal").onclick=e=>{
+
+  if(e.target.id==="modal")
+    $("modal")
+      .classList.remove("open");
+};
+
+$("caseCloseBtn").onclick=()=>{
+  closeCaseOverlay();
+};
+
+$("caseTakeBtn").onclick=
+  takeCaseDrop;
+
+$("caseSellBtn").onclick=
+  sellCaseDrop;
+
+$("googleLoginBtn").onclick=
+  loginWithGoogle;
+
+$("googleLogoutBtn").onclick=
+  logoutGoogle;
+
+$("authGoogleBtn").onclick=
+  continueGoogle;
+
+$("authGuestBtn").onclick=
+  continueGuest;
+
+$("usernameSaveBtn").onclick=
+  saveUsername;
+
+$("usernameInput")
+  .addEventListener(
+    "keydown",
+    e=>{
+      if(e.key==="Enter")
+        saveUsername();
+    }
+  );
+
+$("syncBtn").onclick=
+  async()=>{
+
+    if(
+      guestMode||
+      !firebaseUser||
+      firebaseUser.isAnonymous
+    )
+      return toast(
+        "В гостевом режиме синхронизации нет"
+      );
+
+    const ok=
+      await saveFirebase();
+
+    toast(
+      ok
+        ?"Синхронизация завершена"
+        :"Ошибка синхронизации"
+    );
+  };
 
 
-$("addFriendBtn").onclick=
- addFriend;
+/* DRAWER BUTTONS */
+
+$("drawerAddFriend").onclick=
+  addFriendDialog;
+
+$("drawerFriends").onclick=
+  showFriends;
+
+$("drawerTrade").onclick=
+  openPlayerTrade;
+
+$("drawerPlayerShop").onclick=
+  openPlayerShop;
 
 
-$("friendsBtn").onclick=
- showFriends;
+/* =========================================================
+   START
+========================================================= */
 
-
-$("tradeBtn").onclick=
- openTrade;
-
-
-$("playerShopBtn").onclick=
- openPlayerShop;
-
-
-$("tradePostBtn")?.addEventListener(
- "click",
- openTradePostSelector
-);
-
-
-/* =========================
-   СТАРТ
-========================= */
-
-loadLocal();
+loadGuest();
 
 renderGrids();
 
 renderShop();
 
-renderAccount();
-
 initFirebase();
 
 </script>
-
 </body>
-  </html>
+     </html>
