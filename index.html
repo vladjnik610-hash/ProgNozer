@@ -41,7 +41,8 @@ button.secondary{background:#12263e;border:1px solid #2d5377}
 button.danger{background:#8e2a3b}
 button:disabled{opacity:.45;cursor:not-allowed}
 .tabs{position:fixed;left:0;right:0;bottom:0;height:82px;z-index:30;background:rgba(6,12,21,.98);border-top:1px solid #18344f}
-.tabs-inner{max-width:760px;height:100%;margin:auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs-inner{max-width:760px;height:100%;margin:auto;display:grid;grid-template-columns:repeat(6,1fr)}
+.tab{font-size:11px}
 .tab{background:none;border-radius:0;color:#75889f;padding:7px 2px;font-size:13px}
 .tab.active{color:#4da6ff}
 .ti{display:block;font-size:27px;line-height:31px}
@@ -107,6 +108,13 @@ input{padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#08152
 .auth-google{background:#fff;color:#17202d}
 .auth-guest{background:#12263e;border:1px solid #2d5377}
 .auth-status{min-height:20px;margin-top:15px;color:#8295ad;font-size:14px}
+
+/* COOLDOWN STYLES */
+.cooldown-badge{display:inline-block;background:#0d2640;border:1px solid #1f4f7a;border-radius:10px;padding:4px 10px;font-size:13px;color:#5b9ecf;margin-top:6px;font-weight:700}
+.openCase:disabled{background:#0e2030;border:1px solid #1a3d5e;color:#4a6e8a;cursor:not-allowed}
+.cooldown-bar{height:5px;border-radius:6px;background:#0d2035;overflow:hidden;margin-top:6px}
+.cooldown-bar-fill{height:100%;background:linear-gradient(90deg,#1a5fa8,#3d9cff);transition:width .5s linear}
+
 @media(max-width:520px){
 main{padding:14px 15px}
 .grid{gap:11px}
@@ -204,7 +212,9 @@ main{padding:14px 15px}
 <nav class="tabs">
 <div class="tabs-inner">
 <button class="tab active" data-screen="home"><span class="ti">⌂</span>Главная</button>
+<button class="tab" id="communityTab"><span class="ti">🌐</span>Community</button>
 <button class="tab" data-screen="games"><span class="ti">🎮</span>Игры</button>
+<button class="tab" id="chatTab"><span class="ti">💬</span>Чат</button>
 <button class="tab" data-screen="inventory"><span class="ti">🎒</span>Инвентарь</button>
 <button class="tab" data-screen="profile"><span class="ti">●</span>Профиль</button>
 </div>
@@ -225,8 +235,7 @@ main{padding:14px 15px}
 <div class="win-emoji" id="caseWinEmoji">🎁</div>
 <div class="win-name" id="caseWinName"></div>
 <div class="win-price" id="caseWinPrice"></div>
-<div class="case-actions">
-<button class="upgrade-action" id="caseUpgradeBtn">⬆️ Апгрейд</button>
+<div class="case-actions" style="grid-template-columns:1fr 1fr">
 <button class="take-action" id="caseTakeBtn">📦 Забрать</button>
 <button class="sell-action" id="caseSellBtn">💎 Продать</button>
 </div>
@@ -257,6 +266,9 @@ const FIREBASE_CONFIG={
   messagingSenderId:"917903784504",
   appId:"1:917903784504:web:5ed7d142892b1d7ca004cd"
 };
+
+const BATTLE_COOLDOWN_MS = 90000; // 1.5 минуты
+const BATTLE_COOLDOWN_KEY = "prognozer_battle_cooldown";
 
 const games=[
   {id:"cases",icon:"🎁",title:"Кейсы",sub:"Открытие кейсов"},
@@ -305,6 +317,39 @@ const cases=[
   {name:"Большой кейс",cost:300,drops:[["Sticker | Dragon",2400,"🏷️",40],["AK-47 | Neon Rider",3200,"🔫",35],["★ Нож | Crimson",6500,"🔪",20],["★ Karambit | Ocean",9800,"🔪",5]]},
   {name:"Супер большой кейс",cost:750,drops:[["Sticker | Crown",3500,"🏷️",45],["AWP | Arctic",4200,"🔫",30],["★ M9 Bayonet | Dark",16000,"🔪",20],["★ Butterfly | Arctic",12500,"🔪",5]]}
 ];
+
+/* BATTLE COOLDOWN SYSTEM */
+function getBattleCooldownRemaining(){
+  try{const last=parseInt(localStorage.getItem(BATTLE_COOLDOWN_KEY)||"0");return Math.max(0,BATTLE_COOLDOWN_MS-(Date.now()-last));}catch(e){return 0;}
+}
+function setBattleCooldown(){
+  try{localStorage.setItem(BATTLE_COOLDOWN_KEY,Date.now());}catch(e){}
+}
+function formatCooldown(ms){
+  const s=Math.ceil(ms/1000);const m=Math.floor(s/60);const sec=s%60;
+  return m>0?`${m}:${sec.toString().padStart(2,"0")}`:`${sec}с`;
+}
+
+let cooldownTimers={};
+function startBattleCooldownDisplay(btnEl,barFillEl,badgeEl){
+  clearInterval(cooldownTimers.battle);
+  function tick(){
+    const rem=getBattleCooldownRemaining();
+    if(rem<=0){
+      btnEl.disabled=false;btnEl.textContent="Начать за 100 💎";
+      if(badgeEl)badgeEl.style.display="none";
+      if(barFillEl)barFillEl.parentElement.style.display="none";
+      clearInterval(cooldownTimers.battle);
+    } else {
+      btnEl.disabled=true;btnEl.textContent="⏳ "+formatCooldown(rem);
+      if(badgeEl){badgeEl.style.display="inline-block";badgeEl.textContent="Доступно через "+formatCooldown(rem);}
+      const pct=((BATTLE_COOLDOWN_MS-rem)/BATTLE_COOLDOWN_MS*100).toFixed(1);
+      if(barFillEl){barFillEl.parentElement.style.display="block";barFillEl.style.width=pct+"%";}
+    }
+  }
+  tick();
+  cooldownTimers.battle=setInterval(tick,500);
+}
 
 /* STATE */
 function createDefaultState(){return{balance:100,inventory:[],statistics:{casesOpened:0,upgrades:0,purchases:0,sales:0},createdAt:Date.now()};}
@@ -387,14 +432,22 @@ function itemType(name){return name.includes("Sticker")?"Наклейка":name.
 
 function openGame(type){
   const m=$("modal"),b=$("modalBody");m.classList.add("open");
-  if(type==="cases")b.innerHTML=`<h2>🎁 Кейсы</h2>${cases.map((c,i)=>`<div class="drop"><h3>${c.name}</h3><p class="muted">Цена: ${c.cost} 💎</p>${c.drops.map(d=>`<div>${d[2]} ${d[0]} — ${d[3]}%<div class="chancebar"><i style="width:${d[3]*2}%"></i></div></div>`).join("")}<br><button class="openCase" data-i="${i}">Открыть кейс</button></div>`).join("")}`;
-  if(type==="battle")b.innerHTML=`<h2>⚔️ Кейс-баттл</h2><p class="muted">Ты и бот открываете средний кейс. Дороже дроп — победа.</p><button id="battleBtn">Начать за 100 💎</button><div id="battleResult"></div>`;
+  if(type==="cases"){
+    b.innerHTML=`<h2>🎁 Кейсы</h2>${cases.map((c,i)=>`<div class="drop"><h3>${c.name}</h3><p class="muted">Цена: ${c.cost} 💎</p>${c.drops.map(d=>`<div>${d[2]} ${d[0]} — ${d[3]}%<div class="chancebar"><i style="width:${d[3]*2}%"></i></div></div>`).join("")}<br><button class="openCase" data-i="${i}">Открыть кейс</button></div>`).join("")}`;
+    b.querySelectorAll(".openCase").forEach(x=>x.onclick=()=>openCase(+x.dataset.i));
+  }
+  if(type==="battle"){
+    const rem=getBattleCooldownRemaining();
+    const btnText=rem>0?"⏳ "+formatCooldown(rem):"Начать за 100 💎";
+    const pct=rem>0?((BATTLE_COOLDOWN_MS-rem)/BATTLE_COOLDOWN_MS*100).toFixed(1):0;
+    b.innerHTML=`<h2>⚔️ Кейс-баттл</h2><p class="muted">Ты и бот открываете средний кейс. Дороже дроп — победа.</p><button id="battleBtn" ${rem>0?"disabled":""}>${btnText}</button><div class="cooldown-bar" id="battleCdBar" style="${rem>0?'':'display:none'}"><div class="cooldown-bar-fill" id="battleCdFill" style="width:${pct}%"></div></div><div class="cooldown-badge" id="battleCdBadge" style="${rem>0?'':'display:none'}">${rem>0?"Доступно через "+formatCooldown(rem):""}</div><div id="battleResult"></div>`;
+    startBattleCooldownDisplay($("battleBtn"),$("battleCdFill"),$("battleCdBadge"));
+  }
   if(type==="double")b.innerHTML=`<h2>🎯 Double</h2><p class="muted">Выбери ставку.</p><input id="doubleBet" type="number" min="1" value="100"><button id="doubleBtn">Играть</button><div id="doubleResult"></div>`;
   if(type==="upgrade")b.innerHTML=`<h2>⬆️ Апгрейдер</h2><p class="muted">Выбери предмет из инвентаря, затем цель.</p><div id="upgradeList"></div>`;
   if(type==="contracts")b.innerHTML=`<h2>📜 Контракты</h2><p class="muted">3 предмета превращаются в один более дорогой.</p><button id="contractBtn">Обменять 3 предмета</button><div id="contractResult"></div>`;
   if(type==="royal")b.innerHTML=`<h2>👑 Королевская битва</h2><p class="muted">5 раундов против ботов. Нужно выиграть минимум 3.</p><button id="royalBtn">Начать за 100 💎</button><div id="royalResult"></div>`;
-  b.querySelectorAll(".openCase").forEach(x=>x.onclick=()=>openCase(+x.dataset.i));
-  if(type==="battle")$("battleBtn").onclick=battle;
+  if(type==="battle" && !getBattleCooldownRemaining())$("battleBtn").onclick=battle;
   if(type==="double")$("doubleBtn").onclick=doubleGame;
   if(type==="upgrade")renderUpgrade();
   if(type==="contracts")$("contractBtn").onclick=contract;
@@ -404,8 +457,10 @@ function openGame(type){
 function showCaseResult(drop){$("caseOpeningStatus").textContent="🎉 Выпал предмет!";$("caseWinEmoji").textContent=drop[2];$("caseWinName").textContent=drop[0];$("caseWinPrice").textContent=drop[1]+" 💎";$("caseWinCard").classList.add("show");}
 
 function openCase(i){
-  const c=cases[i];if(state.balance<c.cost)return toast("Не хватает 💎");
-  state.balance-=c.cost;state.statistics.casesOpened=(state.statistics.casesOpened||0)+1;localSave();
+  const c=cases[i];
+  if(state.balance<c.cost)return toast("Не хватает 💎");
+  state.balance-=c.cost;state.statistics.casesOpened=(state.statistics.casesOpened||0)+1;
+  localSave();
   pendingDrop=pick(c.drops);
   const overlay=$("caseOpeningOverlay"),strip=$("caseOpeningStrip");
   $("caseOpeningTitle").textContent="🎁 "+c.name;$("caseOpeningStatus").textContent="Открываем кейс…";$("caseWinCard").classList.remove("show");overlay.classList.add("open");
@@ -463,11 +518,23 @@ function runUpgrade(){
     else state.inventory.splice(pendingUpgradeSource,1);
     localSave();
     document.querySelector(".case-actions").innerHTML='<button class="take-action" id="upgradeFinishBtn" style="grid-column:1/-1">✓ Продолжить</button>';
-    $("upgradeFinishBtn").onclick=()=>{document.querySelector(".case-actions").innerHTML='<button class="upgrade-action" id="caseUpgradeBtn">⬆️ Апгрейд</button><button class="take-action" id="caseTakeBtn">📦 Забрать</button><button class="sell-action" id="caseSellBtn">💎 Продать</button>';bindCaseButtons();closeCaseOverlay();openGame("upgrade");};
+    $("upgradeFinishBtn").onclick=()=>{document.querySelector(".case-actions").innerHTML='<button class="take-action" id="caseTakeBtn">📦 Забрать</button><button class="sell-action" id="caseSellBtn">💎 Продать</button>';document.querySelector(".case-actions").style.gridTemplateColumns="1fr 1fr";bindCaseButtons();closeCaseOverlay();openGame("upgrade");};
   },4900);
 }
 
-function battle(){if(state.balance<100)return toast("Не хватает 💎");state.balance-=100;const a=pick(cases[1].drops),bot=pick(cases[1].drops),win=a[1]>=bot[1];if(win)state.inventory.push({name:a[0],price:a[1],emoji:a[2],type:itemType(a[0])});localSave();$("battleResult").innerHTML=`<div class="drop">Твой дроп: ${a[2]} ${a[0]} — ${a[1]} 💎<br>Бот: ${bot[2]} ${bot[0]} — ${bot[1]} 💎<hr><b>${win?"🏆 Ты победил и забрал дроп!":"💥 Бот победил."}</b></div>`;}
+function battle(){
+  if(getBattleCooldownRemaining()>0)return toast("⏳ Подождите "+formatCooldown(getBattleCooldownRemaining()));
+  if(state.balance<100)return toast("Не хватает 💎");
+  state.balance-=100;
+  setBattleCooldown();
+  const a=pick(cases[1].drops),bot=pick(cases[1].drops),win=a[1]>=bot[1];
+  if(win)state.inventory.push({name:a[0],price:a[1],emoji:a[2],type:itemType(a[0])});
+  localSave();
+  $("battleResult").innerHTML=`<div class="drop">Твой дроп: ${a[2]} ${a[0]} — ${a[1]} 💎<br>Бот: ${bot[2]} ${bot[0]} — ${bot[1]} 💎<hr><b>${win?"🏆 Ты победил и забрал дроп!":"💥 Бот победил."}</b></div>`;
+  // Restart cooldown display
+  const btn=$("battleBtn"),fill=$("battleCdFill"),badge=$("battleCdBadge");
+  if(btn&&fill&&badge)startBattleCooldownDisplay(btn,fill,badge);
+}
 
 function doubleGame(){const bet=Math.floor(+$("doubleBet").value);if(!bet||bet<1||state.balance<bet)return toast("Неверная ставка");state.balance-=bet;const mult=(1+Math.random()).toFixed(2),win=Math.random()<.48;if(win){const prize=Math.floor(bet*mult);state.balance+=prize;$("doubleResult").innerHTML=`<div class="drop center">🎉 <b>${mult}×</b><br>+${prize} 💎</div>`;}else{$("doubleResult").innerHTML='<div class="drop center">💥 Ставка проиграна</div>';}localSave();}
 
@@ -485,27 +552,17 @@ function updateGoogleUI(user){
   $("profileUid").textContent="UID: "+user.uid;$("firebaseUid").textContent="Google: "+(user.email||"")+" • UID: "+user.uid;$("profileName").textContent=user.displayName||(user.email?user.email.split("@")[0]:"Пользователь");$("googleAccountText").textContent=user.email?"🔵 Google: "+user.email:"🔵 Аккаунт Google подключён";$("googleLoginBtn").style.display="none";$("googleLogoutBtn").style.display="block";$("profileAvatar").textContent="🔵";
 }
 
-/* ===== ИСПРАВЛЕНО: POPUP вместо Redirect ===== */
 async function loginWithGoogle(){
   if(!auth||!firebaseReady){$("authStatus").textContent="⏳ Firebase ещё загружается…";return;}
-
   const provider=new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({prompt:"select_account"});
-
   $("authStatus").textContent="🔵 Открываем Google…";
-
   try{
-    /* Используем popup — он не перезагружает страницу и надёжнее */
     const result=await auth.signInWithPopup(provider);
-    if(result&&result.user){
-      $("authStatus").textContent="";
-      toast("✅ Вход через Google выполнен");
-    }
+    if(result&&result.user){$("authStatus").textContent="";toast("✅ Вход через Google выполнен");}
   }catch(e){
     console.error("Google popup login:",e);
-    const msg=firebaseError(e);
-    $("authStatus").textContent="❌ "+msg;
-    toast("Ошибка: "+msg);
+    const msg=firebaseError(e);$("authStatus").textContent="❌ "+msg;toast("Ошибка: "+msg);
   }
 }
 
@@ -533,21 +590,12 @@ async function initFirebase(){
   try{
     if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
     db=firebase.database();auth=firebase.auth();firebaseReady=true;
-
-    auth.onAuthStateChanged(async user=>{
-      console.log("Auth state:",user);
-      if(!authUIReady)return;
-      await handleAuthUser(user);
-    });
-
+    auth.onAuthStateChanged(async user=>{if(!authUIReady)return;await handleAuthUser(user);});
     if(db){db.ref(".info/connected").on("value",snap=>{if(snap.val()===true&&firebaseUser)setFirebaseStatus("🟢 Подключено • база доступна",true);});}
-
     authUIReady=true;
     await handleAuthUser(auth.currentUser);
-
   }catch(e){
-    firebaseReady=false;console.error("Firebase init:",e);
-    $("authStatus").textContent="❌ "+firebaseError(e);
+    firebaseReady=false;console.error("Firebase init:",e);$("authStatus").textContent="❌ "+firebaseError(e);
   }
 }
 
@@ -593,9 +641,13 @@ async function saveFirebase(){
   finally{saving=false;}
 }
 
-function bindCaseButtons(){$("caseTakeBtn").onclick=takeCaseDrop;$("caseSellBtn").onclick=sellCaseDrop;$("caseUpgradeBtn").onclick=startUpgradeFromCase;}
+function bindCaseButtons(){$("caseTakeBtn").onclick=takeCaseDrop;$("caseSellBtn").onclick=sellCaseDrop;}
 
-document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>nav(t.dataset.screen));
+function wip(){toast("🚧 В разработке");}
+
+document.querySelectorAll(".tab[data-screen]").forEach(t=>t.onclick=()=>nav(t.dataset.screen));
+$("communityTab").onclick=wip;
+$("chatTab").onclick=wip;
 $("caseCloseBtn").onclick=()=>{if($("caseWinCard").classList.contains("show"))closeCaseOverlay();};
 bindCaseButtons();
 $("closeBtn").onclick=()=>$("modal").classList.remove("open");
