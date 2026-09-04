@@ -496,7 +496,7 @@ function initOnlineListener(){if(!db||communityOnlineListener)return;communityOn
 function renderOnlineUsers(data){const el=$("onlineUsers"),entries=Object.values(data||{}).filter(x=>x&&x.username);$("onlineCount").textContent="— "+entries.length;if(!entries.length){el.innerHTML=`<div class="muted" style="font-size:13px">Пока никто не онлайн</div>`;return}entries.sort((a,b)=>String(a.username).localeCompare(String(b.username)));el.innerHTML=entries.map(u=>{const avatar=u.photoURL?`<img src="${escapeHTML(u.photoURL)}" alt="">`:"👤";return`<div class="online-user" onclick="openUserProfile('${escapeHTML(u.uid||"")}')"><div class="avatar-wrap"><div class="avatar">${avatar}</div><div class="online-dot"></div></div><div class="online-user-name">${escapeHTML(u.username)}</div></div>`}).join("")}
 function initCommunityListeners(){if(!db)return;initOnlineListener();if(!communityPostsListener){communityPostsRef=db.ref("prognozer/community/posts");communityPostsListener=communityPostsRef.orderByChild("createdAt").on("value",snap=>{renderCommunityPosts(snap.val()||{})})}startPresence()}
 function renderCommunityPosts(data){const el=$("communityPosts");let posts=Object.entries(data||{}).map(([id,p])=>({id,...p}));posts.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));if(!posts.length){el.innerHTML=`<div class="drop center muted">Пока нет постов.<br>Будь первым — создай пост!</div>`;return}el.innerHTML=posts.map(post=>renderPost(post)).join("")}
-function renderPost(post){const avatar=post.photoURL?`<img src="${escapeHTML(post.photoURL)}" alt="">`:"👤",date=formatPostDate(post.createdAt);let extra="";if(post.skin){extra+=`<div class="post-skin-card"><div class="post-skin-top"><div class="post-skin-icon">${post.skin.emoji}</div><div class="post-skin-info"><div class="post-skin-name">${escapeHTML(post.skin.name)}</div><div class="post-skin-type">${escapeHTML(post.skin.type||"Предмет")}</div><div class="post-skin-price">${post.skin.price} 💎</div></div></div></div>`}if(post.trade){extra+=`<div class="post-trade-card"><div class="trade-label">🛒 ТОРГОВЛЯ ОТ ИГРОКА</div><div class="trade-main"><div class="trade-icon">${post.trade.emoji}</div><div class="trade-info"><div class="trade-name">${escapeHTML(post.trade.name)}</div><div class="trade-price">${post.trade.price} 💎</div></div></div><div class="trade-status">📦 Лот игрока • Silver I</div></div>`}return`<article class="post-card"><div class="post-author"><div class="avatar-wrap"><div class="avatar">${avatar}</div>${post.online?`<div class="online-dot"></div>`:""}</div><div class="post-author-info"><div><span class="post-author-name">@${escapeHTML(post.username||"user")}</span><span class="post-rank">${escapeHTML(post.rank||"Silver I")}</span></div><div class="post-time">${date}</div></div>${firebaseUser&&post.uid===firebaseUser.uid?`<button class="post-menu" onclick="deleteCommunityPost('${post.id}')">⋯</button>`:""}</div>${post.text?`<div class="post-text">${escapeHTML(post.text)}</div>`:""} ${extra}<div class="post-actions"><button class="post-action" onclick="likeCommunityPost('${post.id}')">♡ ${Number(post.likes||0)}</button>${post.skin?`<button class="post-action" onclick="toast('Скин открыт в Community')">🎨 Показать скин</button>`:""}${post.trade?`<button class="post-action" onclick="toast('Лот выбран')">🛒 Открыть лот</button>`:""}</div></article>`}
+function renderPost(post){return typeof window.renderPost==='function'?window.renderPost(post):''}
 function formatPostDate(ts){if(!ts)return"только что";const diff=Math.max(0,Date.now()-Number(ts)),min=Math.floor(diff/60000);if(min<1)return"только что";if(min<60)return min+" мин. назад";const hours=Math.floor(min/60);if(hours<24)return hours+" ч. назад";const days=Math.floor(hours/24);if(days<7)return days+" дн. назад";return new Date(ts).toLocaleDateString("ru-RU")}
 async function openCreatePost(){if(!(await canUseCommunity()))return openCommunity();selectedPostSkin=null;selectedTradeItem=null;const b=$("modalBody");b.innerHTML=`<div class="community-modal-title">Новый пост</div><div class="muted" style="margin-bottom:10px">Что нового?</div><textarea id="communityPostText" maxlength="${COMMUNITY_POST_LIMIT}" placeholder="Напишите что-нибудь (до 600 символов)…"></textarea><div class="post-limit" id="postCharCount">0/${COMMUNITY_POST_LIMIT}</div><div class="create-post-options"><button class="create-option" id="selectSkinBtn"><div class="create-option-icon">🎨</div><div class="create-option-info"><b>Показать скин</b><span>Выберите скин из инвентаря</span></div><div class="create-option-arrow">›</div></button><button class="create-option" id="selectTradeBtn"><div class="create-option-icon">🛒</div><div class="create-option-info"><b>Показать торговлю</b><span>Добавьте лот из аукциона</span></div><div class="create-option-arrow">›</div></button></div><div id="selectedCommunityPreview" class="selected-preview"></div><button class="publish-btn" id="publishCommunityPost">Опубликовать</button>`;$("communityPostText").addEventListener("input",updatePostCounter);$("selectSkinBtn").onclick=openSkinSelector;$("selectTradeBtn").onclick=openTradeSelector;$("publishCommunityPost").onclick=publishCommunityPost;$("modal").classList.add("open")}
 function updatePostCounter(){const text=$("communityPostText")?.value||"";$("postCharCount").textContent=text.length+"/"+COMMUNITY_POST_LIMIT}
@@ -579,6 +579,7 @@ try{
  await loadFirebaseUser();
  syncReady=true;
  await syncGoogleProfile();
+ await claimMarketEarnings();
  setFirebaseStatus("🟢 Google подключён • синхронизировано",true);
  $("authStatus").textContent="✅ Синхронизация завершена";
  $("authScreen").classList.remove("open");
@@ -724,9 +725,33 @@ async function declineFriend(from){if(!requireSocial())return;await db.ref('prog
 window.acceptFriend=acceptFriend;window.declineFriend=declineFriend;
 
 /* Messaging */
-async function ensureChatMeta(to){if(!ready()||!to)throw new Error('CHAT_NOT_READY');const id=key2(firebaseUser.uid,to);const parts=id.split('_');await db.ref('prognozer/chats/'+id+'/meta').update({a:parts[0],b:parts[1],updatedAt:firebase.database.ServerValue.TIMESTAMP});return id;}
-async function sendSystemMessage(to,type,text,from=firebaseUser?.uid){if(!ready()||!to)return;const id=await ensureChatMeta(to);const ref=db.ref('prognozer/chats/'+id+'/messages').push();const p=await myProfile();await ref.set({uid:from,text,type,createdAt:firebase.database.ServerValue.TIMESTAMP,system:true,fromUsername:p?.username||''});await db.ref('prognozer/chats/'+id+'/meta').update({updatedAt:firebase.database.ServerValue.TIMESTAMP,lastText:text});}
-async function sendMessage(to,text,extra={}){if(!requireSocial())return;const t=(text||'').trim();if(!t)return;const id=await ensureChatMeta(to),p=await myProfile(),ref=db.ref('prognozer/chats/'+id+'/messages').push();await ref.set({uid:firebaseUser.uid,text:t,createdAt:firebase.database.ServerValue.TIMESTAMP,fromUsername:p?.username||'',...extra});await db.ref('prognozer/chats/'+id+'/meta').update({updatedAt:firebase.database.ServerValue.TIMESTAMP,lastText:t});}
+async function ensureChatMeta(to){
+ if(!ready()||!to)throw new Error('CHAT_NOT_READY');
+ const id=key2(firebaseUser.uid,to);
+ const a=firebaseUser.uid,b=to;
+ const updates={};
+ updates['prognozer/chats/'+id+'/meta']={a,b,updatedAt:firebase.database.ServerValue.TIMESTAMP};
+ updates['prognozer/chatIndex/'+a+'/'+b]={uid:b,updatedAt:firebase.database.ServerValue.TIMESTAMP};
+ updates['prognozer/chatIndex/'+b+'/'+a]={uid:a,updatedAt:firebase.database.ServerValue.TIMESTAMP};
+ await db.ref().update(updates);
+ return id;
+}
+async function sendSystemMessage(to,type,text,from=firebaseUser?.uid){if(!ready()||!to)return;const id=await ensureChatMeta(to);const ref=db.ref('prognozer/chats/'+id+'/messages').push();const p=await myProfile();await ref.set({uid:from,text,type,createdAt:firebase.database.ServerValue.TIMESTAMP,system:true,fromUsername:p?.username||''});await db.ref('prognozer/chats/'+id+'/meta').update({updatedAt:firebase.database.ServerValue.TIMESTAMP,lastText:text});await db.ref('prognozer/chatIndex/'+firebaseUser.uid+'/'+to).update({updatedAt:firebase.database.ServerValue.TIMESTAMP,lastText:text});await db.ref('prognozer/chatIndex/'+to+'/'+firebaseUser.uid).update({updatedAt:firebase.database.ServerValue.TIMESTAMP,lastText:text});}
+async function sendMessage(to,text,extra={}){
+ if(!requireSocial())return;
+ const t=(text||'').trim();if(!t)return;
+ const id=await ensureChatMeta(to),p=await myProfile(),ref=db.ref('prognozer/chats/'+id+'/messages').push();
+ await ref.set({uid:firebaseUser.uid,text:t,createdAt:firebase.database.ServerValue.TIMESTAMP,fromUsername:p?.username||'',...extra});
+ const ts=firebase.database.ServerValue.TIMESTAMP;
+ const updates={};
+ updates['prognozer/chats/'+id+'/meta/updatedAt']=ts;
+ updates['prognozer/chats/'+id+'/meta/lastText']=t;
+ updates['prognozer/chatIndex/'+firebaseUser.uid+'/'+to+'/updatedAt']=ts;
+ updates['prognozer/chatIndex/'+firebaseUser.uid+'/'+to+'/lastText']=t;
+ updates['prognozer/chatIndex/'+to+'/'+firebaseUser.uid+'/updatedAt']=ts;
+ updates['prognozer/chatIndex/'+to+'/'+firebaseUser.uid+'/lastText']=t;
+ await db.ref().update(updates);
+}
 function closeSocialListener(){if(S.chatRef&&S.chatListener){S.chatRef.off('value',S.chatListener);S.chatListener=null}}
 async function openChatWith(uid){if(!requireSocial())return;const p=await profileByUid(uid);if(!p)return toast('Пользователь не найден');const friend=await isFriend(uid);S.chatUid=uid;try{await cleanupOldMessages(uid)}catch(e){}await ensureChatMeta(uid);S.chatRef=db.ref('prognozer/chats/'+key2(firebaseUser.uid,uid)+'/messages').limitToLast(100);const b=$('modalBody');b.innerHTML=`<div class="community-modal-title" style="display:flex;justify-content:space-between;align-items:center"><span>💬 @${esc(p.username||'user')}</span><button class="social-btn" id="chatMenuBtn">⋯</button></div>${!friend?'<div class="tiny-note">Данного пользователя нету в списке друзей</div>':''}<div class="msg-list" id="msgList"><div class="muted">Загрузка…</div></div><div class="chat-compose"><input id="chatInput" maxlength="1000" placeholder="Сообщение..."><button class="social-btn primary" id="chatSend">➤</button></div>`;$('modal').classList.add('open');$('chatMenuBtn').onclick=()=>openChatMenu(uid);closeSocialListener();S.chatListener=s=>{const el=$('msgList');if(!el)return;const arr=[];s.forEach(x=>arr.push({id:x.key,...x.val()}));el.innerHTML=arr.map(m=>`<div class="msg ${m.uid===firebaseUser.uid?'mine':''} ${m.system?'system':''}">${esc(m.text||'')}<div class="msg-time">${m.createdAt?new Date(m.createdAt).toLocaleString('ru-RU'):'...'}</div>${m.type==='friend'?`<div class="social-actions"><button class="social-btn primary" onclick="openFriends()">👥 Открыть запросы</button></div>`:''}${m.type==='trade'?`<div class="social-actions"><button class="social-btn primary" onclick="acceptTrade('${esc(m.tradeId||'')}')">🔄 Открыть трейд</button></div>`:''}</div>`).join('')||'<div class="muted">Начните переписку</div>';el.scrollTop=el.scrollHeight};S.chatRef.on('value',S.chatListener);$('chatSend').onclick=()=>{const i=$('chatInput');sendMessage(uid,i.value);i.value='';i.focus()};$('chatInput').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('chatSend').click()}}}
 window.openChatWith=openChatWith;
@@ -736,7 +761,19 @@ window.clearConversation=async function(uid){if(!requireSocial())return;const id
 async function cleanupOldMessages(uid){if(!db||!uid)return;const id=key2(firebaseUser.uid,uid),s=await db.ref('prognozer/chats/'+id+'/messages').once('value'),cut=Date.now()-3*864e5,updates={};s.forEach(x=>{if(Number(x.val()?.createdAt||0)<cut)updates['prognozer/chats/'+id+'/messages/'+x.key]=null});if(Object.keys(updates).length)await db.ref().update(updates)}
 async function searchUser(){if(!requireSocial())return;const raw=($('userSearchInput')?.value||'').trim().replace(/^@/,'');if(!raw)return;const s=await db.ref('prognozer/usernames/'+usernameKey(raw)).once('value');const uid=s.val();if(!uid)return toast('Пользователь не найден');const p=await profileByUid(uid);if(!p)return toast('Пользователь не найден');const fr=uid===firebaseUser.uid?true:await isFriend(uid);if(uid!==firebaseUser.uid&&((p.privacy?.search||'all')==='none'))return toast('🔒 Пользователь запретил поиск по юзу');openChatWith(uid)}
 function openChat(){if(!requireSocial())return;const b=$('modalBody');b.innerHTML=`<div class="community-modal-title">💬 Чат</div><div class="search-box"><input id="userSearchInput" placeholder="Найти по @юзу"><button class="social-btn primary" id="userSearchBtn">Найти</button></div><div class="chat-list" id="chatList"><div class="muted">Загрузка бесед…</div></div>`;$('modal').classList.add('open');$('userSearchBtn').onclick=searchUser;loadChatList()}
-async function loadChatList(){if(!ready())return;const el=$('chatList');const s=await db.ref('prognozer/chats').once('value'),arr=[];s.forEach(c=>{const m=c.val().meta||{},uid=m.a===firebaseUser.uid?m.b:m.a;if(uid&&uid!==firebaseUser.uid)arr.push({uid,last:m.lastText||'',updated:m.updatedAt||0})});arr.sort((a,b)=>b.updated-a.updated);if(!arr.length){el.innerHTML='<div class="drop center muted">Бесед пока нет.<br>Найдите игрока по @юзу или откройте его профиль.</div>';return}const ps=await Promise.all(arr.map(x=>profileByUid(x.uid)));el.innerHTML=arr.map((x,i)=>{const p=ps[i]||{};return `<button class="chat-item" onclick="openChatWith('${esc(x.uid)}')">${avatarHTML(p)}<div class="chat-preview"><b>@${esc(p.username||'user')}</b><span class="social-muted">${esc(x.last)}</span></div></button>`}).join('')}
+async function loadChatList(){
+ if(!ready())return;
+ const el=$('chatList');
+ try{
+  const idx=await db.ref('prognozer/chatIndex/'+firebaseUser.uid).once('value');
+  const arr=[];idx.forEach(x=>{const v=x.val()||{};if(x.key&&x.key!==firebaseUser.uid)arr.push({uid:x.key,last:v.lastText||'',updated:Number(v.updatedAt)||0})});
+  const chats=await Promise.all(arr.map(async x=>{const id=key2(firebaseUser.uid,x.uid);const m=(await db.ref('prognozer/chats/'+id+'/meta').once('value')).val()||{};return {...x,last:m.lastText||x.last,updated:Number(m.updatedAt)||x.updated}}));
+  chats.sort((a,b)=>b.updated-a.updated);
+  if(!chats.length){el.innerHTML='<div class="drop center muted">Бесед пока нет.<br>Найдите игрока по @юзу или откройте его профиль.</div>';return}
+  const ps=await Promise.all(chats.map(x=>profileByUid(x.uid)));
+  el.innerHTML=chats.map((x,i)=>{const q=ps[i]||{};return `<button class="chat-item" onclick="openChatWith('${esc(x.uid)}')">${avatarHTML(q)}<div class="chat-preview"><b>@${esc(q.username||'user')}</b><span class="social-muted">${esc(x.last||'Начать беседу')}</span></div></button>`}).join('');
+ }catch(e){el.innerHTML='<div class="drop center muted">Не удалось загрузить список чатов. Проверьте Firebase Rules.</div>';console.error(e)}
+}
 window.openChat=openChat;
 
 /* User profile + privacy */
@@ -768,14 +805,63 @@ async function cancelTrade(){if(!S.tradeRef)return;await S.tradeRef.update({stat
 async function finalizeTrade(){if(!S.tradeRef||!ready())return;const snap=await S.tradeRef.once('value'),tr=snap.val();if(!tr||tr.status!=='countdown'||tr.completed)return;const other=tr.a===firebaseUser.uid?tr.b:tr.a;const mine=tr.offers?.[firebaseUser.uid]?.items||[],theirs=tr.offers?.[other]?.items||[],myCr=Number(tr.offers?.[firebaseUser.uid]?.crystals)||0,theirCr=Number(tr.offers?.[other]?.crystals)||0;if(state.balance<myCr)return cancelTrade();const ids=mine.map(x=>x.itemId||'').filter(Boolean);let inv=state.inventory.slice();if(ids.length){inv=inv.filter((x,i)=>!mine.some(m=>(m.itemId&&x.itemId===m.itemId)||(!m.itemId&&m.invIndex===i)))}else{const idxs=mine.map(x=>x.invIndex).sort((a,b)=>b-a);for(const i of idxs)inv.splice(i,1)}inv.push(...theirs.map(x=>({name:x.name,price:x.price,emoji:x.emoji,type:x.type,itemId:'item_'+Date.now()+'_'+Math.random().toString(36).slice(2)})));state.inventory=inv;state.balance=state.balance-myCr+theirCr;localSave();await S.tradeRef.update({completed:true,status:'completed',completedAt:firebase.database.ServerValue.TIMESTAMP});toast('✅ Обмен завершён');setTimeout(()=>{$('modal').classList.remove('open')},700)}
 
 /* Market */
+/* Market earnings */
+async function claimMarketEarnings(){
+ if(!ready())return;
+ const ref=db.ref('prognozer/market/earnings/'+firebaseUser.uid),snap=await ref.once('value');
+ const updates={};let add=0, sales=0;
+ snap.forEach(x=>{const v=x.val()||{};if(v.claimed)return;const amount=Math.max(0,Math.floor(Number(v.price)||0));if(amount){add+=amount;sales++;updates['prognozer/market/earnings/'+firebaseUser.uid+'/'+x.key+'/claimed']=true;updates['prognozer/market/earnings/'+firebaseUser.uid+'/'+x.key+'/claimedAt']=firebase.database.ServerValue.TIMESTAMP;}});
+ if(!add)return;
+ const newBalance=Number(state.balance)+add;
+ updates['prognozer/users/'+firebaseUser.uid+'/balance']=newBalance;
+ updates['prognozer/users/'+firebaseUser.uid+'/statistics/sales']=(Number(state.statistics?.sales)||0)+sales;
+ await db.ref().update(updates);state.balance=newBalance;state.statistics.sales=(Number(state.statistics?.sales)||0)+sales;updateUI();toast('💎 Вам начислено '+add+' за продажи');
+}
+
 function marketDuration(){const r=(firebaseUser?.rank||'').toLowerCase();if(r.includes('platinum'))return 14*864e5;if(r.includes('gold'))return 7*864e5;if(r.includes('silver'))return 3*864e5;return 864e5}
 function marketHTML(l){return `<div class="social-card market-item"><div style="font-size:30px">${esc(l.emoji)}</div><div class="grow"><b>${esc(l.name)}</b><div class="social-muted">@${esc(l.sellerUsername||'user')} • ${Math.max(0,Math.ceil((Number(l.expiresAt||0)-Date.now())/864e5))} дн.</div></div><b>${Number(l.price)||0} 💎</b>${l.sellerUid!==firebaseUser.uid?`<button class="social-btn primary" onclick="buyMarketLot('${esc(l.id)}')">Купить</button>`:`<button class="social-btn danger" onclick="cancelMarketLot('${esc(l.id)}')">Снять</button>`}</div>`}
 async function openPlayerMarket(){if(!requireSocial())return;const b=$('modalBody');b.innerHTML=`<div class="community-modal-title">🛒 Магазин среди игроков</div><div class="social-actions"><button class="social-btn primary" id="sellMarketBtn">＋ Продать предмет</button></div><div id="marketList" class="social-grid"><div class="muted">Загрузка лотов…</div></div>`;$('modal').classList.add('open');refreshMarket()}
 async function refreshMarket(){if(!ready())return;const s=await db.ref('prognozer/market/lots').once('value'),now=Date.now(),arr=[];const updates={};s.forEach(x=>{const l=x.val();if(Number(l.expiresAt)>now)arr.push({id:x.key,...l});else updates['prognozer/market/lots/'+x.key]=null});if(Object.keys(updates).length)await db.ref().update(updates);const el=$('marketList');el.innerHTML=arr.sort((a,b)=>a.price-b.price).map(marketHTML).join('')||'<div class="drop center muted">Активных лотов нет</div>';$('sellMarketBtn').onclick=openSellMarket}
 async function openSellMarket(){if(!ready())return;if(!state.inventory.length)return toast('Инвентарь пуст');const b=$('modalBody');b.innerHTML=`<div class="community-modal-title">🛒 Продать предмет</div><div class="selector-list">${state.inventory.map((x,i)=>`<button class="selector-item" data-i="${i}"><div class="selector-item-icon">${esc(x.emoji)}</div><div class="selector-item-info"><b>${esc(x.name)}</b><span>${Number(x.price)||0} 💎</span></div></button>`).join('')}</div><button class="social-btn" style="width:100%;margin-top:10px" onclick="openPlayerMarket()">← Назад</button>`;b.querySelectorAll('.selector-item').forEach(e=>e.onclick=()=>askMarketPrice(+e.dataset.i))}
 function askMarketPrice(i){const x=state.inventory[i];if(!x)return;const b=$('modalBody');b.innerHTML=`<div class="community-modal-title">💎 Цена лота</div><div class="social-card"><div style="font-size:38px;text-align:center">${esc(x.emoji)}</div><b>${esc(x.name)}</b></div><input id="marketPriceInput" type="number" min="1" step="1" placeholder="Сколько кристаллов?"><button class="social-btn primary" style="width:100%;margin-top:8px" onclick="createMarketLot(${i})">Выставить на продажу</button>`}
-window.createMarketLot=async function(i){if(!ready())return;const x=state.inventory[i],price=Math.floor(Number($('marketPriceInput')?.value)||0);if(!x||price<=0)return toast('Введите корректную цену');const p=await myProfile();const lot=db.ref('prognozer/market/lots').push();const item={name:x.name,price:Number(x.price)||0,emoji:x.emoji,type:x.type||'Предмет',itemId:x.itemId||('item_'+Date.now()+'_'+Math.random().toString(36).slice(2))};state.inventory.splice(i,1);localSave();await lot.set({sellerUid:firebaseUser.uid,sellerUsername:p?.username||'user',sellerPhotoURL:p?.photoURL||firebaseUser.photoURL||'',name:item.name,emoji:item.emoji,type:item.type,price,item,createdAt:firebase.database.ServerValue.TIMESTAMP,expiresAt:Date.now()+marketDuration()});toast('🛒 Лот выставлен');openPlayerMarket()}
-window.buyMarketLot=async function(id){if(!ready())return;const ref=db.ref('prognozer/market/lots/'+id),s=await ref.once('value'),l=s.val();if(!l)return toast('Лот уже продан или снят');if(l.sellerUid===firebaseUser.uid)return toast('Нельзя купить свой лот');if(Date.now()>Number(l.expiresAt)){await ref.remove();return toast('Срок лота истёк')}if(state.balance<Number(l.price))return toast('Не хватает 💎');const seller=l.sellerUid;state.balance-=Number(l.price);state.inventory.push({...l.item,itemId:l.item?.itemId||('item_'+Date.now())});localSave();await ref.remove();await db.ref('prognozer/users/'+seller+'/marketSales').push({buyerUid:firebaseUser.uid,price:l.price,item:l.item,createdAt:firebase.database.ServerValue.TIMESTAMP});toast('✅ Предмет куплен');openPlayerMarket()}
+window.createMarketLot=async function(i){
+ if(!ready())return;
+ const x=state.inventory[i],price=Math.floor(Number($('marketPriceInput')?.value)||0);
+ if(!x||price<=0)return toast('Введите корректную цену');
+ const p=await myProfile();
+ const item={name:x.name,price:Number(x.price)||0,emoji:x.emoji,type:x.type||'Предмет',itemId:x.itemId||('item_'+Date.now()+'_'+Math.random().toString(36).slice(2))};
+ const lot=db.ref('prognozer/market/lots').push();
+ try{
+  await lot.set({sellerUid:firebaseUser.uid,sellerUsername:p?.username||'user',sellerPhotoURL:p?.photoURL||firebaseUser.photoURL||'',name:item.name,emoji:item.emoji,type:item.type,price,item,createdAt:firebase.database.ServerValue.TIMESTAMP,expiresAt:Date.now()+marketDuration(),status:'active'});
+  state.inventory.splice(i,1);localSave();toast('🛒 Лот выставлен');openPlayerMarket();
+ }catch(e){toast('Не удалось выставить лот: '+firebaseError(e))}
+}
+window.buyMarketLot=async function(id){
+ if(!ready())return;
+ const ref=db.ref('prognozer/market/lots/'+id);
+ try{
+  const s=await ref.once('value'),l=s.val();
+  if(!l||l.status==='sold')return toast('Лот уже продан или снят');
+  if(l.sellerUid===firebaseUser.uid)return toast('Нельзя купить свой лот');
+  if(Date.now()>Number(l.expiresAt)){await ref.remove();return toast('Срок лота истёк')}
+  const price=Math.floor(Number(l.price)||0);
+  if(price<=0||state.balance<price)return toast('Не хватает 💎');
+  const item={...(l.item||{}),itemId:l.item?.itemId||('item_'+Date.now()+'_'+Math.random().toString(36).slice(2))};
+  const newBalance=Number(state.balance)-price;
+  const inv=Array.isArray(state.inventory)?state.inventory.slice():[];inv.push(item);
+  const purchaseId=db.ref('prognozer/market/purchases').push().key;
+  const updates={};
+  updates['prognozer/users/'+firebaseUser.uid+'/balance']=newBalance;
+  updates['prognozer/users/'+firebaseUser.uid+'/inventory']=inv;
+  updates['prognozer/users/'+firebaseUser.uid+'/statistics/purchases']=(Number(state.statistics?.purchases)||0)+1;
+  updates['prognozer/market/lots/'+id]=null;
+  updates['prognozer/market/purchases/'+purchaseId]={buyerUid:firebaseUser.uid,sellerUid:l.sellerUid,lotId:id,price,item,createdAt:firebase.database.ServerValue.TIMESTAMP};
+  updates['prognozer/market/earnings/'+l.sellerUid+'/'+purchaseId]={sellerUid:l.sellerUid,buyerUid:firebaseUser.uid,lotId:id,price,item,createdAt:firebase.database.ServerValue.TIMESTAMP,claimed:false};
+  await db.ref().update(updates);
+  state.balance=newBalance;state.inventory=inv;state.statistics.purchases=(Number(state.statistics?.purchases)||0)+1;updateUI();
+  toast('✅ Покупка успешна. Продавцу начислено '+price+' 💎');openPlayerMarket();
+ }catch(e){toast('❌ Покупка не выполнена: '+firebaseError(e))}
+}
 window.cancelMarketLot=async function(id){if(!ready())return;const ref=db.ref('prognozer/market/lots/'+id),s=await ref.once('value'),l=s.val();if(!l||l.sellerUid!==firebaseUser.uid)return toast('Нет доступа');if(l.item)state.inventory.push(l.item);localSave();await ref.remove();toast('Лот снят');openPlayerMarket()}
 window.openMarketLot=async function(id){if(!id)return openPlayerMarket();const s=await db.ref('prognozer/market/lots/'+id).once('value');if(s.exists()){openPlayerMarket()}else toast('Лот уже недоступен')}
 
@@ -791,22 +877,5 @@ const oldOpen=window.openUserProfile;
 function injectProfilePrivacy(){const sec=document.getElementById('profile');if(!sec||document.getElementById('privacyBtn'))return;const d=document.createElement('div');d.className='drop';d.innerHTML='<b>🔒 Конфиденциальность</b><p class="muted">Управляйте тем, что другие видят в вашем профиле.</p><button class="social-btn primary" id="privacyBtn" style="width:100%">Открыть настройки</button>';sec.appendChild(d);document.getElementById('privacyBtn').onclick=openPrivacy}
 
 /* Replace chat tab handler installed by base file */
-if($('chatTab'))$('chatTab').onclick=()=>openChat();
-if($('drawerFriends'))$('drawerFriends').onclick=()=>{closeDrawer();openFriends()};
-if($('drawerTrade'))$('drawerTrade').onclick=()=>{closeDrawer();openTradeCenter()};
-if($('drawerMarket'))$('drawerMarket').onclick=()=>{closeDrawer();openPlayerMarket()};
-if($('drawerAddFriend'))$('drawerAddFriend').onclick=()=>{closeDrawer();openChat()};
-
-/* Presence/profile privacy defaults */
-const oldHandle=window.handleAuthUser;
-window.handleAuthUser=async function(user){if(typeof oldHandle==='function')await oldHandle(user);if(user&&!user.isAnonymous&&firebaseUser&&syncReady){await loadPrivacy();injectProfilePrivacy()}};
-/* Since Firebase listener already captured old handler, also keep privacy ready through UI events. */
-document.addEventListener('click',e=>{if(e.target.closest('#profile')||e.target.closest('#communityTab')){setTimeout(()=>{loadPrivacy();injectProfilePrivacy()},100)}});
-
-/* Cleanup stale market lots */
-setInterval(()=>{if(ready()&&document.getElementById('marketList'))refreshMarket()},60000);
-})();
-
-</script>
-</body>
-</html>
+if($('chatTab'))$('chatTab')
+Показана только часть файла из-за его большого размера
