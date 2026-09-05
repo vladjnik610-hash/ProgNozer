@@ -9295,5 +9295,299 @@ async function saveFirebase(){
     saving
   ){
 
-    ret
-Показана только часть файла из-за его большого размера
+    return false;
+
+  }
+
+
+  saving=true;
+
+
+  try{
+
+    await db.ref(
+      "prognozer/users/"
+      +firebaseUser.uid
+    ).update({
+
+      balance:
+        Number(state.balance)||0,
+
+      inventory:
+        Array.isArray(state.inventory)
+        ?state.inventory
+        :[],
+
+      statistics:
+        state.statistics||{},
+
+      createdAt:
+        state.createdAt||
+        Date.now(),
+
+      updatedAt:
+        firebase.database.ServerValue.TIMESTAMP,
+
+      profile:{
+
+        name:
+          firebaseUser.displayName||"",
+
+        email:
+          firebaseUser.email||"",
+
+        photoURL:
+          firebaseUser.photoURL||""
+
+      }
+
+    });
+
+
+    try{
+
+      localStorage.setItem(
+        googleCacheKey(
+          firebaseUser.uid
+        ),
+        JSON.stringify(state)
+      );
+
+    }catch(e){}
+
+
+    $("firebaseStatus")
+      .textContent=
+      "🟢 Firebase • ☁️ синхронизировано";
+
+
+    $("profileOnline")
+      .textContent=
+      "ONLINE";
+
+
+    return true;
+
+  }catch(e){
+
+    $("firebaseStatus")
+      .textContent=
+      "❌ Ошибка: "+
+      firebaseError(e);
+
+
+    return false;
+
+  }finally{
+
+    saving=false;
+
+  }
+
+}
+
+
+/* =========================================================
+   BINDINGS
+========================================================= */
+
+function bindCaseButtons(){
+
+  $("caseTakeBtn").onclick=
+    takeCaseDrop;
+
+  $("caseSellBtn").onclick=
+    sellCaseDrop;
+
+}
+
+
+/* =========================================================
+   NAV BUTTONS
+========================================================= */
+
+document
+  .querySelectorAll(
+    ".tab[data-screen]"
+  )
+  .forEach(
+    t=>t.onclick=
+      ()=>nav(
+        t.dataset.screen
+      )
+  );
+
+
+$("communityTab").onclick=
+  openCommunity;
+
+
+$("chatTab").onclick=
+  ()=>toast(
+    "🚧 Чат пока в разработке"
+  );
+
+
+/* =========================================================
+   COMMUNITY DRAWER
+========================================================= */
+
+$("communityMenuBtn").onclick=
+  openDrawer;
+
+
+$("drawerClose").onclick=
+  closeDrawer;
+
+
+$("drawerBackdrop").onclick=
+  closeDrawer;
+
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+$("closeBtn").onclick=
+  ()=>$("modal")
+    .classList.remove("open");
+
+
+$("modal").onclick=
+  e=>{
+
+    if(
+      e.target.id==="modal"
+    ){
+
+      $("modal")
+        .classList.remove("open");
+
+    }
+
+  };
+
+
+/* =========================================================
+   AUTH BUTTONS
+========================================================= */
+
+$("googleLoginBtn").onclick=
+  loginWithGoogle;
+
+$("googleLogoutBtn").onclick=
+  logoutGoogle;
+
+$("authGoogleBtn").onclick=
+  continueGoogle;
+
+$("authGuestBtn").onclick=
+  continueGuest;
+
+
+/* =========================================================
+   COMMUNITY ADD POST
+========================================================= */
+
+$("addPostBtn").onclick=
+  openCreatePost;
+
+
+/* =========================================================
+   USERNAME
+========================================================= */
+
+$("usernameSaveBtn").onclick=
+  saveUsername;
+
+
+$("usernameInput")
+  .addEventListener(
+    "keydown",
+    e=>{
+
+      if(e.key==="Enter")
+        saveUsername();
+
+    }
+  );
+
+
+/* =========================================================
+   SYNC
+========================================================= */
+
+$("syncBtn").onclick=
+  async()=>{
+
+    if(
+      guestMode ||
+      !firebaseUser ||
+      firebaseUser.isAnonymous
+    ){
+
+      return toast(
+        "В гостевом режиме синхронизации нет"
+      );
+
+    }
+
+
+    setFirebaseStatus(
+      "☁️ Синхронизация…",
+      true
+    );
+
+
+    const ok=
+      await saveFirebase();
+
+
+    toast(
+      ok
+      ?"Синхронизация завершена"
+      :"Не выполнена"
+    );
+
+  };
+
+
+/* =========================================================
+   CASE
+========================================================= */
+
+$("caseCloseBtn").onclick=
+  ()=>{
+
+    if(
+      $("caseWinCard")
+        .classList
+        .contains("show")
+    ){
+
+      closeCaseOverlay();
+
+    }
+
+  };
+
+
+bindCaseButtons();
+
+
+/* =========================================================
+   START
+========================================================= */
+
+loadGuest();
+
+renderGrids();
+
+renderShop();
+
+initFirebase();
+
+</script>
+
+</body>
+  </html>
