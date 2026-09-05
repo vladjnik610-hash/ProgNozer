@@ -6586,4 +6586,4739 @@ async function addFriendByUsername(){
 
         <div class="friend-item-ava">
           ${p.photoURL?`<img src="${escapeHTML(p.photoURL)}">`:"👤"}
-        </di
+        </div>
+
+        <div class="friend-item-info">
+          <div class="friend-item-name">@${escapeHTML(p.username)}</div>
+          <div class="friend-item-sub">${escapeHTML(p.displayName||"")}</div>
+        </div>
+
+        <button
+          class="primary"
+          style="padding:9px 14px;font-size:13px"
+          onclick="addFriend('${escapeHTML(uid)}');this.disabled=true;this.textContent='Отправлено'">
+          Добавить
+        </button>
+
+      </div>
+    `;
+
+  }catch(e){
+
+    result.textContent=
+      "Ошибка поиска";
+
+  }
+
+}
+
+
+async function acceptFriend(fromUid){
+
+  if(!firebaseUser||!db)return;
+
+
+  try{
+
+    const myUid=firebaseUser.uid;
+
+    await db.ref(
+      "prognozer/friendRequests/"+
+      myUid+"/"+fromUid
+    ).update({status:"accepted"});
+
+
+    await db.ref(
+      "prognozer/friends/"+myUid+"/"+fromUid
+    ).set(true);
+
+
+    await db.ref(
+      "prognozer/friends/"+fromUid+"/"+myUid
+    ).set(true);
+
+
+    toast("✅ Друг добавлен!");
+
+    switchFriendTab("requests");
+
+  }catch(e){
+
+    toast("Ошибка");
+
+  }
+
+}
+
+
+async function declineFriend(fromUid){
+
+  if(!firebaseUser||!db)return;
+
+
+  try{
+
+    await db.ref(
+      "prognozer/friendRequests/"+
+      firebaseUser.uid+"/"+fromUid
+    ).remove();
+
+
+    switchFriendTab("requests");
+
+  }catch(e){
+
+    toast("Ошибка");
+
+  }
+
+}
+
+
+async function removeFriend(targetUid){
+
+  if(!firebaseUser||!db)return;
+
+
+  try{
+
+    const myUid=firebaseUser.uid;
+
+    await db.ref(
+      "prognozer/friends/"+myUid+"/"+targetUid
+    ).remove();
+
+
+    await db.ref(
+      "prognozer/friends/"+targetUid+"/"+myUid
+    ).remove();
+
+
+    toast("Удалено из друзей");
+
+    switchFriendTab("friends");
+
+  }catch(e){
+
+    toast("Ошибка");
+
+  }
+
+}
+
+
+function openTradeCenter(){
+
+  const b=$("modalBody");
+
+  b.innerHTML=`
+
+    <div class="community-modal-title">
+      🔄 Трейд
+    </div>
+
+    <div class="drop center muted">
+
+      Здесь будет окно обмена предметами
+      между двумя игроками.
+
+      <br><br>
+
+      🎒 Выберите предмет<br>
+      ↔️ Выберите игрока<br>
+      ✅ Подтвердите обмен
+
+    </div>
+
+  `;
+
+  $("modal").classList.add("open");
+
+}
+
+
+function openPlayerMarket(){
+
+  const b=$("modalBody");
+
+  b.innerHTML=`
+
+    <div class="community-modal-title">
+      🛒 Магазин среди игроков
+    </div>
+
+    <div class="drop center muted">
+
+      Здесь будут находиться
+      предметы, выставленные игроками
+      на продажу.
+
+      <br><br>
+
+      🔨 Аукцион Community будет
+      подключён к этому разделу.
+
+    </div>
+
+  `;
+
+  $("modal").classList.add("open");
+
+}
+
+
+/* =========================================================
+   BATTLE COOLDOWN
+========================================================= */
+
+function getBattleCooldownRemaining(){
+
+  try{
+
+    const last=
+      parseInt(
+        localStorage.getItem(
+          BATTLE_COOLDOWN_KEY
+        )||"0"
+      );
+
+    return Math.max(
+      0,
+      BATTLE_COOLDOWN_MS-
+      (Date.now()-last)
+    );
+
+  }catch(e){
+
+    return 0;
+
+  }
+
+}
+
+
+function setBattleCooldown(){
+
+  try{
+
+    localStorage.setItem(
+      BATTLE_COOLDOWN_KEY,
+      Date.now()
+    );
+
+  }catch(e){}
+
+}
+
+
+function formatCooldown(ms){
+
+  const s=
+    Math.ceil(ms/1000);
+
+  const m=
+    Math.floor(s/60);
+
+  const sec=
+    s%60;
+
+  return m>0
+    ?`${m}:${sec.toString().padStart(2,"0")}`
+    :`${sec}с`;
+
+}
+
+
+let cooldownTimers={};
+
+
+function startBattleCooldownDisplay(
+  btnEl,
+  barFillEl,
+  badgeEl
+){
+
+  clearInterval(
+    cooldownTimers.battle
+  );
+
+
+  function tick(){
+
+    const rem=
+      getBattleCooldownRemaining();
+
+
+    if(rem<=0){
+
+      btnEl.disabled=false;
+
+      btnEl.textContent=
+        "Начать за 100 💎";
+
+      if(badgeEl)
+        badgeEl.style.display="none";
+
+      if(barFillEl)
+        barFillEl.parentElement
+          .style.display="none";
+
+      clearInterval(
+        cooldownTimers.battle
+      );
+
+    }else{
+
+      btnEl.disabled=true;
+
+      btnEl.textContent=
+        "⏳ "+formatCooldown(rem);
+
+      if(badgeEl){
+
+        badgeEl.style.display=
+          "inline-block";
+
+        badgeEl.textContent=
+          "Доступно через "+
+          formatCooldown(rem);
+
+      }
+
+      const pct=
+        (
+          (BATTLE_COOLDOWN_MS-rem)/
+          BATTLE_COOLDOWN_MS*
+          100
+        ).toFixed(1);
+
+
+      if(barFillEl){
+
+        barFillEl.parentElement
+          .style.display="block";
+
+        barFillEl.style.width=
+          pct+"%";
+
+      }
+
+    }
+
+  }
+
+
+  tick();
+
+  cooldownTimers.battle=
+    setInterval(tick,500);
+
+}
+
+
+/* =========================================================
+   DOUBLE
+========================================================= */
+
+const WHEEL_SEGS=
+  [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14];
+
+const segColor=n=>
+  n===0
+  ?" #17803a"
+  :n%2===1
+  ?" #b02020"
+  :" #152030";
+
+const segStroke=n=>
+  n===0
+  ?" #22aa50"
+  :n%2===1
+  ?" #e04040"
+  :" #2d5070";
+
+
+let dblAngle=0;
+let dblSpinning=false;
+let dblBets=[];
+let dblAnimReq=null;
+
+
+function drawWheelCanvas(
+  canvas,
+  angle,
+  highlightNum=null
+){
+
+  const S=canvas.width;
+
+  const cx=S/2;
+  const cy=S/2;
+
+  const R=S/2-4;
+
+  const ctx=
+    canvas.getContext("2d");
+
+  ctx.clearRect(
+    0,0,S,S
+  );
+
+
+  const n=
+    WHEEL_SEGS.length;
+
+  const arc=
+    2*Math.PI/n;
+
+
+  for(
+    let i=0;
+    i<n;
+    i++
+  ){
+
+    const num=
+      WHEEL_SEGS[i];
+
+    const a0=
+      angle-
+      Math.PI/2+
+      i*arc;
+
+    const a1=
+      a0+arc;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(cx,cy);
+
+    ctx.arc(
+      cx,
+      cy,
+      R,
+      a0,
+      a1
+    );
+
+    ctx.closePath();
+
+
+    ctx.fillStyle=
+      highlightNum===num
+      ?"rgba(255,255,255,.15)"
+      :segColor(num).trim();
+
+    ctx.fill();
+
+
+    ctx.strokeStyle=
+      segStroke(num).trim();
+
+    ctx.lineWidth=1.5;
+
+    ctx.stroke();
+
+
+    ctx.save();
+
+    ctx.translate(cx,cy);
+
+    ctx.rotate(
+      a0+arc/2
+    );
+
+    ctx.translate(
+      R*.70,
+      0
+    );
+
+    ctx.rotate(
+      Math.PI/2
+    );
+
+    ctx.fillStyle="#fff";
+
+    ctx.font=
+      `bold ${Math.floor(S/16)}px Arial`;
+
+    ctx.textAlign="center";
+
+    ctx.textBaseline="middle";
+
+    ctx.shadowColor=
+      "rgba(0,0,0,.8)";
+
+    ctx.shadowBlur=4;
+
+    ctx.fillText(
+      num,
+      0,
+      0
+    );
+
+    ctx.restore();
+
+  }
+
+
+  ctx.beginPath();
+
+  ctx.arc(
+    cx,
+    cy,
+    R*.28,
+    0,
+    2*Math.PI
+  );
+
+  ctx.fillStyle="#07111f";
+
+  ctx.fill();
+
+  ctx.strokeStyle="#1a4a7a";
+
+  ctx.lineWidth=2;
+
+  ctx.stroke();
+
+}
+
+
+function renderDoubleUI(b){
+
+  b.innerHTML=`
+
+<h2>🎯 Double</h2>
+
+<div class="dbl-wrap">
+
+  <div
+    class="dbl-wheel-outer"
+    id="dblWheelOuter">
+
+    <canvas
+      id="dblCanvas"
+      width="290"
+      height="290"
+      class="dbl-canvas">
+    </canvas>
+
+    <div class="dbl-fixed-pointer"></div>
+
+    <div class="dbl-center-overlay">
+
+      <span
+        class="dbl-num"
+        id="dblNum">
+        —
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div class="dbl-chips">
+
+    <div class="dbl-chip" data-v="10">10</div>
+    <div class="dbl-chip" data-v="50">50</div>
+    <div class="dbl-chip" data-v="100">100</div>
+    <div class="dbl-chip" data-v="250">250</div>
+    <div class="dbl-chip" data-v="500">500</div>
+
+  </div>
+
+
+  <div class="dbl-amt">
+
+    <span style="color:#8295ad">
+      Ставка:
+    </span>
+
+    <input
+      id="dblBetAmt"
+      type="number"
+      value="100"
+      min="1">
+
+    <span style="color:#73c0ff">
+      💎
+    </span>
+
+  </div>
+
+
+  <div class="dbl-main-bets">
+
+    <button
+      class="dbl-btn dbl-red"
+      id="dblBetRed">
+
+      🔴 Красный
+
+      <span>
+        ×2 (1–7)
+      </span>
+
+    </button>
+
+    <button
+      class="dbl-btn dbl-black"
+      id="dblBetBlack">
+
+      ⚫ Чёрный
+
+      <span>
+        ×2 (8–14)
+      </span>
+
+    </button>
+
+    <button
+      class="dbl-btn dbl-green"
+      id="dblBetGreen">
+
+      🟢 Зелёный
+
+      <span>
+        ×14 (0)
+      </span>
+
+    </button>
+
+  </div>
+
+
+  <div class="dbl-extra-bets">
+
+    <button
+      class="dbl-extra"
+      id="dblBetEven">
+
+      Чётное ×2
+
+    </button>
+
+    <button
+      class="dbl-extra"
+      id="dblBetOdd">
+
+      Нечётное ×2
+
+    </button>
+
+    <button
+      class="dbl-extra"
+      id="dblBetHigh">
+
+      8–14 ×2
+
+    </button>
+
+  </div>
+
+
+  <div
+    style="font-size:12px;color:#8295ad;align-self:flex-start">
+
+    Номер ×14:
+
+  </div>
+
+
+  <div
+    class="dbl-nums"
+    id="dblNums">
+  </div>
+
+
+  <div
+    class="dbl-active"
+    id="dblActive">
+
+    Ставок нет
+
+  </div>
+
+
+  <button
+    class="dbl-spin-btn"
+    id="dblSpinBtn">
+
+    🎰 КРУТИТЬ
+
+  </button>
+
+
+  <div
+    class="dbl-result"
+    id="dblResult">
+
+    Сделайте ставку и нажмите крутить
+
+  </div>
+
+</div>
+
+`;
+
+
+  drawWheelCanvas(
+    $("dblCanvas"),
+    dblAngle
+  );
+
+
+  b.querySelectorAll(".dbl-chip")
+    .forEach(c=>{
+
+      c.onclick=()=>{
+
+        $("dblBetAmt").value=
+          c.dataset.v;
+
+        b.querySelectorAll(
+          ".dbl-chip"
+        ).forEach(
+          x=>x.classList.remove("sel")
+        );
+
+        c.classList.add("sel");
+
+      };
+
+    });
+
+
+  const addBet=
+    (type,label,mult,val)=>{
+
+      const amt=
+        parseInt(
+          $("dblBetAmt").value
+        )||0;
+
+      if(amt<1)return;
+
+      dblBets.push({
+        type,
+        label,
+        mult,
+        val,
+        amt
+      });
+
+      renderDblBets();
+
+    };
+
+
+  $("dblBetRed").onclick=
+    ()=>addBet(
+      "color",
+      "🔴 Кр",
+      2,
+      "red"
+    );
+
+  $("dblBetBlack").onclick=
+    ()=>addBet(
+      "color",
+      "⚫ Чёр",
+      2,
+      "black"
+    );
+
+  $("dblBetGreen").onclick=
+    ()=>addBet(
+      "color",
+      "🟢 Зел",
+      14,
+      "green"
+    );
+
+  $("dblBetEven").onclick=
+    ()=>addBet(
+      "parity",
+      "Чёт",
+      2,
+      "even"
+    );
+
+  $("dblBetOdd").onclick=
+    ()=>addBet(
+      "parity",
+      "Нечёт",
+      2,
+      "odd"
+    );
+
+  $("dblBetHigh").onclick=
+    ()=>addBet(
+      "range",
+      "8-14",
+      2,
+      "high"
+    );
+
+
+  const numGrid=
+    $("dblNums");
+
+
+  WHEEL_SEGS.forEach(n=>{
+
+    const d=
+      document.createElement("div");
+
+    d.className=
+      "dbl-numb "+
+      (
+        n===0
+        ?"g"
+        :n%2===1
+        ?"r"
+        :"b"
+      );
+
+    d.textContent=n;
+
+
+    d.onclick=()=>{
+
+      const amt=
+        parseInt(
+          $("dblBetAmt").value
+        )||0;
+
+      if(amt<1)return;
+
+      dblBets.push({
+        type:"num",
+        label:"#"+n,
+        mult:14,
+        val:n,
+        amt
+      });
+
+      renderDblBets();
+
+    };
+
+
+    numGrid.appendChild(d);
+
+  });
+
+
+  $("dblSpinBtn").onclick=
+    dblSpin;
+
+  renderDblBets();
+
+}
+
+
+function renderDblBets(){
+
+  const el=$("dblActive");
+
+  if(!el)return;
+
+  if(!dblBets.length){
+
+    el.textContent=
+      "Ставок нет";
+
+    return;
+
+  }
+
+
+  const tot=
+    dblBets.reduce(
+      (s,b)=>s+b.amt,
+      0
+    );
+
+
+  el.textContent=
+    "Ставки: "+
+    dblBets.map(
+      b=>
+        b.label+
+        " "+
+        b.amt+
+        "💎"
+    ).join(" | ")+
+    " | Итого: "+
+    tot+
+    "💎";
+
+}
+
+
+function dblCheckBets(num){
+
+  let gain=0;
+
+  dblBets.forEach(b=>{
+
+    let win=false;
+
+
+    if(b.type==="color"){
+
+      if(
+        b.val==="red" &&
+        num>0 &&
+        num%2===1
+      )win=true;
+
+      if(
+        b.val==="black" &&
+        num>0 &&
+        num%2===0
+      )win=true;
+
+      if(
+        b.val==="green" &&
+        num===0
+      )win=true;
+
+    }
+
+
+    if(
+      b.type==="parity" &&
+      num>0
+    ){
+
+      if(
+        b.val==="even" &&
+        num%2===0
+      )win=true;
+
+      if(
+        b.val==="odd" &&
+        num%2===1
+      )win=true;
+
+    }
+
+
+    if(
+      b.type==="range" &&
+      num>=8 &&
+      num<=14
+    ){
+      win=true;
+    }
+
+
+    if(
+      b.type==="num" &&
+      b.val===num
+    ){
+      win=true;
+    }
+
+
+    gain+=
+      win
+      ?b.amt*(b.mult-1)
+      :-b.amt;
+
+  });
+
+
+  return gain;
+
+}
+
+
+function dblSpin(){
+
+  if(dblSpinning)return;
+
+
+  const tot=
+    dblBets.reduce(
+      (s,b)=>s+b.amt,
+      0
+    );
+
+
+  if(!dblBets.length){
+
+    return(
+      $("dblResult").textContent=
+        "⚠️ Сначала сделайте ставку"
+    );
+
+  }
+
+
+  if(state.balance<tot){
+
+    return(
+      $("dblResult").textContent=
+        "⚠️ Не хватает 💎"
+    );
+
+  }
+
+
+  state.balance-=tot;
+
+  updateUI();
+
+  dblSpinning=true;
+
+
+  const sb=$("dblSpinBtn");
+
+  if(sb)
+    sb.disabled=true;
+
+
+  $("dblNum").textContent="";
+
+
+  const n=
+    WHEEL_SEGS.length;
+
+  const arc=
+    2*Math.PI/n;
+
+
+  const targetIdx=
+    Math.floor(
+      Math.random()*n
+    );
+
+  const targetNum=
+    WHEEL_SEGS[targetIdx];
+
+
+  const spins=
+    5+
+    Math.floor(
+      Math.random()*4
+    );
+
+
+  const baseTargetAngle=
+    -(
+      targetIdx*arc+
+      arc/2
+    );
+
+
+  const finalAngle=
+    baseTargetAngle-
+    spins*2*Math.PI;
+
+
+  const startA=dblAngle;
+
+  const startT=
+    performance.now();
+
+  const dur=5400;
+
+
+  cancelAnimationFrame(
+    dblAnimReq
+  );
+
+
+  function anim(now){
+
+    const t=
+      Math.min(
+        (now-startT)/dur,
+        1
+      );
+
+
+    const ease=
+      1-Math.pow(1-t,4);
+
+
+    dblAngle=
+      startA+
+      (finalAngle-startA)*
+      ease;
+
+
+    const cv=
+      $("dblCanvas");
+
+
+    if(!cv){
+
+      dblSpinning=false;
+
+      return;
+
+    }
+
+
+    const near=t>.93;
+
+
+    drawWheelCanvas(
+      cv,
+      dblAngle,
+      near
+      ?targetNum
+      :null
+    );
+
+
+    $("dblNum").textContent=
+      near
+      ?targetNum
+      :"";
+
+
+    if(t<1){
+
+      dblAnimReq=
+        requestAnimationFrame(anim);
+
+    }else{
+
+      dblAngle=finalAngle;
+
+      drawWheelCanvas(
+        cv,
+        dblAngle,
+        targetNum
+      );
+
+
+      $("dblNum").textContent=
+        targetNum;
+
+
+      const gain=
+        dblCheckBets(
+          targetNum
+        );
+
+
+      state.balance+=
+        Math.max(
+          0,
+          tot+gain
+        );
+
+
+      localSave();
+
+
+      const lbl=
+        targetNum===0
+        ?"🟢 Зелёный"
+        :targetNum%2===1
+        ?"🔴 Красный"
+        :"⚫ Чёрный";
+
+
+      const resEl=
+        $("dblResult");
+
+
+      if(resEl){
+
+        if(gain>=0){
+
+          resEl.innerHTML=
+            `<span style="color:#42ff9a">
+              🎉 +${gain} 💎 — ${lbl} ${targetNum}
+            </span>`;
+
+        }else{
+
+          resEl.innerHTML=
+            `<span style="color:#ff6060">
+              💥 ${gain} 💎 — ${lbl} ${targetNum}
+            </span>`;
+
+        }
+
+      }
+
+
+      dblBets=[];
+
+      renderDblBets();
+
+      dblSpinning=false;
+
+      if(sb)
+        sb.disabled=false;
+
+    }
+
+  }
+
+
+  dblAnimReq=
+    requestAnimationFrame(anim);
+
+}
+
+
+/* =========================================================
+   UPGRADE
+========================================================= */
+
+let upgSourceIdx=null;
+let upgTargetItem=null;
+let upgRingAnimReq=null;
+
+
+function drawUpgradeRing(
+  canvas,
+  pct,
+  size,
+  needleAngle
+){
+
+  const ctx=
+    canvas.getContext("2d");
+
+  const cx=size/2;
+  const cy=size/2;
+
+  const R=size/2-18;
+
+  const lw=size/8.5;
+
+  ctx.clearRect(
+    0,
+    0,
+    size,
+    size
+  );
+
+
+  const startA=
+    -Math.PI/2;
+
+
+  const successAngle=
+    2*Math.PI*
+    (
+      Math.min(pct,100)/100
+    );
+
+
+  ctx.beginPath();
+
+  ctx.arc(
+    cx,
+    cy,
+    R,
+    0,
+    2*Math.PI
+  );
+
+  ctx.strokeStyle="#5a1515";
+
+  ctx.lineWidth=lw;
+
+  ctx.stroke();
+
+
+  if(pct>0){
+
+    ctx.beginPath();
+
+    ctx.arc(
+      cx,
+      cy,
+      R,
+      startA,
+      startA+successAngle
+    );
+
+    ctx.strokeStyle="#00e676";
+
+    ctx.lineWidth=lw;
+
+    ctx.lineCap="butt";
+
+    ctx.shadowColor="#00e676";
+
+    ctx.shadowBlur=20;
+
+    ctx.stroke();
+
+    ctx.shadowBlur=0;
+
+  }
+
+
+  if(
+    needleAngle!==undefined
+  ){
+
+    const na=
+      startA+needleAngle;
+
+    const needleR=
+      R+lw*.5;
+
+    const baseR=
+      R*.08;
+
+
+    const tx=
+      cx+
+      needleR*
+      Math.cos(na);
+
+    const ty=
+      cy+
+      needleR*
+      Math.sin(na);
+
+
+    const bx=
+      cx+
+      baseR*
+      Math.cos(na+Math.PI);
+
+    const by=
+      cy+
+      baseR*
+      Math.sin(na+Math.PI);
+
+
+    ctx.save();
+
+    ctx.strokeStyle="#55aaff";
+
+    ctx.lineWidth=size/28;
+
+    ctx.lineCap="round";
+
+    ctx.shadowColor="#268cff";
+
+    ctx.shadowBlur=16;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      bx,
+      by
+    );
+
+    ctx.lineTo(
+      tx,
+      ty
+    );
+
+    ctx.stroke();
+
+
+    ctx.translate(
+      tx,
+      ty
+    );
+
+    ctx.rotate(
+      na+Math.PI/2
+    );
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(0,0);
+
+    ctx.lineTo(
+      -size/26,
+      size/14
+    );
+
+    ctx.lineTo(
+      size/26,
+      size/14
+    );
+
+    ctx.closePath();
+
+
+    ctx.fillStyle="#55aaff";
+
+    ctx.fill();
+
+    ctx.shadowBlur=0;
+
+    ctx.restore();
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+      cx,
+      cy,
+      size/18,
+      0,
+      2*Math.PI
+    );
+
+    ctx.fillStyle="#0a1828";
+
+    ctx.fill();
+
+    ctx.strokeStyle="#3a7abf";
+
+    ctx.lineWidth=2;
+
+    ctx.stroke();
+
+  }
+
+}
+
+
+function animUpgradeRing(
+  canvas,
+  targetPct,
+  size,
+  onDone
+){
+
+  let cur=0;
+
+  cancelAnimationFrame(
+    upgRingAnimReq
+  );
+
+
+  function step(){
+
+    cur=
+      Math.min(
+        targetPct,
+        cur+2.5
+      );
+
+
+    drawUpgradeRing(
+      canvas,
+      cur,
+      size
+    );
+
+
+    if(
+      cur<targetPct
+    ){
+
+      upgRingAnimReq=
+        requestAnimationFrame(step);
+
+    }else if(onDone){
+
+      onDone();
+
+    }
+
+  }
+
+
+  step();
+
+}
+
+
+function renderUpgradeUI(b){
+
+  b.innerHTML=`
+
+<h2>⬆️ Апгрейдер</h2>
+
+<div class="upg-wrap">
+
+  <div
+    class="upg-ring-area">
+
+    <canvas
+      id="upgCanvas"
+      width="260"
+      height="260"
+      class="upg-ring-canvas">
+    </canvas>
+
+    <div class="upg-ring-center">
+
+      <span
+        class="upg-ring-emoji"
+        id="upgRingEmoji">
+        ❔
+      </span>
+
+      <span
+        class="upg-ring-pct"
+        id="upgRingPct">
+        ?%
+      </span>
+
+      <span
+        class="upg-ring-price-lbl"
+        id="upgRingPrice">
+
+        Выбери предмет
+
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div class="upg-src-label">
+    🎒 Что улучшаем:
+  </div>
+
+  <div
+    class="upg-source-list"
+    id="upgSrcList">
+  </div>
+
+
+  <div
+    class="upg-tgt-label"
+    id="upgTgtLbl"
+    style="display:none">
+
+    🎯 Цель апгрейда:
+
+  </div>
+
+
+  <div
+    class="upg-tgt-list"
+    id="upgTgtList">
+  </div>
+
+
+  <button
+    class="upg-go"
+    id="upgGoBtn"
+    disabled>
+
+    ⬆️ АПГРЕЙД
+
+  </button>
+
+</div>
+
+`;
+
+
+  drawUpgradeRing(
+    $("upgCanvas"),
+    0,
+    260
+  );
+
+
+  renderUpgSources();
+
+
+  $("upgGoBtn").onclick=
+    runUpgradeRing;
+
+}
+
+
+function renderUpgSources(){
+
+  const el=
+    $("upgSrcList");
+
+  if(!el)return;
+
+
+  if(!state.inventory.length){
+
+    el.innerHTML=`
+      <div class="drop center muted">
+        Инвентарь пуст. Открой кейс!
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  el.innerHTML=
+    state.inventory.map(
+      (x,i)=>`
+
+      <div
+        class="upg-src-row"
+        id="upgS${i}">
+
+        <div class="upg-src-thumb">
+          ${x.emoji}
+        </div>
+
+        <div class="upg-src-info">
+
+          <b>
+            ${escapeHTML(x.name)}
+          </b>
+
+          <span>
+            ${x.type} • ${x.price} 💎
+          </span>
+
+        </div>
+
+        <span
+          style="color:#8295ad;font-size:18px">
+
+          ›
+
+        </span>
+
+      </div>
+
+      `
+    ).join("");
+
+
+  state.inventory.forEach(
+    (_,i)=>{
+
+      const row=
+        document.getElementById(
+          "upgS"+i
+        );
+
+      if(!row)return;
+
+
+      row.onclick=()=>{
+
+        upgSourceIdx=i;
+
+        upgTargetItem=null;
+
+
+        document
+          .querySelectorAll(
+            ".upg-src-row"
+          )
+          .forEach(
+            r=>r.classList.remove("sel")
+          );
+
+
+        row.classList.add("sel");
+
+
+        const src=
+          state.inventory[i];
+
+
+        $("upgRingEmoji")
+          .textContent=
+          src.emoji;
+
+
+        $("upgRingPct")
+          .textContent="?%";
+
+
+        $("upgRingPrice")
+          .textContent=
+          src.price+" 💎";
+
+
+        drawUpgradeRing(
+          $("upgCanvas"),
+          0,
+          260
+        );
+
+
+        $("upgGoBtn")
+          .disabled=true;
+
+
+        renderUpgTargets();
+
+      };
+
+    }
+  );
+
+}
+
+
+function renderUpgTargets(){
+
+  const lbl=
+    $("upgTgtLbl");
+
+  const tl=
+    $("upgTgtList");
+
+  if(!tl)return;
+
+
+  lbl.style.display="block";
+
+
+  const src=
+    state.inventory[
+      upgSourceIdx
+    ];
+
+
+  const tgts=
+    items
+      .filter(
+        x=>x.price>src.price
+      )
+      .slice(0,8);
+
+
+  if(!tgts.length){
+
+    tl.innerHTML=
+      `<div style="color:#8295ad;font-size:13px">
+        Нет доступных целей
+      </div>`;
+
+    return;
+
+  }
+
+
+  tl.innerHTML=
+    tgts.map(
+      t=>{
+
+        const ch=
+          Math.min(
+            100,
+            Math.round(
+              src.price/
+              t.price*
+              100
+            )
+          );
+
+
+        const cls=
+          ch>=50
+          ?"high"
+          :ch>=25
+          ?"mid"
+          :"low";
+
+
+        return`
+
+          <div
+            class="upg-tgt-row"
+            id="upgT${t.id}">
+
+            <div class="upg-tgt-thumb">
+              ${t.emoji}
+            </div>
+
+            <div class="upg-src-info">
+
+              <b>
+                ${escapeHTML(t.name)}
+              </b>
+
+              <span>
+                ${t.type} • ${t.price} 💎
+              </span>
+
+            </div>
+
+            <span
+              class="upg-tgt-chance ${cls}">
+
+              ${ch}%
+
+            </span>
+
+          </div>
+
+        `;
+
+      }
+    ).join("");
+
+
+  tgts.forEach(
+    t=>{
+
+      const row=
+        document.getElementById(
+          "upgT"+t.id
+        );
+
+      if(!row)return;
+
+
+      const ch=
+        Math.min(
+          100,
+          Math.round(
+            src.price/
+            t.price*
+            100
+          )
+        );
+
+
+      row.onclick=()=>{
+
+        upgTargetItem=t;
+
+
+        document
+          .querySelectorAll(
+            ".upg-tgt-row"
+          )
+          .forEach(
+            r=>r.classList.remove("sel")
+          );
+
+
+        row.classList.add("sel");
+
+
+        $("upgGoBtn")
+          .disabled=false;
+
+
+        $("upgRingEmoji")
+          .textContent=t.emoji;
+
+
+        $("upgRingPct")
+          .textContent=
+          ch+"%";
+
+
+        $("upgRingPrice")
+          .textContent=
+          t.price+" 💎";
+
+
+        animUpgradeRing(
+          $("upgCanvas"),
+          ch,
+          260
+        );
+
+      };
+
+    }
+  );
+
+}
+
+
+function runUpgradeRing(){
+
+  if(
+    upgSourceIdx===null ||
+    !upgTargetItem
+  ){
+    return;
+  }
+
+
+  const src=
+    state.inventory[
+      upgSourceIdx
+    ];
+
+
+  const ch=
+    Math.min(
+      100,
+      src.price/
+      upgTargetItem.price*
+      100
+    );
+
+
+  const successAngle=
+    2*Math.PI*
+    (ch/100);
+
+
+  const success=
+    Math.random()*100<ch;
+
+
+  let finalNeedleAngle;
+
+
+  if(success){
+
+    const margin=.05;
+
+    finalNeedleAngle=
+      margin+
+      (
+        successAngle-
+        margin*2
+      )*
+      Math.random();
+
+  }else{
+
+    const redSize=
+      2*Math.PI-
+      successAngle;
+
+    const margin=.05;
+
+    finalNeedleAngle=
+      successAngle+
+      margin+
+      redSize*
+      Math.random();
+
+  }
+
+
+  const goBtn=
+    $("upgGoBtn");
+
+  if(goBtn)
+    goBtn.disabled=true;
+
+
+  const ov=
+    $("upgOverlay");
+
+  ov.classList.add("open");
+
+
+  const rc=
+    $("upgResCanvas");
+
+
+  $("upgResLabel").textContent="";
+
+  $("upgResName").textContent="";
+
+  $("upgResPrice").textContent="";
+
+  $("upgResEmoji")
+    .textContent=
+    src.emoji;
+
+  $("upgResPct")
+    .textContent=
+    ch.toFixed(0)+"%";
+
+  $("upgResClose")
+    .style.display="none";
+
+
+  const spins=
+    4+
+    Math.floor(
+      Math.random()*3
+    );
+
+
+  const totalAngle=
+    spins*2*Math.PI+
+    finalNeedleAngle;
+
+
+  const dur=
+    3200+
+    Math.random()*1800;
+
+
+  const startT=
+    performance.now();
+
+
+  function spinStep(now){
+
+    const t=
+      Math.min(
+        (now-startT)/dur,
+        1
+      );
+
+
+    const ease=
+      1-Math.pow(1-t,3);
+
+
+    const curAngle=
+      (totalAngle*ease)%
+      (2*Math.PI);
+
+
+    drawUpgradeRing(
+      rc,
+      ch,
+      200,
+      curAngle
+    );
+
+
+    if(t<1){
+
+      requestAnimationFrame(
+        spinStep
+      );
+
+    }else{
+
+      drawUpgradeRing(
+        rc,
+        ch,
+        200,
+        finalNeedleAngle
+      );
+
+
+      state.statistics.upgrades=
+        (state.statistics.upgrades||0)+1;
+
+
+      if(success){
+
+        state.inventory[
+          upgSourceIdx
+        ]={
+          name:upgTargetItem.name,
+          price:upgTargetItem.price,
+          emoji:upgTargetItem.emoji,
+          type:upgTargetItem.type
+        };
+
+      }else{
+
+        state.inventory.splice(
+          upgSourceIdx,
+          1
+        );
+
+      }
+
+
+      localSave();
+
+
+      $("upgResEmoji")
+        .textContent=
+        success
+        ?upgTargetItem.emoji
+        :"💥";
+
+
+      $("upgResLabel")
+        .innerHTML=
+        success
+        ?`<span style="color:#42ff9a">
+            🎉 УСПЕХ!
+          </span>`
+        :`<span style="color:#ff6060">
+            💥 НЕУДАЧА
+          </span>`;
+
+
+      $("upgResName")
+        .textContent=
+        success
+        ?upgTargetItem.name
+        :"Предмет потерян";
+
+
+      $("upgResPrice")
+        .textContent=
+        success
+        ?upgTargetItem.price+" 💎"
+        :"";
+
+
+      $("upgResClose")
+        .style.display="";
+
+    }
+
+  }
+
+
+  requestAnimationFrame(
+    spinStep
+  );
+
+}
+
+
+$("upgResClose").onclick=()=>{
+
+  $("upgOverlay")
+    .classList.remove("open");
+
+  upgSourceIdx=null;
+
+  upgTargetItem=null;
+
+  const mb=
+    $("modalBody");
+
+  if(mb)
+    renderUpgradeUI(mb);
+
+};
+
+
+/* =========================================================
+   OPEN GAME
+========================================================= */
+
+function openGame(type){
+
+  const m=$("modal");
+
+  const b=$("modalBody");
+
+  m.classList.add("open");
+
+
+  if(type==="cases"){
+
+    b.innerHTML=
+      `<h2>🎁 Кейсы</h2>`+
+      cases.map(
+        (c,i)=>`
+
+          <div class="drop">
+
+            <h3>
+              ${c.name}
+            </h3>
+
+            <p class="muted">
+              Цена: ${c.cost} 💎
+            </p>
+
+            ${
+              c.drops.map(
+                d=>`
+
+                  <div>
+
+                    ${d[2]}
+                    ${escapeHTML(d[0])}
+                    — ${d[3]}%
+
+                    <div class="cooldown-bar">
+
+                      <div
+                        class="cooldown-bar-fill"
+                        style="width:${d[3]*2}%">
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                `
+              ).join("")
+            }
+
+            <br>
+
+            <button
+              class="openCase primary"
+              data-i="${i}">
+
+              Открыть кейс
+
+            </button>
+
+          </div>
+
+        `
+      ).join("");
+
+
+    b.querySelectorAll(
+      ".openCase"
+    ).forEach(
+      x=>x.onclick=
+        ()=>openCase(
+          +x.dataset.i
+        )
+    );
+
+  }
+
+
+  if(type==="battle"){
+
+    const rem=
+      getBattleCooldownRemaining();
+
+
+    const btnText=
+      rem>0
+      ?"⏳ "+formatCooldown(rem)
+      :"Начать за 100 💎";
+
+
+    const pct=
+      rem>0
+      ?(
+        (BATTLE_COOLDOWN_MS-rem)/
+        BATTLE_COOLDOWN_MS*
+        100
+      ).toFixed(1)
+      :0;
+
+
+    b.innerHTML=`
+
+      <h2>⚔️ Кейс-баттл</h2>
+
+      <p class="muted">
+        Ты и бот открываете средний кейс.
+        Дороже дроп — победа.
+      </p>
+
+      <button
+        id="battleBtn"
+        class="primary"
+        ${rem>0?"disabled":""}>
+
+        ${btnText}
+
+      </button>
+
+      <div
+        class="cooldown-bar"
+        id="battleCdBar"
+        style="${rem>0?"":"display:none"}">
+
+        <div
+          class="cooldown-bar-fill"
+          id="battleCdFill"
+          style="width:${pct}%">
+        </div>
+
+      </div>
+
+      <div
+        class="cooldown-badge"
+        id="battleCdBadge"
+        style="${rem>0?"":"display:none"}">
+
+        ${
+          rem>0
+          ?"Доступно через "+
+            formatCooldown(rem)
+          :""
+        }
+
+      </div>
+
+      <div id="battleResult"></div>
+
+    `;
+
+
+    startBattleCooldownDisplay(
+      $("battleBtn"),
+      $("battleCdFill"),
+      $("battleCdBadge")
+    );
+
+
+    if(!getBattleCooldownRemaining()){
+
+      $("battleBtn").onclick=
+        battle;
+
+    }
+
+  }
+
+
+  if(type==="double"){
+
+    dblBets=[];
+
+    renderDoubleUI(b);
+
+  }
+
+
+  if(type==="upgrade"){
+
+    upgSourceIdx=null;
+
+    upgTargetItem=null;
+
+    renderUpgradeUI(b);
+
+  }
+
+
+  if(type==="contracts"){
+
+    b.innerHTML=`
+
+      <h2>📜 Контракты</h2>
+
+      <p class="muted">
+        3 предмета превращаются
+        в один более дорогой.
+      </p>
+
+      <button
+        id="contractBtn"
+        class="primary">
+
+        Обменять 3 предмета
+
+      </button>
+
+      <div id="contractResult"></div>
+
+    `;
+
+
+    $("contractBtn").onclick=
+      contract;
+
+  }
+
+
+  if(type==="royal"){
+
+    b.innerHTML=`
+
+      <h2>👑 Королевская битва</h2>
+
+      <p class="muted">
+        5 раундов против ботов.
+        Нужно выиграть минимум 3.
+      </p>
+
+      <button
+        id="royalBtn"
+        class="primary">
+
+        Начать за 100 💎
+
+      </button>
+
+      <div id="royalResult"></div>
+
+    `;
+
+
+    $("royalBtn").onclick=
+      royal;
+
+  }
+
+}
+
+
+/* =========================================================
+   CASE OPENING
+========================================================= */
+
+function showCaseResult(drop){
+
+  $("caseOpeningStatus")
+    .textContent=
+    "🎉 Выпал предмет!";
+
+
+  $("caseWinEmoji")
+    .textContent=
+    drop[2];
+
+
+  $("caseWinName")
+    .textContent=
+    drop[0];
+
+
+  $("caseWinPrice")
+    .textContent=
+    drop[1]+" 💎";
+
+
+  $("caseWinCard")
+    .classList.add("show");
+
+}
+
+
+function openCase(i){
+
+  const c=cases[i];
+
+
+  if(
+    state.balance<c.cost
+  ){
+
+    return toast(
+      "Не хватает 💎"
+    );
+
+  }
+
+
+  state.balance-=c.cost;
+
+
+  state.statistics.casesOpened=
+    (state.statistics.casesOpened||0)+1;
+
+
+  localSave();
+
+
+  pendingDrop=
+    pick(c.drops);
+
+
+  const overlay=
+    $("caseOpeningOverlay");
+
+  const strip=
+    $("caseOpeningStrip");
+
+
+  $("caseOpeningTitle")
+    .textContent=
+    "🎁 "+c.name;
+
+
+  $("caseOpeningStatus")
+    .textContent=
+    "Открываем кейс…";
+
+
+  $("caseWinCard")
+    .classList.remove("show");
+
+
+  overlay.classList.add("open");
+
+
+  const sequence=[];
+
+
+  for(
+    let n=0;
+    n<14;
+    n++
+  ){
+
+    sequence.push(
+      ...c.drops
+    );
+
+  }
+
+
+  const winnerIndex=
+    sequence.length-
+    c.drops.length+
+    Math.max(
+      0,
+      c.drops.indexOf(
+        pendingDrop
+      )
+    );
+
+
+  sequence[winnerIndex]=
+    pendingDrop;
+
+
+  strip.style.transition="none";
+
+  strip.style.transform=
+    "translateX(0)";
+
+
+  strip.innerHTML=
+    sequence.map(
+      x=>`
+
+        <div class="roulette-item">
+
+          <div class="ri-emoji">
+            ${x[2]}
+          </div>
+
+          <div class="ri-name">
+            ${escapeHTML(x[0])}
+          </div>
+
+          <div class="ri-price">
+            ${x[1]} 💎
+          </div>
+
+        </div>
+
+      `
+    ).join("");
+
+
+  requestAnimationFrame(
+    ()=>requestAnimationFrame(
+      ()=>{
+
+        const card=
+          strip.children[
+            winnerIndex
+          ];
+
+
+        const v=
+          strip.parentElement;
+
+
+        const target=
+          card.offsetLeft+
+          card.offsetWidth/2-
+          v.clientWidth/2;
+
+
+        strip.style.transition=
+          "transform 4.8s cubic-bezier(.07,.72,.12,1)";
+
+
+        strip.style.transform=
+          `translateX(${-Math.max(0,target)}px)`;
+
+      }
+    )
+  );
+
+
+  clearTimeout(
+    window.__caseTimer
+  );
+
+
+  window.__caseTimer=
+    setTimeout(
+      ()=>{
+
+        strip.children[
+          winnerIndex
+        ]?.classList.add("win");
+
+        showCaseResult(
+          pendingDrop
+        );
+
+      },
+      4900
+    );
+
+}
+
+
+function closeCaseOverlay(){
+
+  $("caseOpeningOverlay")
+    .classList.remove("open");
+
+  pendingDrop=null;
+
+}
+
+
+function takeCaseDrop(){
+
+  if(!pendingDrop)return;
+
+
+  addItem(
+    pendingDrop[0],
+    pendingDrop[1],
+    pendingDrop[2],
+    itemType(
+      pendingDrop[0]
+    )
+  );
+
+
+  toast(
+    "Предмет добавлен в инвентарь"
+  );
+
+
+  closeCaseOverlay();
+
+}
+
+
+function sellCaseDrop(){
+
+  if(!pendingDrop)return;
+
+
+  state.balance+=
+    pendingDrop[1];
+
+
+  state.statistics.sales=
+    (state.statistics.sales||0)+1;
+
+
+  localSave();
+
+
+  toast(
+    "Продано: +"+
+    pendingDrop[1]+
+    " 💎"
+  );
+
+
+  closeCaseOverlay();
+
+}
+
+
+/* =========================================================
+   BATTLE
+========================================================= */
+
+function battle(){
+
+  if(
+    getBattleCooldownRemaining()>0
+  ){
+
+    return toast(
+      "⏳ Подождите "+
+      formatCooldown(
+        getBattleCooldownRemaining()
+      )
+    );
+
+  }
+
+
+  if(state.balance<100){
+
+    return toast(
+      "Не хватает 💎"
+    );
+
+  }
+
+
+  state.balance-=100;
+
+  setBattleCooldown();
+
+
+  const a=
+    pick(cases[1].drops);
+
+  const bot=
+    pick(cases[1].drops);
+
+
+  const win=
+    a[1]>=bot[1];
+
+
+  if(win){
+
+    state.inventory.push({
+
+      name:a[0],
+      price:a[1],
+      emoji:a[2],
+      type:itemType(a[0])
+
+    });
+
+  }
+
+
+  localSave();
+
+
+  $("battleResult").innerHTML=`
+
+    <div class="drop">
+
+      Твой дроп:
+      ${a[2]}
+      ${escapeHTML(a[0])}
+      — ${a[1]} 💎
+
+      <br>
+
+      Бот:
+      ${bot[2]}
+      ${escapeHTML(bot[0])}
+      — ${bot[1]} 💎
+
+      <hr>
+
+      <b>
+        ${
+          win
+          ?"🏆 Ты победил и забрал дроп!"
+          :"💥 Бот победил."
+        }
+      </b>
+
+    </div>
+
+  `;
+
+
+  const btn=
+    $("battleBtn");
+
+  const fill=
+    $("battleCdFill");
+
+  const badge=
+    $("battleCdBadge");
+
+
+  if(
+    btn &&
+    fill &&
+    badge
+  ){
+
+    startBattleCooldownDisplay(
+      btn,
+      fill,
+      badge
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CONTRACT
+========================================================= */
+
+function contract(){
+
+  if(
+    state.inventory.length<3
+  ){
+
+    return toast(
+      "Нужно 3 предмета"
+    );
+
+  }
+
+
+  const chosen=
+    state.inventory.splice(
+      0,
+      3
+    );
+
+
+  const value=
+    Math.floor(
+      chosen.reduce(
+        (s,x)=>s+x.price,
+        0
+      )*.75
+    );
+
+
+  const pool=
+    items.filter(
+      x=>x.price<=
+        Math.max(
+          value,
+          1
+        )
+    );
+
+
+  const target=
+    pool[
+      Math.floor(
+        Math.random()*
+        pool.length
+      )
+    ];
+
+
+  state.inventory.push({
+
+    name:target.name,
+    price:target.price,
+    emoji:target.emoji,
+    type:target.type
+
+  });
+
+
+  localSave();
+
+
+  $("contractResult")
+    .innerHTML=`
+
+      <div class="drop center">
+
+        📜 Получено:
+        ${target.emoji}
+        ${escapeHTML(target.name)}
+        — ${target.price} 💎
+
+      </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   ROYAL
+========================================================= */
+
+function royal(){
+
+  if(state.balance<100){
+
+    return toast(
+      "Не хватает 💎"
+    );
+
+  }
+
+
+  state.balance-=100;
+
+
+  let wins=0;
+
+
+  for(
+    let i=0;
+    i<5;
+    i++
+  ){
+
+    if(Math.random()<.55)
+      wins++;
+
+  }
+
+
+  if(wins>=3)
+    state.balance+=200;
+
+
+  localSave();
+
+
+  $("royalResult")
+    .innerHTML=`
+
+      <div class="drop center">
+
+        ${
+          wins>=3
+          ?"👑 Победа! +200 💎"
+          :"💥 Поражение"
+        }
+
+        <br>
+
+        Побед в раундах:
+        ${wins}/5
+
+      </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
+function firebaseError(e){
+
+  const c=e?.code||"";
+
+  const m=e?.message||String(e);
+
+
+  if(
+    c==="auth/operation-not-allowed"
+  )
+    return"Google-вход не включён в Firebase";
+
+
+  if(
+    c==="auth/unauthorized-domain"
+  )
+    return"Этот домен не добавлен в Authorized domains";
+
+
+  if(
+    c==="auth/popup-blocked"
+  )
+    return"Браузер заблокировал всплывающее окно.";
+
+
+  if(
+    c==="auth/popup-closed-by-user"
+  )
+    return"Окно входа было закрыто.";
+
+
+  if(
+    c==="auth/cancelled-popup-request"
+  )
+    return"Запрос отменён.";
+
+
+  if(
+    c==="auth/network-request-failed"
+  )
+    return"Ошибка сети";
+
+
+  if(
+    c==="auth/invalid-api-key"
+  )
+    return"Неверный Firebase API key";
+
+
+  if(
+    /permission_denied/i.test(m)
+  )
+    return"Нет доступа к RTDB";
+
+
+  if(
+    /network|offline|fetch/i.test(m)
+  )
+    return"Ошибка сети";
+
+
+  return m;
+
+}
+
+
+function setFirebaseStatus(
+  text,
+  on=false
+){
+
+  $("firebaseStatus")
+    .textContent=text;
+
+
+  $("profileOnline")
+    .textContent=
+    guestMode
+    ?"GUEST"
+    :(on?"ONLINE":"OFFLINE");
+
+}
+
+
+function updateGoogleUI(user){
+
+  if(guestMode){
+
+    $("profileName")
+      .textContent="Гость";
+
+    $("profileUid")
+      .textContent=
+      "Локальный аккаунт";
+
+    $("firebaseUid")
+      .textContent="";
+
+    $("googleAccountText")
+      .textContent=
+      "👤 Вы используете гостевой режим.";
+
+    $("googleLoginBtn")
+      .style.display="block";
+
+    $("googleLogoutBtn")
+      .style.display="none";
+
+    $("profileAvatar")
+      .textContent="👤";
+
+    return;
+
+  }
+
+
+  if(!user){
+
+    $("profileName")
+      .textContent=
+      "Пользователь";
+
+    $("profileUid")
+      .textContent=
+      "Вход не выполнен";
+
+    $("firebaseUid")
+      .textContent="";
+
+    $("googleAccountText")
+      .textContent=
+      "Войдите через Google для облачного сохранения.";
+
+    $("googleLoginBtn")
+      .style.display="block";
+
+    $("googleLogoutBtn")
+      .style.display="none";
+
+    $("profileAvatar")
+      .textContent="👤";
+
+    return;
+
+  }
+
+
+  $("profileUid")
+    .textContent=
+    "UID: "+user.uid;
+
+
+  $("firebaseUid")
+    .textContent=
+    "Google: "+
+    (user.email||"")+
+    " • UID: "+
+    user.uid;
+
+
+  $("profileName")
+    .textContent=
+    user.displayName||
+    (
+      user.email
+      ?user.email.split("@")[0]
+      :"Пользователь"
+    );
+
+
+  $("googleAccountText")
+    .textContent=
+    user.email
+    ?"🔵 Google: "+user.email
+    :"🔵 Аккаунт Google подключён";
+
+
+  $("googleLoginBtn")
+    .style.display="none";
+
+
+  $("googleLogoutBtn")
+    .style.display="block";
+
+
+  if(user.photoURL){
+
+    $("profileAvatar").innerHTML=
+      `<img
+        src="${escapeHTML(user.photoURL)}"
+        style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+
+  }else{
+
+    $("profileAvatar")
+      .textContent="🔵";
+
+  }
+
+}
+
+
+async function loginWithGoogle(){
+
+  if(
+    !auth ||
+    !firebaseReady
+  ){
+
+    $("authStatus")
+      .textContent=
+      "⏳ Firebase ещё загружается…";
+
+    return;
+
+  }
+
+
+  const provider=
+    new firebase.auth.GoogleAuthProvider();
+
+
+  provider.setCustomParameters({
+    prompt:"select_account"
+  });
+
+
+  $("authStatus")
+    .textContent=
+    "🔵 Открываем Google…";
+
+
+  try{
+
+    const result=
+      await auth.signInWithPopup(
+        provider
+      );
+
+
+    if(
+      result &&
+      result.user
+    ){
+
+      $("authStatus")
+        .textContent="";
+
+      toast(
+        "✅ Вход через Google выполнен"
+      );
+
+    }
+
+  }catch(e){
+
+    const msg=
+      firebaseError(e);
+
+
+    $("authStatus")
+      .textContent=
+      "❌ "+msg;
+
+
+    toast(
+      "Ошибка: "+msg
+    );
+
+  }
+
+}
+
+
+async function logoutGoogle(){
+
+  if(!auth)return;
+
+
+  try{
+
+    loggingOut=true;
+
+    clearTimeout(saveTimer);
+
+
+    /*
+      Убираем presence.
+    */
+
+    if(
+      firebaseUser &&
+      db
+    ){
+
+      try{
+
+        await db.ref(
+          "prognozer/community/online/"
+          +firebaseUser.uid
+        ).remove();
+
+      }catch(_){}
+
+    }
+
+
+    await auth.signOut();
+
+
+    firebaseUser=null;
+
+    guestMode=false;
+
+    lastAuthUid=null;
+
+    state=createDefaultState();
+
+    updateUI();
+
+
+    $("authScreen")
+      .classList.add("open");
+
+
+    updateGoogleUI(null);
+
+
+    setFirebaseStatus(
+      "Выберите способ входа",
+      false
+    );
+
+
+    $("authStatus")
+      .textContent="";
+
+
+    loggingOut=false;
+
+
+    toast(
+      "Вы вышли из Google"
+    );
+
+  }catch(e){
+
+    loggingOut=false;
+
+    toast(
+      "Ошибка выхода: "+
+      firebaseError(e)
+    );
+
+  }
+
+}
+
+
+async function continueGuest(){
+
+  try{
+
+    if(
+      auth &&
+      auth.currentUser &&
+      !auth.currentUser.isAnonymous
+    ){
+
+      await auth.signOut();
+
+    }
+
+  }catch(e){}
+
+
+  guestMode=true;
+
+  firebaseUser=null;
+
+  loadGuest();
+
+
+  $("authScreen")
+    .classList.remove("open");
+
+
+  updateGoogleUI(null);
+
+
+  setFirebaseStatus(
+    "👤 Гостевой режим",
+    false
+  );
+
+
+  $("authStatus")
+    .textContent="";
+
+
+  toast(
+    "Вы вошли как гость"
+  );
+
+
+  loadUsernameDisplay();
+
+}
+
+
+async function continueGoogle(){
+
+  if(
+    !auth ||
+    !firebaseReady
+  ){
+
+    $("authStatus")
+      .textContent=
+      "⏳ Firebase ещё загружается…";
+
+    return;
+
+  }
+
+
+  guestMode=false;
+
+  await loginWithGoogle();
+
+}
+
+
+/* =========================================================
+   FIREBASE INIT
+========================================================= */
+
+async function initFirebase(){
+
+  if(!window.firebase){
+
+    $("authStatus")
+      .textContent=
+      "❌ Firebase SDK не загрузился";
+
+    return;
+
+  }
+
+
+  try{
+
+    if(!firebase.apps.length){
+
+      firebase.initializeApp(
+        FIREBASE_CONFIG
+      );
+
+    }
+
+
+    db=
+      firebase.database();
+
+    auth=
+      firebase.auth();
+
+    firebaseReady=true;
+
+
+    auth.onAuthStateChanged(
+      async user=>{
+
+        if(!authUIReady)
+          return;
+
+        await handleAuthUser(user);
+
+      }
+    );
+
+
+    if(db){
+
+      db.ref(".info/connected")
+        .on(
+          "value",
+          snap=>{
+
+            if(
+              snap.val()===true &&
+              firebaseUser
+            ){
+
+              setFirebaseStatus(
+                "🟢 Подключено",
+                true
+              );
+
+            }
+
+          }
+        );
+
+    }
+
+
+    authUIReady=true;
+
+
+    await handleAuthUser(
+      auth.currentUser
+    );
+
+  }catch(e){
+
+    firebaseReady=false;
+
+    $("authStatus")
+      .textContent=
+      "❌ "+firebaseError(e);
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTH USER
+========================================================= */
+
+async function handleAuthUser(user){
+
+  if(!authUIReady)
+    return;
+
+
+  const uid=
+    user?(user.uid||""):"";
+
+
+  if(
+    authHandling &&
+    uid===lastAuthUid
+  ){
+
+    return;
+
+  }
+
+
+  lastAuthUid=uid;
+
+  authHandling=true;
+
+
+  try{
+
+    /*
+      Anonymous Firebase users не используются.
+    */
+
+    if(
+      user &&
+      user.isAnonymous
+    ){
+
+      try{
+        await auth.signOut();
+      }catch(e){}
+
+
+      firebaseUser=null;
+
+      guestMode=false;
+
+      lastAuthUid=null;
+
+      loadGuest();
+
+      updateGoogleUI(null);
+
+      $("authScreen")
+        .classList.add("open");
+
+      setFirebaseStatus(
+        "Выберите способ входа",
+        false
+      );
+
+      return;
+
+    }
+
+
+    if(user){
+
+      firebaseUser=user;
+
+      guestMode=false;
+
+
+      $("authScreen")
+        .classList.remove("open");
+
+
+      updateGoogleUI(user);
+
+
+      setFirebaseStatus(
+        "🔵 Google • загружаем данные…",
+        true
+      );
+
+
+      $("authStatus")
+        .textContent="";
+
+
+      try{
+
+        await loadFirebaseUser();
+
+
+        setFirebaseStatus(
+          "🟢 Google подключён • синхронизировано",
+          true
+        );
+
+
+        updateGoogleUI(user);
+
+
+        loadUsernameDisplay();
+
+
+        /*
+          Community профиль.
+        */
+
+        const username=
+          await getMyUsername();
+
+
+        if(username){
+
+          await db.ref(
+            "prognozer/community/profiles/"
+            +user.uid
+          ).update({
+
+            username:username,
+
+            displayName:
+              user.displayName||
+              username,
+
+            photoURL:
+              user.photoURL||"",
+
+            rank:"Silver I",
+
+            uid:user.uid,
+
+            updatedAt:
+              firebase.database.ServerValue.TIMESTAMP
+
+          });
+
+
+          startPresence();
+
+        }
+
+
+        updateCommunityDrawer();
+
+        startChatBadgeListener();
+
+      }catch(e){
+
+        setFirebaseStatus(
+          "❌ Ошибка базы: "+
+          firebaseError(e),
+          false
+        );
+
+      }
+
+
+      return;
+
+    }
+
+
+    firebaseUser=null;
+
+    guestMode=false;
+
+    loadGuest();
+
+    updateGoogleUI(null);
+
+
+    $("authScreen")
+      .classList.add("open");
+
+
+    setFirebaseStatus(
+      "Выберите способ входа",
+      false
+    );
+
+
+  }catch(e){}finally{
+
+    authHandling=false;
+
+  }
+
+}
+
+
+/* =========================================================
+   LOAD FIREBASE USER
+========================================================= */
+
+async function loadFirebaseUser(){
+
+  if(
+    !firebaseUser ||
+    firebaseUser.isAnonymous ||
+    !db
+  ){
+
+    throw new Error(
+      "Firebase не готов"
+    );
+
+  }
+
+
+  saving=true;
+
+
+  try{
+
+    const snap=
+      await db.ref(
+        "prognozer/users/"
+        +firebaseUser.uid
+      ).once("value");
+
+
+    const remote=
+      snap.val();
+
+
+    if(remote){
+
+      state=
+        normalizeState(
+          remote
+        );
+
+
+      try{
+
+        localStorage.setItem(
+          googleCacheKey(
+            firebaseUser.uid
+          ),
+          JSON.stringify(state)
+        );
+
+      }catch(e){}
+
+
+      updateUI();
+
+    }else{
+
+      state=
+        createDefaultState();
+
+      updateUI();
+
+      await saveFirebase();
+
+    }
+
+  }finally{
+
+    saving=false;
+
+  }
+
+}
+
+
+/* =========================================================
+   SAVE FIREBASE
+========================================================= */
+
+async function saveFirebase(){
+
+  if(
+    !firebaseUser ||
+    firebaseUser.isAnonymous ||
+    !db ||
+    guestMode ||
+    saving
+  ){
+
+    return false;
+
+  }
+
+
+  saving=true;
+
+
+  try{
+
+    await db.ref(
+      "prognozer/users/"
+      +firebaseUser.uid
+    ).update({
+
+      balance:
+        Number(state.balance)||0,
+
+      inventory:
+        Array.isArray(state.inventory)
+        ?state.inventory
+        :[],
+
+      statistics:
+        state.statistics||{},
+
+      createdAt:
+        state.createdAt||
+        Date.now(),
+
+      updatedAt:
+        firebase.database.ServerValue.TIMESTAMP,
+
+      profile:{
+
+        name:
+          firebaseUser.displayName||"",
+
+        email:
+          firebaseUser.email||"",
+
+        photoURL:
+          firebaseUser.photoURL||""
+
+      }
+
+    });
+
+
+    try{
+
+      localStorage.setItem(
+        googleCacheKey(
+          firebaseUser.uid
+        ),
+        JSON.stringify(state)
+      );
+
+    }catch(e){}
+
+
+    $("firebaseStatus")
+      .textContent=
+      "🟢 Firebase • ☁️ синхронизировано";
+
+
+    $("profileOnline")
+      .textContent=
+      "ONLINE";
+
+
+    return true;
+
+  }catch(e){
+
+    $("firebaseStatus")
+      .textContent=
+      "❌ Ошибка: "+
+      firebaseError(e);
+
+
+    return false;
+
+  }finally{
+
+    saving=false;
+
+  }
+
+}
+
+
+/* =========================================================
+   BINDINGS
+========================================================= */
+
+function bindCaseButtons(){
+
+  $("caseTakeBtn").onclick=
+    takeCaseDrop;
+
+  $("caseSellBtn").onclick=
+    sellCaseDrop;
+
+}
+
+
+/* =========================================================
+   NAV BUTTONS
+========================================================= */
+
+document
+  .querySelectorAll(
+    ".tab[data-screen]"
+  )
+  .forEach(
+    t=>t.onclick=
+      ()=>nav(
+        t.dataset.screen
+      )
+  );
+
+
+$("communityTab").onclick=
+  openCommunity;
+
+
+$("chatTab").onclick=
+  openChatOverlay;
+
+
+/* =========================================================
+   COMMUNITY DRAWER
+========================================================= */
+
+$("communityMenuBtn").onclick=
+  openDrawer;
+
+
+$("drawerClose").onclick=
+  closeDrawer;
+
+
+$("drawerBackdrop").onclick=
+  closeDrawer;
+
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+$("closeBtn").onclick=
+  ()=>$("modal")
+    .classList.remove("open");
+
+
+$("modal").onclick=
+  e=>{
+
+    if(
+      e.target.id==="modal"
+    ){
+
+      $("modal")
+        .classList.remove("open");
+
+    }
+
+  };
+
+
+/* =========================================================
+   AUTH BUTTONS
+========================================================= */
+
+$("googleLoginBtn").onclick=
+  loginWithGoogle;
+
+$("googleLogoutBtn").onclick=
+  logoutGoogle;
+
+$("authGoogleBtn").onclick=
+  continueGoogle;
+
+$("authGuestBtn").onclick=
+  continueGuest;
+
+
+/* =========================================================
+   COMMUNITY ADD POST
+========================================================= */
+
+$("addPostBtn").onclick=
+  openCreatePost;
+
+
+/* =========================================================
+   USERNAME
+========================================================= */
+
+$("usernameSaveBtn").onclick=
+  saveUsername;
+
+
+$("usernameInput")
+  .addEventListener(
+    "keydown",
+    e=>{
+
+      if(e.key==="Enter")
+        saveUsername();
+
+    }
+  );
+
+
+/* =========================================================
+   SYNC
+========================================================= */
+
+$("syncBtn").onclick=
+  async()=>{
+
+    if(
+      guestMode ||
+      !firebaseUser ||
+      firebaseUser.isAnonymous
+    ){
+
+      return toast(
+        "В гостевом режиме синхронизации нет"
+      );
+
+    }
+
+
+    setFirebaseStatus(
+      "☁️ Синхронизация…",
+      true
+    );
+
+
+    const ok=
+      await saveFirebase();
+
+
+    toast(
+      ok
+      ?"Синхронизация завершена"
+      :"Не выполнена"
+    );
+
+  };
+
+
+/* =========================================================
+   CASE
+========================================================= */
+
+$("caseCloseBtn").onclick=
+  ()=>{
+
+    if(
+      $("caseWinCard")
+        .classList
+        .contains("show")
+    ){
+
+      closeCaseOverlay();
+
+    }
+
+  };
+
+
+bindCaseButtons();
+
+
+/* =========================================================
+   START
+========================================================= */
+
+/* =========================================================
+   CHAT SYSTEM
+========================================================= */
+
+let chatListListener=null;
+let chatDialogListener=null;
+let currentChatUid=null;
+let currentChatUsername="";
+
+
+function getChatId(uid1,uid2){
+
+  return [uid1,uid2].sort().join("_");
+
+}
+
+
+function openChatOverlay(){
+
+  if(
+    !firebaseUser||
+    firebaseUser.isAnonymous
+  ){
+
+    return toast(
+      "🔒 Нужна авторизация Google"
+    );
+
+  }
+
+
+  $("chatOverlay").classList.add("open");
+
+  const nb=$("chatNewBtn");
+  if(nb)nb.onclick=openFindUserModal;
+
+  loadChatList();
+
+}
+
+
+function closeChatOverlay(){
+
+  $("chatOverlay").classList.remove("open");
+
+  if(chatListListener){
+
+    db.ref(
+      "prognozer/chats/users/"+
+      firebaseUser.uid
+    ).off("value",chatListListener);
+
+    chatListListener=null;
+
+  }
+
+}
+
+
+function loadChatList(){
+
+  if(!firebaseUser||!db)return;
+
+
+  const listEl=$("chatList");
+
+
+  if(chatListListener){
+
+    db.ref(
+      "prognozer/chats/users/"+
+      firebaseUser.uid
+    ).off("value",chatListListener);
+
+  }
+
+
+  chatListListener=
+    db.ref(
+      "prognozer/chats/users/"+
+      firebaseUser.uid
+    ).on(
+      "value",
+      async snap=>{
+
+        const data=snap.val()||{};
+
+        const convos=
+          Object.entries(data)
+            .sort(
+              ([,a],[,b])=>
+                Number(b.lastAt||0)-
+                Number(a.lastAt||0)
+            );
+
+
+        if(!convos.length){
+
+          listEl.innerHTML=`
+            <div class="chat-list-empty">
+              <div style="font-size:48px;margin-bottom:14px">💬</div>
+              <div>Диалогов пока нет.<br>Нажми 👤+ чтобы написать кому-нибудь</div>
+            </div>
+          `;
+
+          return;
+
+        }
+
+
+        listEl.innerHTML=
+          convos.map(
+            ([otherUid,info])=>`
+
+              <div
+                class="chat-item"
+                onclick="openChatWith('${escapeHTML(otherUid)}','${escapeHTML(info.username||otherUid)}')">
+
+                <div class="chat-item-avatar">
+                  ${
+                    info.photoURL
+                    ?`<img src="${escapeHTML(info.photoURL)}">`
+                    :"👤"
+                  }
+                </div>
+
+                <div class="chat-item-info">
+
+                  <div class="chat-item-name">
+                    @${escapeHTML(info.username||otherUid)}
+                  </div>
+
+                  <div class="chat-item-last">
+                    ${escapeHTML(info.lastMsg||"")}
+                  </div>
+
+                </div>
+
+                <div class="chat-item-meta">
+
+                  <div class="chat-item-time">
+                    ${formatPostDate(info.lastAt)}
+                  </div>
+
+                  ${
+                    info.unread>0
+                    ?`<div class="chat-unread">${info.unread}</div>`
+                    :""
+                  }
+
+                </div>
+
+              </div>
+
+            `
+          ).join("");
+
+
+        /* обновить бейдж в хедере */
+
+        const totalUnread=
+          convos.reduce(
+            (s,[,v])=>s+Number(v.unread||0),
+            0
+          );
+
+        const badge=$("headerChatBadge");
+
+        if(badge){
+
+          if(totalUnread>0){
+
+            badge.style.display="block";
+
+            badge.textContent=
+              totalUnread>9?"9+":totalUnread;
+
+          }else{
+
+            badge.style.display="none";
+
+          }
+
+        }
+
+      }
+    );
+
+}
+
+
+async function openChatWith(otherUid,otherUsername){
+
+  if(
+    !firebaseUser||
+    firebaseUser.isAnonymous||
+    !db
+  ){
+
+    return toast(
+      "🔒 Нужна авторизация Google"
+    );
+
+  }
+
+
+  currentChatUid=otherUid;
+
+  currentChatUsername=otherUsername;
+
+
+  const nameEl=$("chatDialogName");
+
+  if(nameEl)
+    nameEl.textContent=
+      "@"+otherUsername;
+
+
+  /* кнопка добавить в друзья */
+
+  const friendBtn=$("chatDialogFriendBtn");
+
+  if(friendBtn){
+
+    friendBtn.onclick=
+      ()=>addFriend(otherUid);
+
+  }
+
+
+  /* открыть чат поверх chatOverlay */
+
+  $("chatOverlay").classList.add("open");
+
+  $("chatDialog").classList.add("open");
+
+
+  /* сбросить счётчик непрочитанных */
+
+  await db.ref(
+    "prognozer/chats/users/"+
+    firebaseUser.uid+"/"+otherUid+"/unread"
+  ).set(0);
+
+
+  /* слушать сообщения */
+
+  const chatId=getChatId(firebaseUser.uid,otherUid);
+
+  const msgRef=
+    db.ref(
+      "prognozer/chats/messages/"+chatId
+    );
+
+
+  if(chatDialogListener){
+
+    msgRef.off("value",chatDialogListener);
+
+  }
+
+
+  const msgEl=$("chatMessages");
+
+
+  chatDialogListener=
+    msgRef
+      .orderByChild("at")
+      .limitToLast(100)
+      .on(
+        "value",
+        snap=>{
+
+          const data=snap.val()||{};
+
+          const msgs=
+            Object.entries(data)
+              .sort(
+                ([,a],[,b])=>
+                  Number(a.at||0)-
+                  Number(b.at||0)
+              );
+
+
+          if(!msgs.length){
+
+            msgEl.innerHTML=`
+              <div class="chat-list-empty">
+                <div style="font-size:36px;margin-bottom:10px">👋</div>
+                <div>Начни диалог!</div>
+              </div>
+            `;
+
+            return;
+
+          }
+
+
+          msgEl.innerHTML=
+            msgs.map(
+              ([,m])=>{
+
+                const isMine=
+                  m.from===firebaseUser.uid;
+
+                return`
+                  <div class="msg ${isMine?"out":"in"}">
+                    ${escapeHTML(m.text||"")}
+                    <div class="msg-time">
+                      ${formatPostDate(m.at)}
+                    </div>
+                  </div>
+                `;
+
+              }
+            ).join("");
+
+
+          /* прокрутить вниз */
+
+          msgEl.scrollTop=
+            msgEl.scrollHeight;
+
+        }
+      );
+
+
+  /* input send */
+
+  const sendBtn=$("chatSendBtn");
+
+  const input=$("chatInput");
+
+  if(sendBtn&&input){
+
+    sendBtn.onclick=sendChatMessage;
+
+    input.onkeydown=e=>{
+
+      if(
+        e.key==="Enter"&&
+        !e.shiftKey
+      ){
+
+        e.preventDefault();
+
+        sendChatMessage();
+
+      }
+
+    };
+
+  }
+
+}
+
+
+async function sendChatMessage(){
+
+  const input=$("chatInput");
+
+  if(!input||!currentChatUid)return;
+
+
+  const text=input.value.trim();
+
+  if(!text)return;
+
+
+  input.value="";
+
+
+  const chatId=
+    getChatId(
+      firebaseUser.uid,
+      currentChatUid
+    );
+
+
+  const myUsername=
+    await getMyUsername()||"user";
+
+
+  /* получить аватар собеседника для списка */
+
+  let otherPhoto="";
+
+  try{
+
+    const pSnap=
+      await db.ref(
+        "prognozer/community/profiles/"+
+        currentChatUid
+      ).once("value");
+
+    const pp=pSnap.val();
+
+    if(pp){
+
+      otherPhoto=pp.photoURL||"";
+
+    }
+
+  }catch(e){}
+
+
+  const now=
+    firebase.database.ServerValue.TIMESTAMP;
+
+
+  try{
+
+    /* само сообщение */
+
+    await db.ref(
+      "prognozer/chats/messages/"+chatId
+    ).push({
+      from:firebaseUser.uid,
+      text:text,
+      at:now
+    });
+
+
+    /* мета у меня */
+
+    await db.ref(
+      "prognozer/chats/users/"+
+      firebaseUser.uid+"/"+
+      currentChatUid
+    ).update({
+      username:currentChatUsername,
+      photoURL:otherPhoto,
+      lastMsg:text.slice(0,40),
+      lastAt:now,
+      unread:0
+    });
+
+
+    /* мета у собеседника (увеличить unread) */
+
+    const mePhoto=
+      firebaseUser.photoURL||"";
+
+    const unreadRef=
+      db.ref(
+        "prognozer/chats/users/"+
+        currentChatUid+"/"+
+        firebaseUser.uid+"/unread"
+      );
+
+    await unreadRef.transaction(
+      v=>(Number(v)||0)+1
+    );
+
+    await db.ref(
+      "prognozer/chats/users/"+
+      currentChatUid+"/"+
+      firebaseUser.uid
+    ).update({
+      username:myUsername,
+      photoURL:mePhoto,
+      lastMsg:text.slice(0,40),
+      lastAt:now
+    });
+
+
+  }catch(e){
+
+    toast("Ошибка отправки");
+
+  }
+
+}
+
+
+function closeChatDialog(){
+
+  $("chatDialog").classList.remove("open");
+
+  currentChatUid=null;
+
+
+  if(chatDialogListener&&db&&currentChatUid){
+
+    db.ref(
+      "prognozer/chats/messages/"+
+      getChatId(
+        firebaseUser.uid,
+        currentChatUid
+      )
+    ).off("value",chatDialogListener);
+
+  }
+
+  chatDialogListener=null;
+
+}
+
+
+/* кнопка найти пользователя — привязка после DOMContentLoaded */
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+  const nb=$("chatNewBtn");
+
+  if(nb)nb.onclick=openFindUserModal;
+
+});
+
+
+function openFindUserModal(){
+
+  const b=$("modalBody");
+
+  b.innerHTML=`
+
+    <div class="community-modal-title">
+      👤 Найти пользователя
+    </div>
+
+    <div class="find-user-wrap">
+
+      <input
+        id="findUserInput"
+        placeholder="Введите @username"
+        type="text">
+
+      <button
+        class="primary"
+        style="width:100%;padding:12px"
+        onclick="searchUserForChat()">
+        🔍 Найти
+      </button>
+
+      <div id="findUserResult" class="find-user-result"></div>
+
+    </div>
+
+  `;
+
+
+  $("modal").classList.add("open");
+
+  setTimeout(
+    ()=>$("findUserInput")?.focus(),
+    200
+  );
+
+
+  $("findUserInput").onkeydown=e=>{
+
+    if(e.key==="Enter")
+      searchUserForChat();
+
+  };
+
+}
+
+
+async function searchUserForChat(){
+
+  const input=$("findUserInput");
+
+  const result=$("findUserResult");
+
+  if(!input||!result)return;
+
+
+  let username=
+    input.value.trim().replace(/^@/,"");
+
+  if(!username){
+
+    result.innerHTML=
+      `<div class="muted" style="text-align:center;padding:10px">
+        Введите юзернейм
+      </div>`;
+
+    return;
+
+  }
+
+
+  result.innerHTML=
+    `<div class="muted" style="text-align:center;padding:10px">Ищем…</div>`;
+
+
+  try{
+
+    const pSnap=
+      await db.ref(
+        "prognozer/community/profiles"
+      ).orderByChild("username").equalTo(username).once("value");
+
+
+    const found=pSnap.val();
+
+    if(!found){
+
+      result.innerHTML=
+        `<div class="muted" style="text-align:center;padding:10px">
+          ❌ Пользователь @${escapeHTML(username)} не найден
+        </div>`;
+
+      return;
+
+    }
+
+
+    const [uid,p]=
+      Object.entries(found)[0];
+
+
+    if(uid===firebaseUser?.uid){
+
+      result.innerHTML=
+        `<div class="muted" style="text-align:center;padding:10px">
+          Это вы 😊
+        </div>`;
+
+      return;
+
+    }
+
+
+    result.innerHTML=`
+
+      <div class="friend-item" style="margin-top:10px">
+
+        <div class="friend-item-ava">
+          ${p.photoURL?`<img src="${escapeHTML(p.photoURL)}">`:"👤"}
+        </div>
+
+        <div class="friend-item-info">
+          <div class="friend-item-name">@${escapeHTML(p.username)}</div>
+          <div class="friend-item-sub">${escapeHTML(p.displayName||"")}</div>
+        </div>
+
+        <div style="display:flex;gap:7px">
+
+          <button
+            class="primary"
+            style="padding:9px 14px;font-size:13px"
+            onclick="
+              $('modal').classList.remove('open');
+              openChatWith('${escapeHTML(uid)}','${escapeHTML(p.username||uid)}')
+            ">
+            💬 Написать
+          </button>
+
+          <button
+            class="secondary"
+            style="padding:9px 14px;font-size:13px"
+            onclick="addFriend('${escapeHTML(uid)}');this.disabled=true;this.textContent='Отправлено'">
+            👥
+          </button>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }catch(e){
+
+    result.innerHTML=
+      `<div class="muted" style="text-align:center">Ошибка</div>`;
+
+  }
+
+}
+
+
+/* =========================================================
+   LOAD CHAT BADGE ON AUTH
+========================================================= */
+
+function startChatBadgeListener(){
+
+  if(
+    !firebaseUser||
+    firebaseUser.isAnonymous||
+    !db
+  ){
+    return;
+  }
+
+
+  db.ref(
+    "prognozer/chats/users/"+
+    firebaseUser.uid
+  ).on(
+    "value",
+    snap=>{
+
+      const data=snap.val()||{};
+
+      const total=
+        Object.values(data)
+          .reduce(
+            (s,v)=>s+Number(v.unread||0),
+            0
+          );
+
+      const badge=$("headerChatBadge");
+
+      if(badge){
+
+        if(total>0){
+
+          badge.style.display="block";
+
+          badge.textContent=
+            total>9?"9+":total;
+
+        }else{
+
+          badge.style.display="none";
+
+        }
+
+      }
+
+    }
+  );
+
+}
+
+
+loadGuest();
+
+renderGrids();
+
+renderShop();
+
+initFirebase();
+
+</script>
+
+</body>
+ </html>
