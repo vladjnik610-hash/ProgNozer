@@ -3985,7 +3985,8 @@ function createDefaultState(){
       sales:0
     },
 
-    createdAt:Date.now()
+    createdAt:Date.now(),
+    bonusGiven:true  // marks that starting 100 was given
   };
 
 }
@@ -4014,7 +4015,8 @@ function normalizeState(x){
       sales:Number(x.statistics?.sales)||0
     },
 
-    createdAt:x.createdAt||d.createdAt
+    createdAt:x.createdAt||d.createdAt,
+    bonusGiven:!!x.bonusGiven
   };
 
 }
@@ -4854,8 +4856,8 @@ async function saveUsername(){
 
       username:raw,
 
-      displayName:
-        firebaseUser.displayName||"Пользователь",
+      // Use username as display name to protect real identity
+      displayName:raw,
 
       photoURL:
         firebaseUser.photoURL||"",
@@ -6983,7 +6985,7 @@ async function switchFriendTab(tab){
                 </div>
 
                 <div class="friend-item-sub">
-                  ${escapeHTML(p.displayName||"")}
+                  ${escapeHTML(p.rank||"Silver I")}
                 </div>
 
               </div>
@@ -7191,7 +7193,7 @@ async function addFriendByUsername(){
 
         <div class="friend-item-info">
           <div class="friend-item-name">@${escapeHTML(p.username)}</div>
-          <div class="friend-item-sub">${escapeHTML(p.displayName||"")}</div>
+          <div class="friend-item-sub">${escapeHTML(p.rank||"Silver I")}</div>
         </div>
 
         <button
@@ -9570,6 +9572,12 @@ function openCase(i){
   pendingDrop=
     pick(c.drops);
 
+  // Persist pendingDrop so page refresh doesn't lose the item
+  try{
+    const pdKey=guestMode?"prognozer_pending_drop_guest":("prognozer_pending_drop_"+(firebaseUser?.uid||"guest"));
+    localStorage.setItem(pdKey,JSON.stringify(pendingDrop));
+  }catch(e){}
+
 
   const overlay=
     $("caseOpeningOverlay");
@@ -9712,12 +9720,41 @@ function openCase(i){
 }
 
 
+function getPendingDropKey(){
+  return guestMode?"prognozer_pending_drop_guest":("prognozer_pending_drop_"+(firebaseUser?.uid||"guest"));
+}
+
+function clearSavedPendingDrop(){
+  try{localStorage.removeItem(getPendingDropKey());}catch(e){}
+}
+
+function restorePendingDrop(){
+  try{
+    const raw=localStorage.getItem(getPendingDropKey());
+    if(raw){
+      pendingDrop=JSON.parse(raw);
+      // Show the win card automatically so player can pick up their item
+      if(pendingDrop){
+        const overlay=$("caseOpeningOverlay");
+        $("caseOpeningTitle").textContent="🎁 Предмет ожидает!";
+        $("caseOpeningStatus").textContent="🎉 Выпал предмет!";
+        $("caseWinEmoji").textContent=pendingDrop[2];
+        $("caseWinName").textContent=pendingDrop[0];
+        $("caseWinPrice").textContent=pendingDrop[1]+" 💎";
+        $("caseWinCard").classList.add("show");
+        overlay.classList.add("open");
+      }
+    }
+  }catch(e){}
+}
+
 function closeCaseOverlay(){
 
   $("caseOpeningOverlay")
     .classList.remove("open");
 
   pendingDrop=null;
+  clearSavedPendingDrop();
 
 }
 
@@ -9736,6 +9773,7 @@ function takeCaseDrop(){
     )
   );
 
+  clearSavedPendingDrop();
 
   toast(
     "Предмет добавлен в инвентарь"
@@ -9762,6 +9800,7 @@ function sellCaseDrop(){
 
   localSave();
 
+  clearSavedPendingDrop();
 
   toast(
     "Продано: +"+
@@ -10193,32 +10232,25 @@ function updateGoogleUI(user){
 
   $("profileUid")
     .textContent=
-    "UID: "+user.uid;
+    "Аккаунт подключён";
 
 
   $("firebaseUid")
     .textContent=
-    "Google: "+
-    (user.email||"")+
-    " • UID: "+
-    user.uid;
+    "🔵 Google синхронизация активна";
 
 
+  // Show username instead of real Google name/email
   $("profileName")
     .textContent=
-    user.displayName||
-    (
-      user.email
-      ?user.email.split("@")[0]
-      :"Пользователь"
-    );
+    window.__myUsername
+    ?("@"+window.__myUsername)
+    :"Игрок";
 
 
   $("googleAccountText")
     .textContent=
-    user.email
-    ?"🔵 Google: "+user.email
-    :"🔵 Аккаунт Google подключён";
+    "🔵 Google аккаунт подключён";
 
 
   $("googleLoginBtn")
@@ -10699,9 +10731,8 @@ async function handleAuthUser(user){
 
             username:username,
 
-            displayName:
-              user.displayName||
-              username,
+            // Never store Google real name in public profile
+            displayName:username,
 
             photoURL:
               user.photoURL||"",
@@ -10730,6 +10761,9 @@ async function handleAuthUser(user){
         processPendingPayouts();
 
         window.__myUsername=await getMyUsername();
+
+        // Restore any pending case drop from before page refresh
+        if(!pendingDrop) restorePendingDrop();
 
       }catch(e){
 
@@ -10817,6 +10851,12 @@ async function loadFirebaseUser(){
           remote
         );
 
+      // If returning user somehow has no bonusGiven flag, don't give bonus again
+      // (they already have whatever balance they earned)
+      if(!state.bonusGiven){
+        state.bonusGiven=true;
+        // Don't reset balance, just mark bonus given
+      }
 
       try{
 
@@ -10836,8 +10876,11 @@ async function loadFirebaseUser(){
 
     }else{
 
+      // Brand new user: give 100 bonus
       state=
         createDefaultState();
+
+      state.bonusGiven=true;
 
       window.__firebaseLoaded=true;
 
@@ -11792,7 +11835,7 @@ async function searchUserForChat(){
 
         <div class="friend-item-info">
           <div class="friend-item-name">@${escapeHTML(p.username)}</div>
-          <div class="friend-item-sub">${escapeHTML(p.displayName||"")}</div>
+          <div class="friend-item-sub">${escapeHTML(p.rank||"Silver I")}</div>
         </div>
 
         <div style="display:flex;gap:7px">
@@ -11961,9 +12004,9 @@ function renderTradeMySlots(){
   for(let i=0;i<10;i++){
     const item=myTradeItems[i];
     if(item){
-      html+=`<div class="trade-slot filled">
+      html+=`<div class="trade-slot filled" onclick="showTradeItemInfo(this)" data-name="${escapeHTML(item.name||'?')}" data-type="${escapeHTML(item.type||'Предмет')}" data-price="${escapeHTML(String(item.price||0))}" data-emoji="${escapeHTML(item.emoji||'❓')}">
         <span class="trade-slot-emoji">${escapeHTML(item.emoji)}</span>
-        <span class="trade-slot-remove" onclick="removeFromMyTrade(${i})">✕</span>
+        <span class="trade-slot-remove" onclick="event.stopPropagation();removeFromMyTrade(${i})">✕</span>
       </div>`;
     }else{
       html+=`<div class="trade-slot">+</div>`;
@@ -11981,7 +12024,8 @@ function renderTradePartnerSlots(data){
   for(let i=0;i<10;i++){
     const item=partnerItems[i];
     if(item){
-      html+=`<div class="trade-slot filled">
+      const itemInfo=escapeHTML(item.name||"?")+"\n"+escapeHTML(item.type||"Предмет")+" • "+escapeHTML(String(item.price||0))+" 💎";
+      html+=`<div class="trade-slot filled" onclick="showTradeItemInfo(this)" data-name="${escapeHTML(item.name||'?')}" data-type="${escapeHTML(item.type||'Предмет')}" data-price="${escapeHTML(String(item.price||0))}" data-emoji="${escapeHTML(item.emoji||'❓')}" title="${itemInfo}">
         <span class="trade-slot-emoji">${escapeHTML(item.emoji||"❓")}</span>
       </div>`;
     }else{
@@ -11990,6 +12034,28 @@ function renderTradePartnerSlots(data){
   }
   $("tradePartnerCrystals").value=data.crystals||"";
   el.innerHTML=html;
+}
+
+function showTradeItemInfo(el){
+  const name=el.dataset.name||"?";
+  const type=el.dataset.type||"Предмет";
+  const price=el.dataset.price||"0";
+  const emoji=el.dataset.emoji||"❓";
+  // Show popup
+  let popup=document.getElementById("tradeItemPopup");
+  if(!popup){
+    popup=document.createElement("div");
+    popup.id="tradeItemPopup";
+    popup.style.cssText="position:fixed;z-index:999;background:#0d1f35;border:1px solid #3a8bd3;border-radius:14px;padding:12px 16px;font-size:14px;max-width:220px;box-shadow:0 8px 30px rgba(0,0,0,.6);pointer-events:none;transition:.15s;";
+    document.body.appendChild(popup);
+  }
+  popup.innerHTML=`<div style="font-size:28px;text-align:center;margin-bottom:6px">${emoji}</div><div style="font-weight:900;margin-bottom:3px">${escapeHTML(name)}</div><div style="color:#8295ad;font-size:12px">${escapeHTML(type)}</div><div style="color:#55b4ff;font-weight:900;margin-top:4px">${escapeHTML(price)} 💎</div>`;
+  const rect=el.getBoundingClientRect();
+  popup.style.display="block";
+  popup.style.left=Math.min(rect.left,window.innerWidth-240)+"px";
+  popup.style.top=(rect.top-120)+"px";
+  clearTimeout(window.__tradePopupTimer);
+  window.__tradePopupTimer=setTimeout(()=>{popup.style.display="none";},2500);
 }
 
 
@@ -12080,15 +12146,22 @@ function updateTradeStatus(data){
   if(!sb)return;
   const myConf=tradeConfirmedMe;
   const partConf=tradeConfirmedPartner;
-  const countdown=data.countdown;
+  const countdown=Number(data.countdown||0);
+  const countdownStarted=!!data.countdownStarted;
 
-  if(countdown>0){
+  if(countdownStarted&&countdown>0){
     sb.className="trade-status-bar countdown";
     sb.textContent=`⏳ Трейд завершится через ${countdown} сек…`;
     $("tradeConfirmBtn").disabled=true;
+  }else if(countdownStarted&&countdown===0&&!tradeCountdownTimer){
+    // countdown finished on Firebase side — execute for this side too
+    sb.className="trade-status-bar countdown";
+    sb.textContent="⏳ Завершаем трейд…";
+    $("tradeConfirmBtn").disabled=true;
+    executeTrade();
   }else if(myConf&&partConf){
     sb.className="trade-status-bar confirmed";
-    sb.textContent="✅ Оба подтвердили! Отсчёт начнётся…";
+    sb.textContent="✅ Оба подтвердили! Отсчёт 5 сек…";
     $("tradeConfirmBtn").disabled=true;
     startTradeCountdown();
   }else if(myConf&&!partConf){
@@ -12128,14 +12201,22 @@ async function startTradeCountdown(){
   if(tradeCountdownTimer)return;
   if(!currentTradeId||!db)return;
 
+  // Only the trade initiator (from) drives the countdown to avoid race condition
+  const snap=await db.ref(`prognozer/trades/${currentTradeId}`).once("value");
+  const tradeData=snap.val();
+  if(!tradeData)return;
+  const isInitiator=(tradeData.from===firebaseUser?.uid);
+  if(!isInitiator)return; // partner just watches Firebase
+
   let c=5;
-  await db.ref(`prognozer/trades/${currentTradeId}/countdown`).set(c);
+  await db.ref(`prognozer/trades/${currentTradeId}`).update({countdown:c,countdownStarted:true});
 
   tradeCountdownTimer=setInterval(async()=>{
     c--;
     if(c<=0){
       clearInterval(tradeCountdownTimer);
       tradeCountdownTimer=null;
+      await db.ref(`prognozer/trades/${currentTradeId}/countdown`).set(0);
       await executeTrade();
     }else{
       await db.ref(`prognozer/trades/${currentTradeId}/countdown`).set(c);
@@ -12144,12 +12225,23 @@ async function startTradeCountdown(){
 }
 
 
+let _tradeExecuting=false;
 async function executeTrade(){
   if(!currentTradeId||!firebaseUser||!db)return;
+  if(_tradeExecuting)return;
+  _tradeExecuting=true;
   try{
     const snap=await db.ref(`prognozer/trades/${currentTradeId}`).once("value");
     const data=snap.val();
-    if(!data)return;
+    if(!data){_tradeExecuting=false;return;}
+    // Already done by other side
+    if(data.status==="done"){
+      _tradeExecuting=false;
+      $("tradeOverlay").classList.remove("open");
+      currentTradeId=null;
+      toast("✅ Трейд завершён!");
+      return;
+    }
 
     const mySide=data.sides?.[firebaseUser.uid]||{};
     const partnerSide=data.sides?.[currentPartnerUid]||{};
@@ -12180,9 +12272,11 @@ async function executeTrade(){
 
     $("tradeOverlay").classList.remove("open");
     currentTradeId=null;
+    _tradeExecuting=false;
     toast("✅ Трейд успешно завершён!");
 
   }catch(e){
+    _tradeExecuting=false;
     toast("Ошибка выполнения трейда");
   }
 }
@@ -12465,6 +12559,8 @@ async function putItemOnMarket(){
       name:item.name,
       emoji:item.emoji,
       price:price,
+      originalPrice:item.price||0,  // save the real item price
+      itemPrice:item.price||0,
       itemType:item.type||"Предмет",
       category:item.type||"Предмет",
       desc:desc,
@@ -12515,14 +12611,35 @@ async function buyFromMarket(marketId){
 
     // Handle username lot
     if(lot.category==="username"){
-      // Special: transfer username
-      toast("🏷️ Юзернейм куплен! Перейдите в профиль чтобы применить");
-      // Store pending username for buyer
-      await db.ref(`prognozer/pendingUsernames/${firebaseUser.uid}`).set({
-        username:lot.usernameValue||lot.name,
-        from:lot.sellerUid,
-        boughtAt:firebase.database.ServerValue.TIMESTAMP
-      });
+      const newUsername=lot.usernameValue||(lot.name||"").replace(/^@/,"");
+      if(newUsername){
+        // 1. Assign username to buyer
+        await db.ref(`prognozer/users/${firebaseUser.uid}/username`).set(newUsername);
+        const buyerProfileSnap=await db.ref(`prognozer/community/profiles/${firebaseUser.uid}`).once("value");
+        const buyerProfile=buyerProfileSnap.val()||{};
+        await db.ref(`prognozer/community/profiles/${firebaseUser.uid}`).update({
+          username:newUsername,
+          uid:firebaseUser.uid,
+          updatedAt:firebase.database.ServerValue.TIMESTAMP
+        });
+        // Update username registry to point to buyer
+        const uKey=newUsername.trim().toLowerCase();
+        await db.ref(`prognozer/usernames/${uKey}`).set(firebaseUser.uid);
+
+        // 2. Remove username from seller (they go nameless)
+        if(lot.sellerUid){
+          await db.ref(`prognozer/users/${lot.sellerUid}/username`).remove();
+          await db.ref(`prognozer/community/profiles/${lot.sellerUid}`).update({
+            username:"",
+            updatedAt:firebase.database.ServerValue.TIMESTAMP
+          });
+        }
+
+        window.__myUsername=newUsername;
+        toast("🏷️ Юзернейм @"+newUsername+" теперь ваш!");
+      }else{
+        toast("🏷️ Юзернейм куплен!");
+      }
     }else{
       // Add to inventory
       state.inventory.push({
@@ -12564,12 +12681,12 @@ async function removeFromMarket(marketId){
 
     await db.ref(`prognozer/market/${marketId}`).update({status:"removed"});
 
-    // Return item to inventory (non-username)
+    // Return item to inventory (non-username) with ORIGINAL price, not auction price
     if(lot.category!=="username"){
       state.inventory.push({
         name:lot.name,
         emoji:lot.emoji||"📦",
-        price:lot.price||0,
+        price:lot.originalPrice||lot.itemPrice||0,  // use saved original price
         type:lot.itemType||"Предмет"
       });
       localSave();
@@ -12661,6 +12778,11 @@ renderGrids();
 renderShop();
 
 initFirebase();
+
+// Restore any unsaved case drop after page refresh (guest mode)
+setTimeout(()=>{
+  if(guestMode&&!pendingDrop) restorePendingDrop();
+},500);
 
 </script>
 
