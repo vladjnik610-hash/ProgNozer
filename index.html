@@ -4391,9 +4391,12 @@ function renderInventory(){
 
         </div>
 
-        <span class="price">
-          ${x.price} 💎
-        </span>
+        <div style="text-align:right;margin-right:8px">
+          <span class="price">
+            ${x.price} 💎
+          </span>
+          <div style="font-size:11px;color:#526a82;margin-top:2px">цена системы</div>
+        </div>
 
         <button
           class="secondary sell"
@@ -4499,7 +4502,13 @@ function sell(i){
 
   if(!x)return;
 
-  state.balance+=x.price;
+  // Защита от эксплойта: цена продажи системе не может быть выше системной цены предмета
+  // Находим предмет в базе магазина для проверки
+  const shopItem=items.find(s=>s.name===x.name);
+  const maxSystemPrice=shopItem?shopItem.price:x.price;
+  const sellPrice=Math.min(Number(x.price)||0, maxSystemPrice);
+
+  state.balance+=sellPrice;
 
   state.inventory.splice(i,1);
 
@@ -4509,7 +4518,7 @@ function sell(i){
   localSave();
 
   toast(
-    "Продано: +"+x.price+" 💎"
+    "Продано: +"+sellPrice+" 💎"
   );
 
 }
@@ -6607,10 +6616,9 @@ async function openUserProfile(uid){
     b.innerHTML=`<div class="muted" style="text-align:center;padding:40px">Загружаем профиль…</div>`;
     $("modal").classList.add("open");
 
-    /* Параллельная загрузка всех данных */
-    const [profSnap,userSnap,friendsSnap,marketSnap]=await Promise.all([
+    /* Параллельная загрузка публичных данных (users/$uid закрыт правилами Firebase) */
+    const [profSnap,friendsSnap,marketSnap]=await Promise.all([
       db.ref("prognozer/community/profiles/"+uid).once("value"),
-      db.ref("prognozer/users/"+uid).once("value"),
       db.ref("prognozer/friends/"+uid).once("value"),
       db.ref("prognozer/market").orderByChild("sellerUid").equalTo(uid).once("value")
     ]);
@@ -6618,9 +6626,8 @@ async function openUserProfile(uid){
     const p=profSnap.val();
     if(!p)return toast("Профиль не найден");
 
-    const userData=userSnap.val()||{};
-    const inv=Array.isArray(userData.inventory)?userData.inventory:[];
-    const stats=userData.statistics||{};
+    const inv=[];
+    const stats={};
     const friendsData=friendsSnap.val()||{};
     const friendCount=Object.keys(friendsData).length;
 
@@ -11747,7 +11754,6 @@ async function sendChatMessage(){
   try{
 
     /* само сообщение */
-
     await db.ref(
       "prognozer/chats/messages/"+chatId
     ).push({
@@ -11756,9 +11762,14 @@ async function sendChatMessage(){
       at:now
     });
 
+  }catch(e){
+    toast("Ошибка отправки сообщения");
+    window.__sendingChat=false;
+    return;
+  }
 
-    /* мета у меня */
-
+  /* мета у меня — ошибка тут не критична */
+  try{
     await db.ref(
       "prognozer/chats/users/"+
       firebaseUser.uid+"/"+
@@ -11770,10 +11781,10 @@ async function sendChatMessage(){
       lastAt:now,
       unread:0
     });
+  }catch(e){}
 
-
-    /* мета у собеседника (увеличить unread) */
-
+  /* мета у собеседника — тоже не критична */
+  try{
     const mePhoto=
       firebaseUser.photoURL||"";
 
@@ -11798,17 +11809,9 @@ async function sendChatMessage(){
       lastMsg:text.slice(0,40),
       lastAt:now
     });
+  }catch(e){}
 
-
-  }catch(e){
-
-    toast("Ошибка отправки");
-
-  }finally{
-
-    window.__sendingChat=false;
-
-  }
+  window.__sendingChat=false;
 
 }
 
@@ -12877,11 +12880,13 @@ async function buyFromMarket(marketId){
         toast("🏷️ Юзернейм куплен!");
       }
     }else{
-      // Add to inventory
+      // Add to inventory — save SYSTEM price (originalPrice), NOT the auction price
+      // This prevents economy exploit where player buys at 100k and sells to system for 100k
+      const systemPrice=Number(lot.originalPrice||lot.itemPrice||0);
       state.inventory.push({
         name:lot.name,
         emoji:lot.emoji||"📦",
-        price:price,
+        price:systemPrice,
         type:lot.itemType||"Предмет"
       });
     }
