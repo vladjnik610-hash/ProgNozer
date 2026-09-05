@@ -1878,6 +1878,380 @@ textarea{
     top:78px
   }
 }
+
+/* ================= CHAT OVERLAY ================= */
+
+.chat-overlay{
+  position:fixed;
+  inset:0;
+  z-index:80;
+  display:none;
+  flex-direction:column;
+  background:#05101d
+}
+
+.chat-overlay.open{
+  display:flex
+}
+
+.chat-header{
+  height:64px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 16px;
+  background:rgba(4,9,17,.97);
+  border-bottom:1px solid #173250;
+  flex-shrink:0
+}
+
+.chat-back{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:#0d1e31;
+  border:1px solid #254a6e;
+  color:#fff;
+  font-size:22px;
+  flex-shrink:0
+}
+
+.chat-header-title{
+  font-size:20px;
+  font-weight:900;
+  flex:1
+}
+
+.chat-new-btn{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#1678e9,#349cff);
+  color:#fff;
+  font-size:22px;
+  flex-shrink:0
+}
+
+.chat-list{
+  flex:1;
+  overflow-y:auto;
+  padding:12px
+}
+
+.chat-list-empty{
+  text-align:center;
+  padding:60px 20px;
+  color:#5a7a99
+}
+
+.chat-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  border-radius:18px;
+  border:1px solid #1c3756;
+  background:#0b1726;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:.1s
+}
+
+.chat-item:active{
+  transform:scale(.98);
+  border-color:#3d7abf
+}
+
+.chat-item-avatar{
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  background:#122b49;
+  border:2px solid #2a5070;
+  display:grid;
+  place-items:center;
+  font-size:22px;
+  flex-shrink:0;
+  overflow:hidden
+}
+
+.chat-item-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+.chat-item-info{
+  flex:1;
+  min-width:0
+}
+
+.chat-item-name{
+  font-weight:900;
+  color:#d0e8ff;
+  font-size:15px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.chat-item-last{
+  color:#5a7a99;
+  font-size:13px;
+  margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.chat-item-meta{
+  text-align:right;
+  flex-shrink:0
+}
+
+.chat-item-time{
+  color:#4a6a85;
+  font-size:12px
+}
+
+.chat-unread{
+  display:inline-block;
+  min-width:20px;
+  height:20px;
+  border-radius:10px;
+  background:#268cff;
+  color:#fff;
+  font-size:11px;
+  font-weight:900;
+  text-align:center;
+  line-height:20px;
+  padding:0 5px;
+  margin-top:4px
+}
+
+/* dialog window */
+
+.chat-dialog{
+  position:fixed;
+  inset:0;
+  z-index:85;
+  display:none;
+  flex-direction:column;
+  background:#05101d
+}
+
+.chat-dialog.open{
+  display:flex
+}
+
+.chat-dialog-header{
+  height:64px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 16px;
+  background:rgba(4,9,17,.97);
+  border-bottom:1px solid #173250;
+  flex-shrink:0
+}
+
+.chat-dialog-name{
+  font-size:17px;
+  font-weight:900;
+  flex:1
+}
+
+.chat-messages{
+  flex:1;
+  overflow-y:auto;
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+
+.msg{
+  max-width:78%;
+  padding:10px 14px;
+  border-radius:18px;
+  font-size:14px;
+  line-height:1.45;
+  word-break:break-word
+}
+
+.msg.out{
+  align-self:flex-end;
+  background:linear-gradient(135deg,#1678e9,#349cff);
+  border-radius:18px 18px 4px 18px
+}
+
+.msg.in{
+  align-self:flex-start;
+  background:#0e2338;
+  border:1px solid #1d4165;
+  border-radius:18px 18px 18px 4px
+}
+
+.msg-time{
+  font-size:11px;
+  opacity:.6;
+  margin-top:4px;
+  text-align:right
+}
+
+.msg.in .msg-time{
+  text-align:left
+}
+
+.chat-input-bar{
+  padding:12px 14px;
+  display:flex;
+  gap:9px;
+  align-items:flex-end;
+  background:rgba(4,9,17,.97);
+  border-top:1px solid #173250;
+  flex-shrink:0
+}
+
+.chat-input-bar textarea{
+  flex:1;
+  min-height:42px;
+  max-height:100px;
+  padding:10px 14px;
+  border-radius:14px;
+  font-size:15px;
+  resize:none
+}
+
+.chat-send-btn{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#1678e9,#349cff);
+  color:#fff;
+  font-size:22px;
+  flex-shrink:0
+}
+
+/* find user modal */
+
+.find-user-wrap{
+  padding:4px 0
+}
+
+.find-user-wrap input{
+  width:100%;
+  margin-bottom:12px
+}
+
+.find-user-result{
+  min-height:60px
+}
+
+/* ================= LIKES (per-user) ================= */
+
+.post-action.liked{
+  background:#112840;
+  border-color:#268cff;
+  color:#55b4ff
+}
+
+/* ================= FRIENDS MODAL ================= */
+
+.friends-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:14px
+}
+
+.friends-tab{
+  flex:1;
+  padding:10px;
+  border-radius:12px;
+  background:#0b1a2b;
+  border:1px solid #243e5c;
+  color:#8295ad;
+  font-weight:800;
+  font-size:13px
+}
+
+.friends-tab.active{
+  background:#0e2540;
+  border-color:#4da6ff;
+  color:#fff
+}
+
+.friend-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid #1c3555;
+  background:#0b1726;
+  margin-bottom:9px
+}
+
+.friend-item-ava{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:#122b49;
+  border:2px solid #2a5070;
+  display:grid;
+  place-items:center;
+  font-size:20px;
+  flex-shrink:0;
+  overflow:hidden
+}
+
+.friend-item-ava img{
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+.friend-item-info{
+  flex:1;
+  min-width:0
+}
+
+.friend-item-name{
+  font-weight:900;
+  font-size:14px;
+  color:#d0e8ff
+}
+
+.friend-item-sub{
+  font-size:12px;
+  color:#4a6a85;
+  margin-top:3px
+}
+
+/* add by username panel */
+
+.add-by-username{
+  margin-bottom:16px;
+  padding:14px;
+  border:1px solid #1c3a58;
+  border-radius:16px;
+  background:#081522
+}
+
+.add-by-username p{
+  margin:0 0 10px;
+  font-size:13px;
+  color:#6a8ba5
+}
+
+.add-by-username-row{
+  display:flex;
+  gap:8px
+}
+
+.add-by-username-row input{
+  flex:1
+}
 </style>
 </head>
 
@@ -1929,8 +2303,42 @@ textarea{
 
   <div class="logo">ProgNozer</div>
 
-  <div class="balance" id="balance">
-    100 💎
+  <div style="display:flex;align-items:center;gap:10px">
+
+    <button
+      id="headerChatBtn"
+      onclick="openChatOverlay()"
+      style="
+        width:40px;height:40px;
+        border-radius:50%;
+        background:#0d1e31;
+        border:1px solid #254a6e;
+        color:#65baff;
+        font-size:22px;
+        position:relative
+      ">
+      💬
+      <span
+        id="headerChatBadge"
+        style="
+          display:none;
+          position:absolute;
+          top:-4px;right:-4px;
+          width:16px;height:16px;
+          border-radius:50%;
+          background:#ff4444;
+          font-size:9px;
+          line-height:16px;
+          color:#fff;
+          font-weight:900
+        ">
+      </span>
+    </button>
+
+    <div class="balance" id="balance">
+      100 💎
+    </div>
+
   </div>
 
 </header>
@@ -2701,6 +3109,81 @@ textarea{
 <div
   class="toast"
   id="toast">
+</div>
+
+
+<!-- =========================================================
+     CHAT OVERLAY (список диалогов)
+========================================================= -->
+
+<div class="chat-overlay" id="chatOverlay">
+
+  <div class="chat-header">
+
+    <button class="chat-back" onclick="closeChatOverlay()">‹</button>
+
+    <div class="chat-header-title">💬 Сообщения</div>
+
+    <button class="chat-new-btn" id="chatNewBtn" title="Найти пользователя">
+      👤+
+    </button>
+
+  </div>
+
+  <div class="chat-list" id="chatList">
+
+    <div class="chat-list-empty">
+      <div style="font-size:48px;margin-bottom:14px">💬</div>
+      <div>Диалогов пока нет.<br>Нажми 👤+ чтобы написать кому-нибудь</div>
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     CHAT DIALOG (окно переписки)
+========================================================= -->
+
+<div class="chat-dialog" id="chatDialog">
+
+  <div class="chat-dialog-header">
+
+    <button class="chat-back" onclick="closeChatDialog()">‹</button>
+
+    <div class="chat-dialog-name" id="chatDialogName">@user</div>
+
+    <button
+      class="chat-back"
+      id="chatDialogFriendBtn"
+      style="background:#112b45;border-color:#2a5070;font-size:16px"
+      title="Добавить в друзья">
+      👥
+    </button>
+
+  </div>
+
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-list-empty">
+      <div style="font-size:36px;margin-bottom:10px">👋</div>
+      <div>Начни диалог!</div>
+    </div>
+  </div>
+
+  <div class="chat-input-bar">
+
+    <textarea
+      id="chatInput"
+      placeholder="Напишите сообщение…"
+      maxlength="500"
+      rows="1">
+    </textarea>
+
+    <button class="chat-send-btn" id="chatSendBtn">➤</button>
+
+  </div>
+
 </div>
 
 
@@ -4517,10 +5000,11 @@ function renderPost(post){
       <div class="post-actions">
 
         <button
-          class="post-action"
-          onclick="likeCommunityPost('${post.id}')">
+          class="post-action${firebaseUser&&(post.likedBy||{})[firebaseUser.uid]?' liked':''}"
+          id="like-${post.id}"
+          onclick="toggleLike('${post.id}',this)">
 
-          ♡ ${Number(post.likes||0)}
+          ${firebaseUser&&(post.likedBy||{})[firebaseUser.uid]?'♥':'♡'} ${Object.keys(post.likedBy||{}).length||Number(post.likes||0)}
 
         </button>
 
@@ -5359,28 +5843,59 @@ async function publishCommunityPost(){
 
 
 /* =========================================================
-   LIKE
+   LIKE (один лайк на пользователя, можно убрать)
 ========================================================= */
 
-async function likeCommunityPost(id){
+async function toggleLike(postId,btn){
 
-  if(!db)return;
+  if(
+    !firebaseUser||
+    firebaseUser.isAnonymous||
+    !db
+  ){
 
-  const ref=
-    db.ref(
-      "prognozer/community/posts/"
-      +id
-      +"/likes"
+    return toast(
+      "🔒 Нужна авторизация Google"
     );
+
+  }
+
+
+  const uid=firebaseUser.uid;
+
+  const likedByRef=
+    db.ref(
+      "prognozer/community/posts/"+
+      postId+
+      "/likedBy/"+
+      uid
+    );
+
 
   try{
 
-    await ref.transaction(
-      value=>
-        (Number(value)||0)+1
-    );
+    const snap=
+      await likedByRef.once("value");
 
-  }catch(e){}
+    const alreadyLiked=
+      snap.exists();
+
+
+    if(alreadyLiked){
+
+      await likedByRef.remove();
+
+    }else{
+
+      await likedByRef.set(true);
+
+    }
+
+  }catch(e){
+
+    toast("Ошибка лайка");
+
+  }
 
 }
 
@@ -5516,6 +6031,25 @@ async function openUserProfile(uid){
             <div class="create-option-info">
               <b>Добавить в друзья</b>
               <span>Отправить запрос</span>
+            </div>
+
+            <div class="create-option-arrow">
+              ›
+            </div>
+
+          </button>
+
+          <button
+            class="create-option"
+            onclick="$('modal').classList.remove('open');openChatWith('${escapeHTML(uid)}','${escapeHTML((p.username||'user'))}')">
+
+            <div class="create-option-icon">
+              💬
+            </div>
+
+            <div class="create-option-info">
+              <b>Написать сообщение</b>
+              <span>Открыть диалог</span>
             </div>
 
             <div class="create-option-arrow">
@@ -5676,7 +6210,20 @@ $("drawerProfile").onclick=()=>{
 };
 
 
-function openFriends(){
+async function openFriends(){
+
+  if(
+    !firebaseUser||
+    firebaseUser.isAnonymous||
+    !db
+  ){
+
+    return toast(
+      "🔒 Нужна авторизация Google"
+    );
+
+  }
+
 
   const b=$("modalBody");
 
@@ -5686,3908 +6233,357 @@ function openFriends(){
       🧑‍🤝‍🧑 Друзья
     </div>
 
-    <div class="drop center muted">
+    <div class="add-by-username">
 
-      Здесь будут отображаться ваши друзья,
-      запросы в друзья и статус онлайн.
+      <p>Добавить друга по юзернейму:</p>
 
-      <br><br>
+      <div class="add-by-username-row">
 
-      Система друзей уже подготовлена
-      в Firebase.
+        <input
+          id="friendUsernameInput"
+          placeholder="@username"
+          type="text">
 
-    </div>
-
-  `;
-
-  $("modal").classList.add("open");
-
-}
-
-
-function openTradeCenter(){
-
-  const b=$("modalBody");
-
-  b.innerHTML=`
-
-    <div class="community-modal-title">
-      🔄 Трейд
-    </div>
-
-    <div class="drop center muted">
-
-      Здесь будет окно обмена предметами
-      между двумя игроками.
-
-      <br><br>
-
-      🎒 Выберите предмет<br>
-      ↔️ Выберите игрока<br>
-      ✅ Подтвердите обмен
-
-    </div>
-
-  `;
-
-  $("modal").classList.add("open");
-
-}
-
-
-function openPlayerMarket(){
-
-  const b=$("modalBody");
-
-  b.innerHTML=`
-
-    <div class="community-modal-title">
-      🛒 Магазин среди игроков
-    </div>
-
-    <div class="drop center muted">
-
-      Здесь будут находиться
-      предметы, выставленные игроками
-      на продажу.
-
-      <br><br>
-
-      🔨 Аукцион Community будет
-      подключён к этому разделу.
-
-    </div>
-
-  `;
-
-  $("modal").classList.add("open");
-
-}
-
-
-/* =========================================================
-   BATTLE COOLDOWN
-========================================================= */
-
-function getBattleCooldownRemaining(){
-
-  try{
-
-    const last=
-      parseInt(
-        localStorage.getItem(
-          BATTLE_COOLDOWN_KEY
-        )||"0"
-      );
-
-    return Math.max(
-      0,
-      BATTLE_COOLDOWN_MS-
-      (Date.now()-last)
-    );
-
-  }catch(e){
-
-    return 0;
-
-  }
-
-}
-
-
-function setBattleCooldown(){
-
-  try{
-
-    localStorage.setItem(
-      BATTLE_COOLDOWN_KEY,
-      Date.now()
-    );
-
-  }catch(e){}
-
-}
-
-
-function formatCooldown(ms){
-
-  const s=
-    Math.ceil(ms/1000);
-
-  const m=
-    Math.floor(s/60);
-
-  const sec=
-    s%60;
-
-  return m>0
-    ?`${m}:${sec.toString().padStart(2,"0")}`
-    :`${sec}с`;
-
-}
-
-
-let cooldownTimers={};
-
-
-function startBattleCooldownDisplay(
-  btnEl,
-  barFillEl,
-  badgeEl
-){
-
-  clearInterval(
-    cooldownTimers.battle
-  );
-
-
-  function tick(){
-
-    const rem=
-      getBattleCooldownRemaining();
-
-
-    if(rem<=0){
-
-      btnEl.disabled=false;
-
-      btnEl.textContent=
-        "Начать за 100 💎";
-
-      if(badgeEl)
-        badgeEl.style.display="none";
-
-      if(barFillEl)
-        barFillEl.parentElement
-          .style.display="none";
-
-      clearInterval(
-        cooldownTimers.battle
-      );
-
-    }else{
-
-      btnEl.disabled=true;
-
-      btnEl.textContent=
-        "⏳ "+formatCooldown(rem);
-
-      if(badgeEl){
-
-        badgeEl.style.display=
-          "inline-block";
-
-        badgeEl.textContent=
-          "Доступно через "+
-          formatCooldown(rem);
-
-      }
-
-      const pct=
-        (
-          (BATTLE_COOLDOWN_MS-rem)/
-          BATTLE_COOLDOWN_MS*
-          100
-        ).toFixed(1);
-
-
-      if(barFillEl){
-
-        barFillEl.parentElement
-          .style.display="block";
-
-        barFillEl.style.width=
-          pct+"%";
-
-      }
-
-    }
-
-  }
-
-
-  tick();
-
-  cooldownTimers.battle=
-    setInterval(tick,500);
-
-}
-
-
-/* =========================================================
-   DOUBLE
-========================================================= */
-
-const WHEEL_SEGS=
-  [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14];
-
-const segColor=n=>
-  n===0
-  ?" #17803a"
-  :n%2===1
-  ?" #b02020"
-  :" #152030";
-
-const segStroke=n=>
-  n===0
-  ?" #22aa50"
-  :n%2===1
-  ?" #e04040"
-  :" #2d5070";
-
-
-let dblAngle=0;
-let dblSpinning=false;
-let dblBets=[];
-let dblAnimReq=null;
-
-
-function drawWheelCanvas(
-  canvas,
-  angle,
-  highlightNum=null
-){
-
-  const S=canvas.width;
-
-  const cx=S/2;
-  const cy=S/2;
-
-  const R=S/2-4;
-
-  const ctx=
-    canvas.getContext("2d");
-
-  ctx.clearRect(
-    0,0,S,S
-  );
-
-
-  const n=
-    WHEEL_SEGS.length;
-
-  const arc=
-    2*Math.PI/n;
-
-
-  for(
-    let i=0;
-    i<n;
-    i++
-  ){
-
-    const num=
-      WHEEL_SEGS[i];
-
-    const a0=
-      angle-
-      Math.PI/2+
-      i*arc;
-
-    const a1=
-      a0+arc;
-
-
-    ctx.beginPath();
-
-    ctx.moveTo(cx,cy);
-
-    ctx.arc(
-      cx,
-      cy,
-      R,
-      a0,
-      a1
-    );
-
-    ctx.closePath();
-
-
-    ctx.fillStyle=
-      highlightNum===num
-      ?"rgba(255,255,255,.15)"
-      :segColor(num).trim();
-
-    ctx.fill();
-
-
-    ctx.strokeStyle=
-      segStroke(num).trim();
-
-    ctx.lineWidth=1.5;
-
-    ctx.stroke();
-
-
-    ctx.save();
-
-    ctx.translate(cx,cy);
-
-    ctx.rotate(
-      a0+arc/2
-    );
-
-    ctx.translate(
-      R*.70,
-      0
-    );
-
-    ctx.rotate(
-      Math.PI/2
-    );
-
-    ctx.fillStyle="#fff";
-
-    ctx.font=
-      `bold ${Math.floor(S/16)}px Arial`;
-
-    ctx.textAlign="center";
-
-    ctx.textBaseline="middle";
-
-    ctx.shadowColor=
-      "rgba(0,0,0,.8)";
-
-    ctx.shadowBlur=4;
-
-    ctx.fillText(
-      num,
-      0,
-      0
-    );
-
-    ctx.restore();
-
-  }
-
-
-  ctx.beginPath();
-
-  ctx.arc(
-    cx,
-    cy,
-    R*.28,
-    0,
-    2*Math.PI
-  );
-
-  ctx.fillStyle="#07111f";
-
-  ctx.fill();
-
-  ctx.strokeStyle="#1a4a7a";
-
-  ctx.lineWidth=2;
-
-  ctx.stroke();
-
-}
-
-
-function renderDoubleUI(b){
-
-  b.innerHTML=`
-
-<h2>🎯 Double</h2>
-
-<div class="dbl-wrap">
-
-  <div
-    class="dbl-wheel-outer"
-    id="dblWheelOuter">
-
-    <canvas
-      id="dblCanvas"
-      width="290"
-      height="290"
-      class="dbl-canvas">
-    </canvas>
-
-    <div class="dbl-fixed-pointer"></div>
-
-    <div class="dbl-center-overlay">
-
-      <span
-        class="dbl-num"
-        id="dblNum">
-        —
-      </span>
-
-    </div>
-
-  </div>
-
-
-  <div class="dbl-chips">
-
-    <div class="dbl-chip" data-v="10">10</div>
-    <div class="dbl-chip" data-v="50">50</div>
-    <div class="dbl-chip" data-v="100">100</div>
-    <div class="dbl-chip" data-v="250">250</div>
-    <div class="dbl-chip" data-v="500">500</div>
-
-  </div>
-
-
-  <div class="dbl-amt">
-
-    <span style="color:#8295ad">
-      Ставка:
-    </span>
-
-    <input
-      id="dblBetAmt"
-      type="number"
-      value="100"
-      min="1">
-
-    <span style="color:#73c0ff">
-      💎
-    </span>
-
-  </div>
-
-
-  <div class="dbl-main-bets">
-
-    <button
-      class="dbl-btn dbl-red"
-      id="dblBetRed">
-
-      🔴 Красный
-
-      <span>
-        ×2 (1–7)
-      </span>
-
-    </button>
-
-    <button
-      class="dbl-btn dbl-black"
-      id="dblBetBlack">
-
-      ⚫ Чёрный
-
-      <span>
-        ×2 (8–14)
-      </span>
-
-    </button>
-
-    <button
-      class="dbl-btn dbl-green"
-      id="dblBetGreen">
-
-      🟢 Зелёный
-
-      <span>
-        ×14 (0)
-      </span>
-
-    </button>
-
-  </div>
-
-
-  <div class="dbl-extra-bets">
-
-    <button
-      class="dbl-extra"
-      id="dblBetEven">
-
-      Чётное ×2
-
-    </button>
-
-    <button
-      class="dbl-extra"
-      id="dblBetOdd">
-
-      Нечётное ×2
-
-    </button>
-
-    <button
-      class="dbl-extra"
-      id="dblBetHigh">
-
-      8–14 ×2
-
-    </button>
-
-  </div>
-
-
-  <div
-    style="font-size:12px;color:#8295ad;align-self:flex-start">
-
-    Номер ×14:
-
-  </div>
-
-
-  <div
-    class="dbl-nums"
-    id="dblNums">
-  </div>
-
-
-  <div
-    class="dbl-active"
-    id="dblActive">
-
-    Ставок нет
-
-  </div>
-
-
-  <button
-    class="dbl-spin-btn"
-    id="dblSpinBtn">
-
-    🎰 КРУТИТЬ
-
-  </button>
-
-
-  <div
-    class="dbl-result"
-    id="dblResult">
-
-    Сделайте ставку и нажмите крутить
-
-  </div>
-
-</div>
-
-`;
-
-
-  drawWheelCanvas(
-    $("dblCanvas"),
-    dblAngle
-  );
-
-
-  b.querySelectorAll(".dbl-chip")
-    .forEach(c=>{
-
-      c.onclick=()=>{
-
-        $("dblBetAmt").value=
-          c.dataset.v;
-
-        b.querySelectorAll(
-          ".dbl-chip"
-        ).forEach(
-          x=>x.classList.remove("sel")
-        );
-
-        c.classList.add("sel");
-
-      };
-
-    });
-
-
-  const addBet=
-    (type,label,mult,val)=>{
-
-      const amt=
-        parseInt(
-          $("dblBetAmt").value
-        )||0;
-
-      if(amt<1)return;
-
-      dblBets.push({
-        type,
-        label,
-        mult,
-        val,
-        amt
-      });
-
-      renderDblBets();
-
-    };
-
-
-  $("dblBetRed").onclick=
-    ()=>addBet(
-      "color",
-      "🔴 Кр",
-      2,
-      "red"
-    );
-
-  $("dblBetBlack").onclick=
-    ()=>addBet(
-      "color",
-      "⚫ Чёр",
-      2,
-      "black"
-    );
-
-  $("dblBetGreen").onclick=
-    ()=>addBet(
-      "color",
-      "🟢 Зел",
-      14,
-      "green"
-    );
-
-  $("dblBetEven").onclick=
-    ()=>addBet(
-      "parity",
-      "Чёт",
-      2,
-      "even"
-    );
-
-  $("dblBetOdd").onclick=
-    ()=>addBet(
-      "parity",
-      "Нечёт",
-      2,
-      "odd"
-    );
-
-  $("dblBetHigh").onclick=
-    ()=>addBet(
-      "range",
-      "8-14",
-      2,
-      "high"
-    );
-
-
-  const numGrid=
-    $("dblNums");
-
-
-  WHEEL_SEGS.forEach(n=>{
-
-    const d=
-      document.createElement("div");
-
-    d.className=
-      "dbl-numb "+
-      (
-        n===0
-        ?"g"
-        :n%2===1
-        ?"r"
-        :"b"
-      );
-
-    d.textContent=n;
-
-
-    d.onclick=()=>{
-
-      const amt=
-        parseInt(
-          $("dblBetAmt").value
-        )||0;
-
-      if(amt<1)return;
-
-      dblBets.push({
-        type:"num",
-        label:"#"+n,
-        mult:14,
-        val:n,
-        amt
-      });
-
-      renderDblBets();
-
-    };
-
-
-    numGrid.appendChild(d);
-
-  });
-
-
-  $("dblSpinBtn").onclick=
-    dblSpin;
-
-  renderDblBets();
-
-}
-
-
-function renderDblBets(){
-
-  const el=$("dblActive");
-
-  if(!el)return;
-
-  if(!dblBets.length){
-
-    el.textContent=
-      "Ставок нет";
-
-    return;
-
-  }
-
-
-  const tot=
-    dblBets.reduce(
-      (s,b)=>s+b.amt,
-      0
-    );
-
-
-  el.textContent=
-    "Ставки: "+
-    dblBets.map(
-      b=>
-        b.label+
-        " "+
-        b.amt+
-        "💎"
-    ).join(" | ")+
-    " | Итого: "+
-    tot+
-    "💎";
-
-}
-
-
-function dblCheckBets(num){
-
-  let gain=0;
-
-  dblBets.forEach(b=>{
-
-    let win=false;
-
-
-    if(b.type==="color"){
-
-      if(
-        b.val==="red" &&
-        num>0 &&
-        num%2===1
-      )win=true;
-
-      if(
-        b.val==="black" &&
-        num>0 &&
-        num%2===0
-      )win=true;
-
-      if(
-        b.val==="green" &&
-        num===0
-      )win=true;
-
-    }
-
-
-    if(
-      b.type==="parity" &&
-      num>0
-    ){
-
-      if(
-        b.val==="even" &&
-        num%2===0
-      )win=true;
-
-      if(
-        b.val==="odd" &&
-        num%2===1
-      )win=true;
-
-    }
-
-
-    if(
-      b.type==="range" &&
-      num>=8 &&
-      num<=14
-    ){
-      win=true;
-    }
-
-
-    if(
-      b.type==="num" &&
-      b.val===num
-    ){
-      win=true;
-    }
-
-
-    gain+=
-      win
-      ?b.amt*(b.mult-1)
-      :-b.amt;
-
-  });
-
-
-  return gain;
-
-}
-
-
-function dblSpin(){
-
-  if(dblSpinning)return;
-
-
-  const tot=
-    dblBets.reduce(
-      (s,b)=>s+b.amt,
-      0
-    );
-
-
-  if(!dblBets.length){
-
-    return(
-      $("dblResult").textContent=
-        "⚠️ Сначала сделайте ставку"
-    );
-
-  }
-
-
-  if(state.balance<tot){
-
-    return(
-      $("dblResult").textContent=
-        "⚠️ Не хватает 💎"
-    );
-
-  }
-
-
-  state.balance-=tot;
-
-  updateUI();
-
-  dblSpinning=true;
-
-
-  const sb=$("dblSpinBtn");
-
-  if(sb)
-    sb.disabled=true;
-
-
-  $("dblNum").textContent="";
-
-
-  const n=
-    WHEEL_SEGS.length;
-
-  const arc=
-    2*Math.PI/n;
-
-
-  const targetIdx=
-    Math.floor(
-      Math.random()*n
-    );
-
-  const targetNum=
-    WHEEL_SEGS[targetIdx];
-
-
-  const spins=
-    5+
-    Math.floor(
-      Math.random()*4
-    );
-
-
-  const baseTargetAngle=
-    -(
-      targetIdx*arc+
-      arc/2
-    );
-
-
-  const finalAngle=
-    baseTargetAngle-
-    spins*2*Math.PI;
-
-
-  const startA=dblAngle;
-
-  const startT=
-    performance.now();
-
-  const dur=5400;
-
-
-  cancelAnimationFrame(
-    dblAnimReq
-  );
-
-
-  function anim(now){
-
-    const t=
-      Math.min(
-        (now-startT)/dur,
-        1
-      );
-
-
-    const ease=
-      1-Math.pow(1-t,4);
-
-
-    dblAngle=
-      startA+
-      (finalAngle-startA)*
-      ease;
-
-
-    const cv=
-      $("dblCanvas");
-
-
-    if(!cv){
-
-      dblSpinning=false;
-
-      return;
-
-    }
-
-
-    const near=t>.93;
-
-
-    drawWheelCanvas(
-      cv,
-      dblAngle,
-      near
-      ?targetNum
-      :null
-    );
-
-
-    $("dblNum").textContent=
-      near
-      ?targetNum
-      :"";
-
-
-    if(t<1){
-
-      dblAnimReq=
-        requestAnimationFrame(anim);
-
-    }else{
-
-      dblAngle=finalAngle;
-
-      drawWheelCanvas(
-        cv,
-        dblAngle,
-        targetNum
-      );
-
-
-      $("dblNum").textContent=
-        targetNum;
-
-
-      const gain=
-        dblCheckBets(
-          targetNum
-        );
-
-
-      state.balance+=
-        Math.max(
-          0,
-          tot+gain
-        );
-
-
-      localSave();
-
-
-      const lbl=
-        targetNum===0
-        ?"🟢 Зелёный"
-        :targetNum%2===1
-        ?"🔴 Красный"
-        :"⚫ Чёрный";
-
-
-      const resEl=
-        $("dblResult");
-
-
-      if(resEl){
-
-        if(gain>=0){
-
-          resEl.innerHTML=
-            `<span style="color:#42ff9a">
-              🎉 +${gain} 💎 — ${lbl} ${targetNum}
-            </span>`;
-
-        }else{
-
-          resEl.innerHTML=
-            `<span style="color:#ff6060">
-              💥 ${gain} 💎 — ${lbl} ${targetNum}
-            </span>`;
-
-        }
-
-      }
-
-
-      dblBets=[];
-
-      renderDblBets();
-
-      dblSpinning=false;
-
-      if(sb)
-        sb.disabled=false;
-
-    }
-
-  }
-
-
-  dblAnimReq=
-    requestAnimationFrame(anim);
-
-}
-
-
-/* =========================================================
-   UPGRADE
-========================================================= */
-
-let upgSourceIdx=null;
-let upgTargetItem=null;
-let upgRingAnimReq=null;
-
-
-function drawUpgradeRing(
-  canvas,
-  pct,
-  size,
-  needleAngle
-){
-
-  const ctx=
-    canvas.getContext("2d");
-
-  const cx=size/2;
-  const cy=size/2;
-
-  const R=size/2-18;
-
-  const lw=size/8.5;
-
-  ctx.clearRect(
-    0,
-    0,
-    size,
-    size
-  );
-
-
-  const startA=
-    -Math.PI/2;
-
-
-  const successAngle=
-    2*Math.PI*
-    (
-      Math.min(pct,100)/100
-    );
-
-
-  ctx.beginPath();
-
-  ctx.arc(
-    cx,
-    cy,
-    R,
-    0,
-    2*Math.PI
-  );
-
-  ctx.strokeStyle="#5a1515";
-
-  ctx.lineWidth=lw;
-
-  ctx.stroke();
-
-
-  if(pct>0){
-
-    ctx.beginPath();
-
-    ctx.arc(
-      cx,
-      cy,
-      R,
-      startA,
-      startA+successAngle
-    );
-
-    ctx.strokeStyle="#00e676";
-
-    ctx.lineWidth=lw;
-
-    ctx.lineCap="butt";
-
-    ctx.shadowColor="#00e676";
-
-    ctx.shadowBlur=20;
-
-    ctx.stroke();
-
-    ctx.shadowBlur=0;
-
-  }
-
-
-  if(
-    needleAngle!==undefined
-  ){
-
-    const na=
-      startA+needleAngle;
-
-    const needleR=
-      R+lw*.5;
-
-    const baseR=
-      R*.08;
-
-
-    const tx=
-      cx+
-      needleR*
-      Math.cos(na);
-
-    const ty=
-      cy+
-      needleR*
-      Math.sin(na);
-
-
-    const bx=
-      cx+
-      baseR*
-      Math.cos(na+Math.PI);
-
-    const by=
-      cy+
-      baseR*
-      Math.sin(na+Math.PI);
-
-
-    ctx.save();
-
-    ctx.strokeStyle="#55aaff";
-
-    ctx.lineWidth=size/28;
-
-    ctx.lineCap="round";
-
-    ctx.shadowColor="#268cff";
-
-    ctx.shadowBlur=16;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      bx,
-      by
-    );
-
-    ctx.lineTo(
-      tx,
-      ty
-    );
-
-    ctx.stroke();
-
-
-    ctx.translate(
-      tx,
-      ty
-    );
-
-    ctx.rotate(
-      na+Math.PI/2
-    );
-
-
-    ctx.beginPath();
-
-    ctx.moveTo(0,0);
-
-    ctx.lineTo(
-      -size/26,
-      size/14
-    );
-
-    ctx.lineTo(
-      size/26,
-      size/14
-    );
-
-    ctx.closePath();
-
-
-    ctx.fillStyle="#55aaff";
-
-    ctx.fill();
-
-    ctx.shadowBlur=0;
-
-    ctx.restore();
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-      cx,
-      cy,
-      size/18,
-      0,
-      2*Math.PI
-    );
-
-    ctx.fillStyle="#0a1828";
-
-    ctx.fill();
-
-    ctx.strokeStyle="#3a7abf";
-
-    ctx.lineWidth=2;
-
-    ctx.stroke();
-
-  }
-
-}
-
-
-function animUpgradeRing(
-  canvas,
-  targetPct,
-  size,
-  onDone
-){
-
-  let cur=0;
-
-  cancelAnimationFrame(
-    upgRingAnimReq
-  );
-
-
-  function step(){
-
-    cur=
-      Math.min(
-        targetPct,
-        cur+2.5
-      );
-
-
-    drawUpgradeRing(
-      canvas,
-      cur,
-      size
-    );
-
-
-    if(
-      cur<targetPct
-    ){
-
-      upgRingAnimReq=
-        requestAnimationFrame(step);
-
-    }else if(onDone){
-
-      onDone();
-
-    }
-
-  }
-
-
-  step();
-
-}
-
-
-function renderUpgradeUI(b){
-
-  b.innerHTML=`
-
-<h2>⬆️ Апгрейдер</h2>
-
-<div class="upg-wrap">
-
-  <div
-    class="upg-ring-area">
-
-    <canvas
-      id="upgCanvas"
-      width="260"
-      height="260"
-      class="upg-ring-canvas">
-    </canvas>
-
-    <div class="upg-ring-center">
-
-      <span
-        class="upg-ring-emoji"
-        id="upgRingEmoji">
-        ❔
-      </span>
-
-      <span
-        class="upg-ring-pct"
-        id="upgRingPct">
-        ?%
-      </span>
-
-      <span
-        class="upg-ring-price-lbl"
-        id="upgRingPrice">
-
-        Выбери предмет
-
-      </span>
-
-    </div>
-
-  </div>
-
-
-  <div class="upg-src-label">
-    🎒 Что улучшаем:
-  </div>
-
-  <div
-    class="upg-source-list"
-    id="upgSrcList">
-  </div>
-
-
-  <div
-    class="upg-tgt-label"
-    id="upgTgtLbl"
-    style="display:none">
-
-    🎯 Цель апгрейда:
-
-  </div>
-
-
-  <div
-    class="upg-tgt-list"
-    id="upgTgtList">
-  </div>
-
-
-  <button
-    class="upg-go"
-    id="upgGoBtn"
-    disabled>
-
-    ⬆️ АПГРЕЙД
-
-  </button>
-
-</div>
-
-`;
-
-
-  drawUpgradeRing(
-    $("upgCanvas"),
-    0,
-    260
-  );
-
-
-  renderUpgSources();
-
-
-  $("upgGoBtn").onclick=
-    runUpgradeRing;
-
-}
-
-
-function renderUpgSources(){
-
-  const el=
-    $("upgSrcList");
-
-  if(!el)return;
-
-
-  if(!state.inventory.length){
-
-    el.innerHTML=`
-      <div class="drop center muted">
-        Инвентарь пуст. Открой кейс!
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  el.innerHTML=
-    state.inventory.map(
-      (x,i)=>`
-
-      <div
-        class="upg-src-row"
-        id="upgS${i}">
-
-        <div class="upg-src-thumb">
-          ${x.emoji}
-        </div>
-
-        <div class="upg-src-info">
-
-          <b>
-            ${escapeHTML(x.name)}
-          </b>
-
-          <span>
-            ${x.type} • ${x.price} 💎
-          </span>
-
-        </div>
-
-        <span
-          style="color:#8295ad;font-size:18px">
-
-          ›
-
-        </span>
-
-      </div>
-
-      `
-    ).join("");
-
-
-  state.inventory.forEach(
-    (_,i)=>{
-
-      const row=
-        document.getElementById(
-          "upgS"+i
-        );
-
-      if(!row)return;
-
-
-      row.onclick=()=>{
-
-        upgSourceIdx=i;
-
-        upgTargetItem=null;
-
-
-        document
-          .querySelectorAll(
-            ".upg-src-row"
-          )
-          .forEach(
-            r=>r.classList.remove("sel")
-          );
-
-
-        row.classList.add("sel");
-
-
-        const src=
-          state.inventory[i];
-
-
-        $("upgRingEmoji")
-          .textContent=
-          src.emoji;
-
-
-        $("upgRingPct")
-          .textContent="?%";
-
-
-        $("upgRingPrice")
-          .textContent=
-          src.price+" 💎";
-
-
-        drawUpgradeRing(
-          $("upgCanvas"),
-          0,
-          260
-        );
-
-
-        $("upgGoBtn")
-          .disabled=true;
-
-
-        renderUpgTargets();
-
-      };
-
-    }
-  );
-
-}
-
-
-function renderUpgTargets(){
-
-  const lbl=
-    $("upgTgtLbl");
-
-  const tl=
-    $("upgTgtList");
-
-  if(!tl)return;
-
-
-  lbl.style.display="block";
-
-
-  const src=
-    state.inventory[
-      upgSourceIdx
-    ];
-
-
-  const tgts=
-    items
-      .filter(
-        x=>x.price>src.price
-      )
-      .slice(0,8);
-
-
-  if(!tgts.length){
-
-    tl.innerHTML=
-      `<div style="color:#8295ad;font-size:13px">
-        Нет доступных целей
-      </div>`;
-
-    return;
-
-  }
-
-
-  tl.innerHTML=
-    tgts.map(
-      t=>{
-
-        const ch=
-          Math.min(
-            100,
-            Math.round(
-              src.price/
-              t.price*
-              100
-            )
-          );
-
-
-        const cls=
-          ch>=50
-          ?"high"
-          :ch>=25
-          ?"mid"
-          :"low";
-
-
-        return`
-
-          <div
-            class="upg-tgt-row"
-            id="upgT${t.id}">
-
-            <div class="upg-tgt-thumb">
-              ${t.emoji}
-            </div>
-
-            <div class="upg-src-info">
-
-              <b>
-                ${escapeHTML(t.name)}
-              </b>
-
-              <span>
-                ${t.type} • ${t.price} 💎
-              </span>
-
-            </div>
-
-            <span
-              class="upg-tgt-chance ${cls}">
-
-              ${ch}%
-
-            </span>
-
-          </div>
-
-        `;
-
-      }
-    ).join("");
-
-
-  tgts.forEach(
-    t=>{
-
-      const row=
-        document.getElementById(
-          "upgT"+t.id
-        );
-
-      if(!row)return;
-
-
-      const ch=
-        Math.min(
-          100,
-          Math.round(
-            src.price/
-            t.price*
-            100
-          )
-        );
-
-
-      row.onclick=()=>{
-
-        upgTargetItem=t;
-
-
-        document
-          .querySelectorAll(
-            ".upg-tgt-row"
-          )
-          .forEach(
-            r=>r.classList.remove("sel")
-          );
-
-
-        row.classList.add("sel");
-
-
-        $("upgGoBtn")
-          .disabled=false;
-
-
-        $("upgRingEmoji")
-          .textContent=t.emoji;
-
-
-        $("upgRingPct")
-          .textContent=
-          ch+"%";
-
-
-        $("upgRingPrice")
-          .textContent=
-          t.price+" 💎";
-
-
-        animUpgradeRing(
-          $("upgCanvas"),
-          ch,
-          260
-        );
-
-      };
-
-    }
-  );
-
-}
-
-
-function runUpgradeRing(){
-
-  if(
-    upgSourceIdx===null ||
-    !upgTargetItem
-  ){
-    return;
-  }
-
-
-  const src=
-    state.inventory[
-      upgSourceIdx
-    ];
-
-
-  const ch=
-    Math.min(
-      100,
-      src.price/
-      upgTargetItem.price*
-      100
-    );
-
-
-  const successAngle=
-    2*Math.PI*
-    (ch/100);
-
-
-  const success=
-    Math.random()*100<ch;
-
-
-  let finalNeedleAngle;
-
-
-  if(success){
-
-    const margin=.05;
-
-    finalNeedleAngle=
-      margin+
-      (
-        successAngle-
-        margin*2
-      )*
-      Math.random();
-
-  }else{
-
-    const redSize=
-      2*Math.PI-
-      successAngle;
-
-    const margin=.05;
-
-    finalNeedleAngle=
-      successAngle+
-      margin+
-      redSize*
-      Math.random();
-
-  }
-
-
-  const goBtn=
-    $("upgGoBtn");
-
-  if(goBtn)
-    goBtn.disabled=true;
-
-
-  const ov=
-    $("upgOverlay");
-
-  ov.classList.add("open");
-
-
-  const rc=
-    $("upgResCanvas");
-
-
-  $("upgResLabel").textContent="";
-
-  $("upgResName").textContent="";
-
-  $("upgResPrice").textContent="";
-
-  $("upgResEmoji")
-    .textContent=
-    src.emoji;
-
-  $("upgResPct")
-    .textContent=
-    ch.toFixed(0)+"%";
-
-  $("upgResClose")
-    .style.display="none";
-
-
-  const spins=
-    4+
-    Math.floor(
-      Math.random()*3
-    );
-
-
-  const totalAngle=
-    spins*2*Math.PI+
-    finalNeedleAngle;
-
-
-  const dur=
-    3200+
-    Math.random()*1800;
-
-
-  const startT=
-    performance.now();
-
-
-  function spinStep(now){
-
-    const t=
-      Math.min(
-        (now-startT)/dur,
-        1
-      );
-
-
-    const ease=
-      1-Math.pow(1-t,3);
-
-
-    const curAngle=
-      (totalAngle*ease)%
-      (2*Math.PI);
-
-
-    drawUpgradeRing(
-      rc,
-      ch,
-      200,
-      curAngle
-    );
-
-
-    if(t<1){
-
-      requestAnimationFrame(
-        spinStep
-      );
-
-    }else{
-
-      drawUpgradeRing(
-        rc,
-        ch,
-        200,
-        finalNeedleAngle
-      );
-
-
-      state.statistics.upgrades=
-        (state.statistics.upgrades||0)+1;
-
-
-      if(success){
-
-        state.inventory[
-          upgSourceIdx
-        ]={
-          name:upgTargetItem.name,
-          price:upgTargetItem.price,
-          emoji:upgTargetItem.emoji,
-          type:upgTargetItem.type
-        };
-
-      }else{
-
-        state.inventory.splice(
-          upgSourceIdx,
-          1
-        );
-
-      }
-
-
-      localSave();
-
-
-      $("upgResEmoji")
-        .textContent=
-        success
-        ?upgTargetItem.emoji
-        :"💥";
-
-
-      $("upgResLabel")
-        .innerHTML=
-        success
-        ?`<span style="color:#42ff9a">
-            🎉 УСПЕХ!
-          </span>`
-        :`<span style="color:#ff6060">
-            💥 НЕУДАЧА
-          </span>`;
-
-
-      $("upgResName")
-        .textContent=
-        success
-        ?upgTargetItem.name
-        :"Предмет потерян";
-
-
-      $("upgResPrice")
-        .textContent=
-        success
-        ?upgTargetItem.price+" 💎"
-        :"";
-
-
-      $("upgResClose")
-        .style.display="";
-
-    }
-
-  }
-
-
-  requestAnimationFrame(
-    spinStep
-  );
-
-}
-
-
-$("upgResClose").onclick=()=>{
-
-  $("upgOverlay")
-    .classList.remove("open");
-
-  upgSourceIdx=null;
-
-  upgTargetItem=null;
-
-  const mb=
-    $("modalBody");
-
-  if(mb)
-    renderUpgradeUI(mb);
-
-};
-
-
-/* =========================================================
-   OPEN GAME
-========================================================= */
-
-function openGame(type){
-
-  const m=$("modal");
-
-  const b=$("modalBody");
-
-  m.classList.add("open");
-
-
-  if(type==="cases"){
-
-    b.innerHTML=
-      `<h2>🎁 Кейсы</h2>`+
-      cases.map(
-        (c,i)=>`
-
-          <div class="drop">
-
-            <h3>
-              ${c.name}
-            </h3>
-
-            <p class="muted">
-              Цена: ${c.cost} 💎
-            </p>
-
-            ${
-              c.drops.map(
-                d=>`
-
-                  <div>
-
-                    ${d[2]}
-                    ${escapeHTML(d[0])}
-                    — ${d[3]}%
-
-                    <div class="cooldown-bar">
-
-                      <div
-                        class="cooldown-bar-fill"
-                        style="width:${d[3]*2}%">
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                `
-              ).join("")
-            }
-
-            <br>
-
-            <button
-              class="openCase primary"
-              data-i="${i}">
-
-              Открыть кейс
-
-            </button>
-
-          </div>
-
-        `
-      ).join("");
-
-
-    b.querySelectorAll(
-      ".openCase"
-    ).forEach(
-      x=>x.onclick=
-        ()=>openCase(
-          +x.dataset.i
-        )
-    );
-
-  }
-
-
-  if(type==="battle"){
-
-    const rem=
-      getBattleCooldownRemaining();
-
-
-    const btnText=
-      rem>0
-      ?"⏳ "+formatCooldown(rem)
-      :"Начать за 100 💎";
-
-
-    const pct=
-      rem>0
-      ?(
-        (BATTLE_COOLDOWN_MS-rem)/
-        BATTLE_COOLDOWN_MS*
-        100
-      ).toFixed(1)
-      :0;
-
-
-    b.innerHTML=`
-
-      <h2>⚔️ Кейс-баттл</h2>
-
-      <p class="muted">
-        Ты и бот открываете средний кейс.
-        Дороже дроп — победа.
-      </p>
-
-      <button
-        id="battleBtn"
-        class="primary"
-        ${rem>0?"disabled":""}>
-
-        ${btnText}
-
-      </button>
-
-      <div
-        class="cooldown-bar"
-        id="battleCdBar"
-        style="${rem>0?"":"display:none"}">
-
-        <div
-          class="cooldown-bar-fill"
-          id="battleCdFill"
-          style="width:${pct}%">
-        </div>
+        <button
+          class="primary"
+          onclick="addFriendByUsername()">
+          Найти
+        </button>
 
       </div>
 
       <div
-        class="cooldown-badge"
-        id="battleCdBadge"
-        style="${rem>0?"":"display:none"}">
-
-        ${
-          rem>0
-          ?"Доступно через "+
-            formatCooldown(rem)
-          :""
-        }
-
+        id="friendSearchResult"
+        style="margin-top:10px;font-size:13px;color:#6a8ba5">
       </div>
 
-      <div id="battleResult"></div>
+    </div>
 
-    `;
-
-
-    startBattleCooldownDisplay(
-      $("battleBtn"),
-      $("battleCdFill"),
-      $("battleCdBadge")
-    );
-
-
-    if(!getBattleCooldownRemaining()){
-
-      $("battleBtn").onclick=
-        battle;
-
-    }
-
-  }
-
-
-  if(type==="double"){
-
-    dblBets=[];
-
-    renderDoubleUI(b);
-
-  }
-
-
-  if(type==="upgrade"){
-
-    upgSourceIdx=null;
-
-    upgTargetItem=null;
-
-    renderUpgradeUI(b);
-
-  }
-
-
-  if(type==="contracts"){
-
-    b.innerHTML=`
-
-      <h2>📜 Контракты</h2>
-
-      <p class="muted">
-        3 предмета превращаются
-        в один более дорогой.
-      </p>
+    <div class="friends-tabs">
 
       <button
-        id="contractBtn"
-        class="primary">
-
-        Обменять 3 предмета
-
+        class="friends-tab active"
+        id="ftabFriends"
+        onclick="switchFriendTab('friends')">
+        👥 Друзья
       </button>
-
-      <div id="contractResult"></div>
-
-    `;
-
-
-    $("contractBtn").onclick=
-      contract;
-
-  }
-
-
-  if(type==="royal"){
-
-    b.innerHTML=`
-
-      <h2>👑 Королевская битва</h2>
-
-      <p class="muted">
-        5 раундов против ботов.
-        Нужно выиграть минимум 3.
-      </p>
 
       <button
-        id="royalBtn"
-        class="primary">
-
-        Начать за 100 💎
-
+        class="friends-tab"
+        id="ftabRequests"
+        onclick="switchFriendTab('requests')">
+        📩 Запросы
       </button>
 
-      <div id="royalResult"></div>
-
-    `;
-
-
-    $("royalBtn").onclick=
-      royal;
-
-  }
-
-}
-
-
-/* =========================================================
-   CASE OPENING
-========================================================= */
-
-function showCaseResult(drop){
-
-  $("caseOpeningStatus")
-    .textContent=
-    "🎉 Выпал предмет!";
-
-
-  $("caseWinEmoji")
-    .textContent=
-    drop[2];
-
-
-  $("caseWinName")
-    .textContent=
-    drop[0];
-
-
-  $("caseWinPrice")
-    .textContent=
-    drop[1]+" 💎";
-
-
-  $("caseWinCard")
-    .classList.add("show");
-
-}
-
-
-function openCase(i){
-
-  const c=cases[i];
-
-
-  if(
-    state.balance<c.cost
-  ){
-
-    return toast(
-      "Не хватает 💎"
-    );
-
-  }
-
-
-  state.balance-=c.cost;
-
-
-  state.statistics.casesOpened=
-    (state.statistics.casesOpened||0)+1;
-
-
-  localSave();
-
-
-  pendingDrop=
-    pick(c.drops);
-
-
-  const overlay=
-    $("caseOpeningOverlay");
-
-  const strip=
-    $("caseOpeningStrip");
-
-
-  $("caseOpeningTitle")
-    .textContent=
-    "🎁 "+c.name;
-
-
-  $("caseOpeningStatus")
-    .textContent=
-    "Открываем кейс…";
-
-
-  $("caseWinCard")
-    .classList.remove("show");
-
-
-  overlay.classList.add("open");
-
-
-  const sequence=[];
-
-
-  for(
-    let n=0;
-    n<14;
-    n++
-  ){
-
-    sequence.push(
-      ...c.drops
-    );
-
-  }
-
-
-  const winnerIndex=
-    sequence.length-
-    c.drops.length+
-    Math.max(
-      0,
-      c.drops.indexOf(
-        pendingDrop
-      )
-    );
-
-
-  sequence[winnerIndex]=
-    pendingDrop;
-
-
-  strip.style.transition="none";
-
-  strip.style.transform=
-    "translateX(0)";
-
-
-  strip.innerHTML=
-    sequence.map(
-      x=>`
-
-        <div class="roulette-item">
-
-          <div class="ri-emoji">
-            ${x[2]}
-          </div>
-
-          <div class="ri-name">
-            ${escapeHTML(x[0])}
-          </div>
-
-          <div class="ri-price">
-            ${x[1]} 💎
-          </div>
-
-        </div>
-
-      `
-    ).join("");
-
-
-  requestAnimationFrame(
-    ()=>requestAnimationFrame(
-      ()=>{
-
-        const card=
-          strip.children[
-            winnerIndex
-          ];
-
-
-        const v=
-          strip.parentElement;
-
-
-        const target=
-          card.offsetLeft+
-          card.offsetWidth/2-
-          v.clientWidth/2;
-
-
-        strip.style.transition=
-          "transform 4.8s cubic-bezier(.07,.72,.12,1)";
-
-
-        strip.style.transform=
-          `translateX(${-Math.max(0,target)}px)`;
-
-      }
-    )
-  );
-
-
-  clearTimeout(
-    window.__caseTimer
-  );
-
-
-  window.__caseTimer=
-    setTimeout(
-      ()=>{
-
-        strip.children[
-          winnerIndex
-        ]?.classList.add("win");
-
-        showCaseResult(
-          pendingDrop
-        );
-
-      },
-      4900
-    );
-
-}
-
-
-function closeCaseOverlay(){
-
-  $("caseOpeningOverlay")
-    .classList.remove("open");
-
-  pendingDrop=null;
-
-}
-
-
-function takeCaseDrop(){
-
-  if(!pendingDrop)return;
-
-
-  addItem(
-    pendingDrop[0],
-    pendingDrop[1],
-    pendingDrop[2],
-    itemType(
-      pendingDrop[0]
-    )
-  );
-
-
-  toast(
-    "Предмет добавлен в инвентарь"
-  );
-
-
-  closeCaseOverlay();
-
-}
-
-
-function sellCaseDrop(){
-
-  if(!pendingDrop)return;
-
-
-  state.balance+=
-    pendingDrop[1];
-
-
-  state.statistics.sales=
-    (state.statistics.sales||0)+1;
-
-
-  localSave();
-
-
-  toast(
-    "Продано: +"+
-    pendingDrop[1]+
-    " 💎"
-  );
-
-
-  closeCaseOverlay();
-
-}
-
-
-/* =========================================================
-   BATTLE
-========================================================= */
-
-function battle(){
-
-  if(
-    getBattleCooldownRemaining()>0
-  ){
-
-    return toast(
-      "⏳ Подождите "+
-      formatCooldown(
-        getBattleCooldownRemaining()
-      )
-    );
-
-  }
-
-
-  if(state.balance<100){
-
-    return toast(
-      "Не хватает 💎"
-    );
-
-  }
-
-
-  state.balance-=100;
-
-  setBattleCooldown();
-
-
-  const a=
-    pick(cases[1].drops);
-
-  const bot=
-    pick(cases[1].drops);
-
-
-  const win=
-    a[1]>=bot[1];
-
-
-  if(win){
-
-    state.inventory.push({
-
-      name:a[0],
-      price:a[1],
-      emoji:a[2],
-      type:itemType(a[0])
-
-    });
-
-  }
-
-
-  localSave();
-
-
-  $("battleResult").innerHTML=`
-
-    <div class="drop">
-
-      Твой дроп:
-      ${a[2]}
-      ${escapeHTML(a[0])}
-      — ${a[1]} 💎
-
-      <br>
-
-      Бот:
-      ${bot[2]}
-      ${escapeHTML(bot[0])}
-      — ${bot[1]} 💎
-
-      <hr>
-
-      <b>
-        ${
-          win
-          ?"🏆 Ты победил и забрал дроп!"
-          :"💥 Бот победил."
-        }
-      </b>
-
+    </div>
+
+    <div id="friendsContent">
+      <div class="muted" style="text-align:center;padding:20px">
+        Загружаем…
+      </div>
     </div>
 
   `;
 
 
-  const btn=
-    $("battleBtn");
+  $("modal").classList.add("open");
 
-  const fill=
-    $("battleCdFill");
-
-  const badge=
-    $("battleCdBadge");
-
-
-  if(
-    btn &&
-    fill &&
-    badge
-  ){
-
-    startBattleCooldownDisplay(
-      btn,
-      fill,
-      badge
-    );
-
-  }
+  switchFriendTab("friends");
 
 }
 
 
-/* =========================================================
-   CONTRACT
-========================================================= */
-
-function contract(){
-
-  if(
-    state.inventory.length<3
-  ){
-
-    return toast(
-      "Нужно 3 предмета"
-    );
-
-  }
+let currentFriendTab="friends";
 
 
-  const chosen=
-    state.inventory.splice(
-      0,
-      3
-    );
+async function switchFriendTab(tab){
+
+  currentFriendTab=tab;
 
 
-  const value=
-    Math.floor(
-      chosen.reduce(
-        (s,x)=>s+x.price,
-        0
-      )*.75
-    );
+  ["friends","requests"].forEach(t=>{
 
+    const el=$("ftab"+t.charAt(0).toUpperCase()+t.slice(1));
 
-  const pool=
-    items.filter(
-      x=>x.price<=
-        Math.max(
-          value,
-          1
-        )
-    );
-
-
-  const target=
-    pool[
-      Math.floor(
-        Math.random()*
-        pool.length
-      )
-    ];
-
-
-  state.inventory.push({
-
-    name:target.name,
-    price:target.price,
-    emoji:target.emoji,
-    type:target.type
+    if(el)
+      el.className=
+        "friends-tab"+
+        (t===tab?" active":"");
 
   });
 
 
-  localSave();
+  const cont=$("friendsContent");
 
+  if(!cont)return;
 
-  $("contractResult")
-    .innerHTML=`
-
-      <div class="drop center">
-
-        📜 Получено:
-        ${target.emoji}
-        ${escapeHTML(target.name)}
-        — ${target.price} 💎
-
-      </div>
-
-    `;
-
-}
-
-
-/* =========================================================
-   ROYAL
-========================================================= */
-
-function royal(){
-
-  if(state.balance<100){
-
-    return toast(
-      "Не хватает 💎"
-    );
-
-  }
-
-
-  state.balance-=100;
-
-
-  let wins=0;
-
-
-  for(
-    let i=0;
-    i<5;
-    i++
-  ){
-
-    if(Math.random()<.55)
-      wins++;
-
-  }
-
-
-  if(wins>=3)
-    state.balance+=200;
-
-
-  localSave();
-
-
-  $("royalResult")
-    .innerHTML=`
-
-      <div class="drop center">
-
-        ${
-          wins>=3
-          ?"👑 Победа! +200 💎"
-          :"💥 Поражение"
-        }
-
-        <br>
-
-        Побед в раундах:
-        ${wins}/5
-
-      </div>
-
-    `;
-
-}
-
-
-/* =========================================================
-   FIREBASE
-========================================================= */
-
-function firebaseError(e){
-
-  const c=e?.code||"";
-
-  const m=e?.message||String(e);
-
-
-  if(
-    c==="auth/operation-not-allowed"
-  )
-    return"Google-вход не включён в Firebase";
-
-
-  if(
-    c==="auth/unauthorized-domain"
-  )
-    return"Этот домен не добавлен в Authorized domains";
-
-
-  if(
-    c==="auth/popup-blocked"
-  )
-    return"Браузер заблокировал всплывающее окно.";
-
-
-  if(
-    c==="auth/popup-closed-by-user"
-  )
-    return"Окно входа было закрыто.";
-
-
-  if(
-    c==="auth/cancelled-popup-request"
-  )
-    return"Запрос отменён.";
-
-
-  if(
-    c==="auth/network-request-failed"
-  )
-    return"Ошибка сети";
-
-
-  if(
-    c==="auth/invalid-api-key"
-  )
-    return"Неверный Firebase API key";
-
-
-  if(
-    /permission_denied/i.test(m)
-  )
-    return"Нет доступа к RTDB";
-
-
-  if(
-    /network|offline|fetch/i.test(m)
-  )
-    return"Ошибка сети";
-
-
-  return m;
-
-}
-
-
-function setFirebaseStatus(
-  text,
-  on=false
-){
-
-  $("firebaseStatus")
-    .textContent=text;
-
-
-  $("profileOnline")
-    .textContent=
-    guestMode
-    ?"GUEST"
-    :(on?"ONLINE":"OFFLINE");
-
-}
-
-
-function updateGoogleUI(user){
-
-  if(guestMode){
-
-    $("profileName")
-      .textContent="Гость";
-
-    $("profileUid")
-      .textContent=
-      "Локальный аккаунт";
-
-    $("firebaseUid")
-      .textContent="";
-
-    $("googleAccountText")
-      .textContent=
-      "👤 Вы используете гостевой режим.";
-
-    $("googleLoginBtn")
-      .style.display="block";
-
-    $("googleLogoutBtn")
-      .style.display="none";
-
-    $("profileAvatar")
-      .textContent="👤";
-
-    return;
-
-  }
-
-
-  if(!user){
-
-    $("profileName")
-      .textContent=
-      "Пользователь";
-
-    $("profileUid")
-      .textContent=
-      "Вход не выполнен";
-
-    $("firebaseUid")
-      .textContent="";
-
-    $("googleAccountText")
-      .textContent=
-      "Войдите через Google для облачного сохранения.";
-
-    $("googleLoginBtn")
-      .style.display="block";
-
-    $("googleLogoutBtn")
-      .style.display="none";
-
-    $("profileAvatar")
-      .textContent="👤";
-
-    return;
-
-  }
-
-
-  $("profileUid")
-    .textContent=
-    "UID: "+user.uid;
-
-
-  $("firebaseUid")
-    .textContent=
-    "Google: "+
-    (user.email||"")+
-    " • UID: "+
-    user.uid;
-
-
-  $("profileName")
-    .textContent=
-    user.displayName||
-    (
-      user.email
-      ?user.email.split("@")[0]
-      :"Пользователь"
-    );
-
-
-  $("googleAccountText")
-    .textContent=
-    user.email
-    ?"🔵 Google: "+user.email
-    :"🔵 Аккаунт Google подключён";
-
-
-  $("googleLoginBtn")
-    .style.display="none";
-
-
-  $("googleLogoutBtn")
-    .style.display="block";
-
-
-  if(user.photoURL){
-
-    $("profileAvatar").innerHTML=
-      `<img
-        src="${escapeHTML(user.photoURL)}"
-        style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-
-  }else{
-
-    $("profileAvatar")
-      .textContent="🔵";
-
-  }
-
-}
-
-
-async function loginWithGoogle(){
-
-  if(
-    !auth ||
-    !firebaseReady
-  ){
-
-    $("authStatus")
-      .textContent=
-      "⏳ Firebase ещё загружается…";
-
-    return;
-
-  }
-
-
-  const provider=
-    new firebase.auth.GoogleAuthProvider();
-
-
-  provider.setCustomParameters({
-    prompt:"select_account"
-  });
-
-
-  $("authStatus")
-    .textContent=
-    "🔵 Открываем Google…";
+  cont.innerHTML=
+    `<div class="muted" style="text-align:center;padding:20px">Загружаем…</div>`;
 
 
   try{
 
-    const result=
-      await auth.signInWithPopup(
-        provider
-      );
+    if(tab==="friends"){
 
-
-    if(
-      result &&
-      result.user
-    ){
-
-      $("authStatus")
-        .textContent="";
-
-      toast(
-        "✅ Вход через Google выполнен"
-      );
-
-    }
-
-  }catch(e){
-
-    const msg=
-      firebaseError(e);
-
-
-    $("authStatus")
-      .textContent=
-      "❌ "+msg;
-
-
-    toast(
-      "Ошибка: "+msg
-    );
-
-  }
-
-}
-
-
-async function logoutGoogle(){
-
-  if(!auth)return;
-
-
-  try{
-
-    loggingOut=true;
-
-    clearTimeout(saveTimer);
-
-
-    /*
-      Убираем presence.
-    */
-
-    if(
-      firebaseUser &&
-      db
-    ){
-
-      try{
-
+      const snap=
         await db.ref(
-          "prognozer/community/online/"
-          +firebaseUser.uid
-        ).remove();
+          "prognozer/friends/"+
+          firebaseUser.uid
+        ).once("value");
 
-      }catch(_){}
 
-    }
+      const fr=snap.val()||{};
 
-
-    await auth.signOut();
-
-
-    firebaseUser=null;
-
-    guestMode=false;
-
-    lastAuthUid=null;
-
-    state=createDefaultState();
-
-    updateUI();
-
-
-    $("authScreen")
-      .classList.add("open");
-
-
-    updateGoogleUI(null);
-
-
-    setFirebaseStatus(
-      "Выберите способ входа",
-      false
-    );
-
-
-    $("authStatus")
-      .textContent="";
-
-
-    loggingOut=false;
-
-
-    toast(
-      "Вы вышли из Google"
-    );
-
-  }catch(e){
-
-    loggingOut=false;
-
-    toast(
-      "Ошибка выхода: "+
-      firebaseError(e)
-    );
-
-  }
-
-}
-
-
-async function continueGuest(){
-
-  try{
-
-    if(
-      auth &&
-      auth.currentUser &&
-      !auth.currentUser.isAnonymous
-    ){
-
-      await auth.signOut();
-
-    }
-
-  }catch(e){}
-
-
-  guestMode=true;
-
-  firebaseUser=null;
-
-  loadGuest();
-
-
-  $("authScreen")
-    .classList.remove("open");
-
-
-  updateGoogleUI(null);
-
-
-  setFirebaseStatus(
-    "👤 Гостевой режим",
-    false
-  );
-
-
-  $("authStatus")
-    .textContent="";
-
-
-  toast(
-    "Вы вошли как гость"
-  );
-
-
-  loadUsernameDisplay();
-
-}
-
-
-async function continueGoogle(){
-
-  if(
-    !auth ||
-    !firebaseReady
-  ){
-
-    $("authStatus")
-      .textContent=
-      "⏳ Firebase ещё загружается…";
-
-    return;
-
-  }
-
-
-  guestMode=false;
-
-  await loginWithGoogle();
-
-}
-
-
-/* =========================================================
-   FIREBASE INIT
-========================================================= */
-
-async function initFirebase(){
-
-  if(!window.firebase){
-
-    $("authStatus")
-      .textContent=
-      "❌ Firebase SDK не загрузился";
-
-    return;
-
-  }
-
-
-  try{
-
-    if(!firebase.apps.length){
-
-      firebase.initializeApp(
-        FIREBASE_CONFIG
-      );
-
-    }
-
-
-    db=
-      firebase.database();
-
-    auth=
-      firebase.auth();
-
-    firebaseReady=true;
-
-
-    auth.onAuthStateChanged(
-      async user=>{
-
-        if(!authUIReady)
-          return;
-
-        await handleAuthUser(user);
-
-      }
-    );
-
-
-    if(db){
-
-      db.ref(".info/connected")
-        .on(
-          "value",
-          snap=>{
-
-            if(
-              snap.val()===true &&
-              firebaseUser
-            ){
-
-              setFirebaseStatus(
-                "🟢 Подключено",
-                true
-              );
-
-            }
-
-          }
-        );
-
-    }
-
-
-    authUIReady=true;
-
-
-    await handleAuthUser(
-      auth.currentUser
-    );
-
-  }catch(e){
-
-    firebaseReady=false;
-
-    $("authStatus")
-      .textContent=
-      "❌ "+firebaseError(e);
-
-  }
-
-}
-
-
-/* =========================================================
-   AUTH USER
-========================================================= */
-
-async function handleAuthUser(user){
-
-  if(!authUIReady)
-    return;
-
-
-  const uid=
-    user?(user.uid||""):"";
-
-
-  if(
-    authHandling &&
-    uid===lastAuthUid
-  ){
-
-    return;
-
-  }
-
-
-  lastAuthUid=uid;
-
-  authHandling=true;
-
-
-  try{
-
-    /*
-      Anonymous Firebase users не используются.
-    */
-
-    if(
-      user &&
-      user.isAnonymous
-    ){
-
-      try{
-        await auth.signOut();
-      }catch(e){}
-
-
-      firebaseUser=null;
-
-      guestMode=false;
-
-      lastAuthUid=null;
-
-      loadGuest();
-
-      updateGoogleUI(null);
-
-      $("authScreen")
-        .classList.add("open");
-
-      setFirebaseStatus(
-        "Выберите способ входа",
-        false
-      );
-
-      return;
-
-    }
-
-
-    if(user){
-
-      firebaseUser=user;
-
-      guestMode=false;
-
-
-      $("authScreen")
-        .classList.remove("open");
-
-
-      updateGoogleUI(user);
-
-
-      setFirebaseStatus(
-        "🔵 Google • загружаем данные…",
-        true
-      );
-
-
-      $("authStatus")
-        .textContent="";
-
-
-      try{
-
-        await loadFirebaseUser();
-
-
-        setFirebaseStatus(
-          "🟢 Google подключён • синхронизировано",
-          true
+      const uids=
+        Object.keys(fr).filter(
+          k=>fr[k]===true||fr[k]?.status==="friends"
         );
 
 
-        updateGoogleUI(user);
+      if(!uids.length){
 
+        cont.innerHTML=
+          `<div class="muted" style="text-align:center;padding:20px">
+            Пока нет друзей.<br>Добавь кого-нибудь!
+          </div>`;
 
-        loadUsernameDisplay();
-
-
-        /*
-          Community профиль.
-        */
-
-        const username=
-          await getMyUsername();
-
-
-        if(username){
-
-          await db.ref(
-            "prognozer/community/profiles/"
-            +user.uid
-          ).update({
-
-            username:username,
-
-            displayName:
-              user.displayName||
-              username,
-
-            photoURL:
-              user.photoURL||"",
-
-            rank:"Silver I",
-
-            uid:user.uid,
-
-            updatedAt:
-              firebase.database.ServerValue.TIMESTAMP
-
-          });
-
-
-          startPresence();
-
-        }
-
-
-        updateCommunityDrawer();
-
-      }catch(e){
-
-        setFirebaseStatus(
-          "❌ Ошибка базы: "+
-          firebaseError(e),
-          false
-        );
+        return;
 
       }
 
 
-      return;
+      const profiles=
+        await Promise.all(
+          uids.map(u=>
+            db.ref(
+              "prognozer/community/profiles/"+u
+            ).once("value").then(s=>s.val())
+          )
+        );
+
+
+      cont.innerHTML=
+        profiles.filter(Boolean).map(
+          p=>`
+            <div class="friend-item">
+
+              <div class="friend-item-ava">
+                ${
+                  p.photoURL
+                  ?`<img src="${escapeHTML(p.photoURL)}">`
+                  :"👤"
+                }
+              </div>
+
+              <div class="friend-item-info">
+
+                <div class="friend-item-name">
+                  @${escapeHTML(p.username||"user")}
+                </div>
+
+                <div class="friend-item-sub">
+                  ${escapeHTML(p.displayName||"")}
+                </div>
+
+              </div>
+
+              <div style="display:flex;gap:7px">
+
+                <button
+                  class="post-action"
+                  style="font-size:12px"
+                  onclick="$('modal').classList.remove('open');openChatWith('${escapeHTML(p.uid)}','${escapeHTML(p.username||'user')}')">
+                  💬
+                </button>
+
+                <button
+                  class="post-action"
+                  style="font-size:12px;color:#ff6868;border-color:#4a1c1c"
+                  onclick="removeFriend('${escapeHTML(p.uid)}')">
+                  ✕
+                </button>
+
+              </div>
+
+            </div>
+          `
+        ).join("");
+
+
+    }else{
+
+      /* входящие запросы */
+
+      const snap=
+        await db.ref(
+          "prognozer/friendRequests/"+
+          firebaseUser.uid
+        ).once("value");
+
+
+      const reqs=snap.val()||{};
+
+      const pending=
+        Object.entries(reqs).filter(
+          ([,v])=>v.status==="pending"
+        );
+
+
+      if(!pending.length){
+
+        cont.innerHTML=
+          `<div class="muted" style="text-align:center;padding:20px">
+            Нет входящих запросов
+          </div>`;
+
+        return;
+
+      }
+
+
+      const profiles=
+        await Promise.all(
+          pending.map(([fromUid])=>
+            db.ref(
+              "prognozer/community/profiles/"+fromUid
+            ).once("value").then(s=>({
+              uid:fromUid,
+              ...s.val()
+            }))
+          )
+        );
+
+
+      cont.innerHTML=
+        profiles.filter(p=>p.username).map(
+          p=>`
+            <div class="friend-item">
+
+              <div class="friend-item-ava">
+                ${
+                  p.photoURL
+                  ?`<img src="${escapeHTML(p.photoURL)}">`
+                  :"👤"
+                }
+              </div>
+
+              <div class="friend-item-info">
+
+                <div class="friend-item-name">
+                  @${escapeHTML(p.username||"user")}
+                </div>
+
+                <div class="friend-item-sub">
+                  Хочет добавить вас в друзья
+                </div>
+
+              </div>
+
+              <div style="display:flex;gap:7px">
+
+                <button
+                  class="primary"
+                  style="padding:8px 14px;font-size:13px"
+                  onclick="acceptFriend('${escapeHTML(p.uid)}')">
+                  ✓
+                </button>
+
+                <button
+                  class="secondary"
+                  style="padding:8px 14px;font-size:13px"
+                  onclick="declineFriend('${escapeHTML(p.uid)}')">
+                  ✕
+                </button>
+
+              </div>
+
+            </div>
+          `
+        ).join("");
 
     }
 
+  }catch(e){
 
-    firebaseUser=null;
-
-    guestMode=false;
-
-    loadGuest();
-
-    updateGoogleUI(null);
-
-
-    $("authScreen")
-      .classList.add("open");
-
-
-    setFirebaseStatus(
-      "Выберите способ входа",
-      false
-    );
-
-
-  }catch(e){}finally{
-
-    authHandling=false;
+    if(cont)
+      cont.innerHTML=
+        `<div class="muted" style="text-align:center">Ошибка загрузки</div>`;
 
   }
 
 }
 
 
-/* =========================================================
-   LOAD FIREBASE USER
-========================================================= */
+async function addFriendByUsername(){
 
-async function loadFirebaseUser(){
+  const input=$("friendUsernameInput");
 
-  if(
-    !firebaseUser ||
-    firebaseUser.isAnonymous ||
-    !db
-  ){
+  const result=$("friendSearchResult");
 
-    throw new Error(
-      "Firebase не готов"
-    );
+  if(!input||!result)return;
+
+
+  let username=
+    input.value.trim().replace(/^@/,"");
+
+  if(!username){
+
+    result.textContent=
+      "Введите юзернейм";
+
+    return;
 
   }
 
 
-  saving=true;
+  result.textContent="Поиск…";
 
 
   try{
 
     const snap=
       await db.ref(
-        "prognozer/users/"
-        +firebaseUser.uid
-      ).once("value");
+        "prognozer/usernames"
+      ).orderByValue().equalTo(username).once("value");
 
 
-    const remote=
-      snap.val();
+    /* Ищем по полю username в profiles */
+
+    const pSnap=
+      await db.ref(
+        "prognozer/community/profiles"
+      ).orderByChild("username").equalTo(username).once("value");
 
 
-    if(remote){
+    const found=pSnap.val();
 
-      state=
-        normalizeState(
-          remote
-        );
+    if(!found){
 
+      result.textContent=
+        "❌ Пользователь не найден";
 
-      try{
-
-        localStorage.setItem(
-          googleCacheKey(
-            firebaseUser.uid
-          ),
-          JSON.stringify(state)
-        );
-
-      }catch(e){}
-
-
-      updateUI();
-
-    }else{
-
-      state=
-        createDefaultState();
-
-      updateUI();
-
-      await saveFirebase();
+      return;
 
     }
 
-  }finally{
 
-    saving=false;
+    const [uid,p]=
+      Object.entries(found)[0];
 
-  }
 
-}
+    if(uid===firebaseUser.uid){
 
+      result.textContent=
+        "Это вы 😊";
 
-/* =========================================================
-   SAVE FIREBASE
-========================================================= */
-
-async function saveFirebase(){
-
-  if(
-    !firebaseUser ||
-    firebaseUser.isAnonymous ||
-    !db ||
-    guestMode ||
-    saving
-  ){
-
-    return false;
-
-  }
-
-
-  saving=true;
-
-
-  try{
-
-    await db.ref(
-      "prognozer/users/"
-      +firebaseUser.uid
-    ).update({
-
-      balance:
-        Number(state.balance)||0,
-
-      inventory:
-        Array.isArray(state.inventory)
-        ?state.inventory
-        :[],
-
-      statistics:
-        state.statistics||{},
-
-      createdAt:
-        state.createdAt||
-        Date.now(),
-
-      updatedAt:
-        firebase.database.ServerValue.TIMESTAMP,
-
-      profile:{
-
-        name:
-          firebaseUser.displayName||"",
-
-        email:
-          firebaseUser.email||"",
-
-        photoURL:
-          firebaseUser.photoURL||""
-
-      }
-
-    });
-
-
-    try{
-
-      localStorage.setItem(
-        googleCacheKey(
-          firebaseUser.uid
-        ),
-        JSON.stringify(state)
-      );
-
-    }catch(e){}
-
-
-    $("firebaseStatus")
-      .textContent=
-      "🟢 Firebase • ☁️ синхронизировано";
-
-
-    $("profileOnline")
-      .textContent=
-      "ONLINE";
-
-
-    return true;
-
-  }catch(e){
-
-    $("firebaseStatus")
-      .textContent=
-      "❌ Ошибка: "+
-      firebaseError(e);
-
-
-    return false;
-
-  }finally{
-
-    saving=false;
-
-  }
-
-}
-
-
-/* =========================================================
-   BINDINGS
-========================================================= */
-
-function bindCaseButtons(){
-
-  $("caseTakeBtn").onclick=
-    takeCaseDrop;
-
-  $("caseSellBtn").onclick=
-    sellCaseDrop;
-
-}
-
-
-/* =========================================================
-   NAV BUTTONS
-========================================================= */
-
-document
-  .querySelectorAll(
-    ".tab[data-screen]"
-  )
-  .forEach(
-    t=>t.onclick=
-      ()=>nav(
-        t.dataset.screen
-      )
-  );
-
-
-$("communityTab").onclick=
-  openCommunity;
-
-
-$("chatTab").onclick=
-  ()=>toast(
-    "🚧 Чат пока в разработке"
-  );
-
-
-/* =========================================================
-   COMMUNITY DRAWER
-========================================================= */
-
-$("communityMenuBtn").onclick=
-  openDrawer;
-
-
-$("drawerClose").onclick=
-  closeDrawer;
-
-
-$("drawerBackdrop").onclick=
-  closeDrawer;
-
-
-/* =========================================================
-   MODALS
-========================================================= */
-
-$("closeBtn").onclick=
-  ()=>$("modal")
-    .classList.remove("open");
-
-
-$("modal").onclick=
-  e=>{
-
-    if(
-      e.target.id==="modal"
-    ){
-
-      $("modal")
-        .classList.remove("open");
-
-    }
-
-  };
-
-
-/* =========================================================
-   AUTH BUTTONS
-========================================================= */
-
-$("googleLoginBtn").onclick=
-  loginWithGoogle;
-
-$("googleLogoutBtn").onclick=
-  logoutGoogle;
-
-$("authGoogleBtn").onclick=
-  continueGoogle;
-
-$("authGuestBtn").onclick=
-  continueGuest;
-
-
-/* =========================================================
-   COMMUNITY ADD POST
-========================================================= */
-
-$("addPostBtn").onclick=
-  openCreatePost;
-
-
-/* =========================================================
-   USERNAME
-========================================================= */
-
-$("usernameSaveBtn").onclick=
-  saveUsername;
-
-
-$("usernameInput")
-  .addEventListener(
-    "keydown",
-    e=>{
-
-      if(e.key==="Enter")
-        saveUsername();
-
-    }
-  );
-
-
-/* =========================================================
-   SYNC
-========================================================= */
-
-$("syncBtn").onclick=
-  async()=>{
-
-    if(
-      guestMode ||
-      !firebaseUser ||
-      firebaseUser.isAnonymous
-    ){
-
-      return toast(
-        "В гостевом режиме синхронизации нет"
-      );
+      return;
 
     }
 
 
-    setFirebaseStatus(
-      "☁️ Синхронизация…",
-      true
-    );
+    result.innerHTML=`
+      <div class="friend-item" style="margin-top:8px">
 
-
-    const ok=
-      await saveFirebase();
-
-
-    toast(
-      ok
-      ?"Синхронизация завершена"
-      :"Не выполнена"
-    );
-
-  };
-
-
-/* =========================================================
-   CASE
-========================================================= */
-
-$("caseCloseBtn").onclick=
-  ()=>{
-
-    if(
-      $("caseWinCard")
-        .classList
-        .contains("show")
-    ){
-
-      closeCaseOverlay();
-
-    }
-
-  };
-
-
-bindCaseButtons();
-
-
-/* =========================================================
-   START
-========================================================= */
-
-loadGuest();
-
-renderGrids();
-
-renderShop();
-
-initFirebase();
-
-</script>
-
-</body>
-  </html>
+        <div class="friend-item-ava">
+          ${p.photoURL?`<img src="${escapeHTML(p.photoURL)}">`:"👤"}
+        </di
