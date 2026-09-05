@@ -275,7 +275,7 @@ button:disabled{
   height:100%;
   margin:auto;
   display:grid;
-  grid-template-columns:repeat(6,1fr)
+  grid-template-columns:repeat(7,1fr)
 }
 
 .tab{
@@ -301,7 +301,7 @@ button:disabled{
 .sheet-bg{
   position:fixed;
   inset:0;
-  z-index:40;
+  z-index:50;
   background:rgba(0,0,0,.72);
   display:none;
   align-items:flex-end
@@ -1884,7 +1884,7 @@ textarea{
 .chat-overlay{
   position:fixed;
   inset:0;
-  z-index:80;
+  z-index:90;
   display:none;
   flex-direction:column;
   background:#05101d
@@ -2034,7 +2034,7 @@ textarea{
 .chat-dialog{
   position:fixed;
   inset:0;
-  z-index:85;
+  z-index:95;
   display:none;
   flex-direction:column;
   background:#05101d
@@ -2252,6 +2252,432 @@ textarea{
 .add-by-username-row input{
   flex:1
 }
+
+/* ================= TRADE SYSTEM ================= */
+
+.trade-overlay{
+  position:fixed;
+  inset:0;
+  z-index:110;
+  background:rgba(2,8,20,.95);
+  backdrop-filter:blur(6px);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:12px
+}
+
+.trade-overlay.open{
+  display:flex
+}
+
+.trade-window{
+  width:min(740px,100%);
+  max-height:92vh;
+  overflow-y:auto;
+  background:linear-gradient(145deg,#0b1827,#07111d);
+  border:1px solid #1e4d7a;
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 20px 80px rgba(0,0,0,.6)
+}
+
+.trade-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px
+}
+
+.trade-title{
+  font-size:22px;
+  font-weight:900
+}
+
+.trade-players{
+  display:grid;
+  grid-template-columns:1fr 60px 1fr;
+  gap:10px;
+  align-items:start
+}
+
+.trade-player-side{
+  display:flex;
+  flex-direction:column;
+  gap:10px
+}
+
+.trade-player-label{
+  font-size:13px;
+  color:#8295ad;
+  font-weight:700;
+  margin-bottom:4px
+}
+
+.trade-slots{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:6px;
+  min-height:160px
+}
+
+.trade-slot{
+  height:72px;
+  border:2px dashed #1e4060;
+  border-radius:14px;
+  background:#081524;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  cursor:pointer;
+  position:relative;
+  transition:.15s
+}
+
+.trade-slot.filled{
+  border-color:#2a6ea8;
+  background:#0e2238;
+  cursor:default
+}
+
+.trade-slot.filled:hover{
+  border-color:#3d9cff
+}
+
+.trade-slot-emoji{
+  font-size:26px
+}
+
+.trade-slot-remove{
+  position:absolute;
+  top:2px;
+  right:4px;
+  font-size:14px;
+  color:#ff6060;
+  cursor:pointer;
+  line-height:1
+}
+
+.trade-crystals{
+  margin-top:8px
+}
+
+.trade-crystals input{
+  width:100%;
+  padding:10px;
+  font-size:14px
+}
+
+.trade-sep{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  padding-top:40px
+}
+
+.trade-my-inv{
+  margin-top:12px
+}
+
+.trade-inv-title{
+  font-size:13px;
+  color:#8295ad;
+  font-weight:700;
+  margin-bottom:8px
+}
+
+.trade-inv-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+  max-height:140px;
+  overflow-y:auto
+}
+
+.trade-inv-item{
+  height:60px;
+  border:1px solid #1c3a58;
+  border-radius:12px;
+  background:#091827;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:22px;
+  transition:.1s;
+  padding:4px
+}
+
+.trade-inv-item:hover{
+  border-color:#3d9cff;
+  background:#0e2238
+}
+
+.trade-inv-item span{
+  font-size:9px;
+  color:#8295ad;
+  text-align:center;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  width:100%
+}
+
+.trade-actions{
+  display:flex;
+  gap:10px;
+  margin-top:14px;
+  flex-wrap:wrap
+}
+
+.trade-actions button{
+  flex:1;
+  min-width:120px;
+  padding:13px;
+  border-radius:13px;
+  font-weight:800;
+  font-size:14px
+}
+
+.trade-status-bar{
+  margin-top:10px;
+  padding:10px;
+  border-radius:12px;
+  background:#081722;
+  border:1px solid #1c3a58;
+  text-align:center;
+  font-size:13px;
+  color:#8295ad;
+  min-height:40px
+}
+
+.trade-status-bar.confirmed{
+  color:#42ff9a;
+  border-color:#1a5a33
+}
+
+.trade-status-bar.countdown{
+  color:#f0c040;
+  border-color:#4a3a0a;
+  font-weight:700;
+  font-size:16px
+}
+
+.trade-request-banner{
+  position:fixed;
+  bottom:100px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:105;
+  background:linear-gradient(135deg,#0e2540,#162e4a);
+  border:1px solid #2a6ea8;
+  border-radius:18px;
+  padding:14px 18px;
+  min-width:280px;
+  max-width:340px;
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
+  display:none;
+  text-align:center
+}
+
+.trade-request-banner.show{
+  display:block
+}
+
+.trade-request-banner p{
+  margin:0 0 10px;
+  font-size:14px;
+  color:#d0e8ff
+}
+
+.trade-request-banner .name{
+  font-weight:900;
+  color:#55b4ff
+}
+
+.trade-request-banner-btns{
+  display:flex;
+  gap:8px;
+  justify-content:center
+}
+
+/* ================= MARKET (AUCTION) ================= */
+
+.market-screen{
+  padding:0
+}
+
+.market-filter{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:4px 2px 8px;
+  margin-bottom:12px
+}
+
+.market-filter::-webkit-scrollbar{
+  height:3px
+}
+
+.market-filter-btn{
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid #1e3f5e;
+  background:#0a1a2c;
+  color:#7a9ab8;
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+  flex-shrink:0
+}
+
+.market-filter-btn.active{
+  background:#0e2742;
+  border-color:#3d9cff;
+  color:#fff
+}
+
+.market-list{
+  display:grid;
+  gap:10px
+}
+
+.market-item{
+  border:1px solid #1c3a58;
+  border-radius:18px;
+  background:linear-gradient(145deg,#0c1a2c,#081422);
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:12px
+}
+
+.market-item-icon{
+  width:60px;
+  height:60px;
+  border-radius:14px;
+  background:#102b48;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+  flex-shrink:0
+}
+
+.market-item-info{
+  flex:1;
+  min-width:0
+}
+
+.market-item-name{
+  font-weight:900;
+  font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.market-item-desc{
+  color:#7a9ab8;
+  font-size:12px;
+  margin-top:3px
+}
+
+.market-item-seller{
+  color:#4da6ff;
+  font-size:11px;
+  margin-top:4px
+}
+
+.market-item-price{
+  color:#55b4ff;
+  font-weight:900;
+  font-size:16px;
+  white-space:nowrap
+}
+
+.market-item-actions{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:flex-end;
+  flex-shrink:0
+}
+
+.market-buy-btn{
+  padding:9px 16px;
+  background:linear-gradient(135deg,#1678e9,#349cff);
+  color:#fff;
+  border-radius:12px;
+  font-weight:800;
+  font-size:13px
+}
+
+.market-del-btn{
+  padding:6px 12px;
+  background:#1a0c0c;
+  border:1px solid #4a1c1c;
+  color:#ff8080;
+  border-radius:10px;
+  font-size:12px;
+  font-weight:700
+}
+
+.market-sell-form{
+  border:1px solid #1e4060;
+  border-radius:18px;
+  background:#081624;
+  padding:16px;
+  margin-bottom:14px
+}
+
+.market-sell-form h4{
+  margin:0 0 12px;
+  font-size:18px
+}
+
+.market-form-row{
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+  flex-wrap:wrap
+}
+
+.market-form-row input,
+.market-form-row select,
+.market-form-row textarea{
+  flex:1;
+  min-width:120px;
+  min-height:unset;
+  padding:10px;
+  font-size:14px
+}
+
+.market-form-row textarea{
+  min-height:60px;
+  resize:none
+}
+
+/* ================= SELL USERNAME ================= */
+
+.sell-username-box{
+  border:1px solid #2a4a22;
+  border-radius:18px;
+  background:linear-gradient(145deg,#0d1f0a,#091508);
+  padding:16px;
+  margin-top:16px
+}
+
+.sell-username-box h4{
+  margin:0 0 10px;
+  color:#7fff60
+}
+
 </style>
 </head>
 
@@ -2588,6 +3014,39 @@ textarea{
 
   </div>
 
+
+  <!-- SELL USERNAME -->
+
+  <div class="sell-username-box">
+
+    <h4>🏷️ Продать юзернейм за кристаллы</h4>
+
+    <p class="muted" style="font-size:13px;margin:0 0 10px">
+      Выставите свой @username на маркет. Другой игрок купит его — вам придут 💎, а вы сможете занять новое имя.
+    </p>
+
+    <div style="display:flex;gap:8px;align-items:center">
+
+      <input
+        id="sellUsernamePrice"
+        type="number"
+        min="10"
+        placeholder="Цена в 💎"
+        style="flex:1">
+
+      <button
+        class="primary"
+        style="padding:11px 18px"
+        onclick="sellMyUsername()">
+        Продать
+      </button>
+
+    </div>
+
+    <div id="sellUsernameStatus" style="margin-top:8px;font-size:13px;color:#8295ad"></div>
+
+  </div>
+
 </section>
 
 
@@ -2608,10 +3067,65 @@ textarea{
 
 
 <!-- =========================================================
+     MARKET (Player Auction)
+========================================================= -->
+
+<section class="screen market-screen" id="market">
+
+  <h2>🏪 Маркет игроков</h2>
+
+  <!-- Форма продажи -->
+  <div class="market-sell-form" id="marketSellForm" style="display:none">
+
+    <h4>➕ Выставить предмет</h4>
+
+    <div class="market-form-row">
+      <select id="marketSellItemSelect">
+        <option value="">— Выберите предмет из инвентаря —</option>
+      </select>
+    </div>
+
+    <div class="market-form-row">
+      <input type="number" id="marketSellPrice" placeholder="Цена 💎" min="1">
+      <input type="text" id="marketSellDesc" placeholder="Описание (необяз.)">
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="primary" style="flex:1;padding:12px" onclick="putItemOnMarket()">✓ Выставить</button>
+      <button class="secondary" style="padding:12px" onclick="$('marketSellForm').style.display='none'">✕</button>
+    </div>
+
+  </div>
+
+  <!-- Кнопка открыть форму -->
+  <button
+    class="primary"
+    style="width:100%;padding:13px;margin-bottom:14px;font-size:15px"
+    onclick="openMarketSellForm()">
+    ➕ Продать предмет
+  </button>
+
+  <!-- Фильтры -->
+  <div class="market-filter" id="marketFilter">
+    <button class="market-filter-btn active" onclick="filterMarket('all',this)">Все</button>
+    <button class="market-filter-btn" onclick="filterMarket('Оружие',this)">🔫 Оружие</button>
+    <button class="market-filter-btn" onclick="filterMarket('Нож',this)">🔪 Ножи</button>
+    <button class="market-filter-btn" onclick="filterMarket('Наклейка',this)">🏷️ Наклейки</button>
+    <button class="market-filter-btn" onclick="filterMarket('username',this)">🏷️ Юзернеймы</button>
+  </div>
+
+  <div class="market-list" id="marketList">
+    <div class="muted" style="text-align:center;padding:30px">Загружаем…</div>
+  </div>
+
+</section>
+
+
+<!-- =========================================================
      COMMUNITY
 ========================================================= -->
 
-<section class="screen" id="community">
+<section class="screen market-screen" id="community">
 
   <div class="community-head">
 
@@ -2747,6 +3261,16 @@ textarea{
 
     <span class="ti">🎒</span>
     Инвентарь
+
+  </button>
+
+
+  <button
+    class="tab"
+    id="marketTab">
+
+    <span class="ti">🏪</span>
+    Маркет
 
   </button>
 
@@ -3154,13 +3678,26 @@ textarea{
 
     <div class="chat-dialog-name" id="chatDialogName">@user</div>
 
-    <button
-      class="chat-back"
-      id="chatDialogFriendBtn"
-      style="background:#112b45;border-color:#2a5070;font-size:16px"
-      title="Добавить в друзья">
-      👥
-    </button>
+    <div style="display:flex;gap:6px">
+
+      <button
+        class="chat-back"
+        id="chatDialogTradeBtn"
+        style="background:#112b45;border-color:#2a5070;font-size:14px;display:none;width:auto;padding:0 10px;border-radius:12px"
+        title="Предложить трейд"
+        onclick="sendTradeRequest()">
+        🔄 Трейд
+      </button>
+
+      <button
+        class="chat-back"
+        id="chatDialogFriendBtn"
+        style="background:#112b45;border-color:#2a5070;font-size:16px"
+        title="Добавить в друзья">
+        👥
+      </button>
+
+    </div>
 
   </div>
 
@@ -3184,6 +3721,70 @@ textarea{
 
   </div>
 
+</div>
+
+
+<!-- =========================================================
+     TRADE REQUEST BANNER
+========================================================= -->
+
+<div class="trade-request-banner" id="tradeRequestBanner">
+  <p>Пользователь <span class="name" id="tradeRequestFrom">@user</span> предложил вам трейд</p>
+  <div class="trade-request-banner-btns">
+    <button class="primary" style="padding:9px 18px;font-size:13px" onclick="acceptTradeRequest()">✓ Принять</button>
+    <button class="secondary" style="padding:9px 18px;font-size:13px" onclick="declineTradeRequest()">✕ Отклонить</button>
+  </div>
+</div>
+
+
+<!-- =========================================================
+     TRADE OVERLAY
+========================================================= -->
+
+<div class="trade-overlay" id="tradeOverlay">
+  <div class="trade-window">
+
+    <div class="trade-header">
+      <div class="trade-title">🔄 Трейд</div>
+      <button class="close" onclick="cancelTrade()" style="float:none">✕</button>
+    </div>
+
+    <div class="trade-players">
+
+      <!-- МОЯ СТОРОНА -->
+      <div class="trade-player-side">
+        <div class="trade-player-label">👤 Вы (<span id="tradeMyName">@me</span>)</div>
+        <div class="trade-slots" id="tradeMySlots"></div>
+        <div class="trade-crystals">
+          <input type="number" id="tradeMyCrystals" placeholder="💎 Кристаллы (необязательно)" min="0">
+        </div>
+        <div class="trade-my-inv">
+          <div class="trade-inv-title">Ваш инвентарь (нажмите чтобы добавить):</div>
+          <div class="trade-inv-grid" id="tradeMyInvGrid"></div>
+        </div>
+      </div>
+
+      <div class="trade-sep">⇄</div>
+
+      <!-- СТОРОНА ПАРТНЁРА -->
+      <div class="trade-player-side">
+        <div class="trade-player-label">👤 <span id="tradePartnerName">@partner</span></div>
+        <div class="trade-slots" id="tradePartnerSlots"></div>
+        <div class="trade-crystals">
+          <input type="number" id="tradePartnerCrystals" placeholder="💎 Кристаллы партнёра" min="0" disabled style="opacity:.5">
+        </div>
+      </div>
+
+    </div>
+
+    <div class="trade-status-bar" id="tradeStatusBar">Добавьте предметы в трейд</div>
+
+    <div class="trade-actions">
+      <button class="primary" id="tradeConfirmBtn" onclick="confirmTrade()">✓ Подтвердить трейд</button>
+      <button class="danger" onclick="cancelTrade()">✕ Отменить трейд</button>
+    </div>
+
+  </div>
 </div>
 
 
@@ -6708,63 +7309,9 @@ async function removeFriend(targetUid){
 
 
 function openTradeCenter(){
-
-  const b=$("modalBody");
-
-  b.innerHTML=`
-
-    <div class="community-modal-title">
-      🔄 Трейд
-    </div>
-
-    <div class="drop center muted">
-
-      Здесь будет окно обмена предметами
-      между двумя игроками.
-
-      <br><br>
-
-      🎒 Выберите предмет<br>
-      ↔️ Выберите игрока<br>
-      ✅ Подтвердите обмен
-
-    </div>
-
-  `;
-
-  $("modal").classList.add("open");
-
+  toast("💬 Откройте чат с игроком и нажмите кнопку 🔄 Трейд");
 }
 
-
-function openPlayerMarket(){
-
-  const b=$("modalBody");
-
-  b.innerHTML=`
-
-    <div class="community-modal-title">
-      🛒 Магазин среди игроков
-    </div>
-
-    <div class="drop center muted">
-
-      Здесь будут находиться
-      предметы, выставленные игроками
-      на продажу.
-
-      <br><br>
-
-      🔨 Аукцион Community будет
-      подключён к этому разделу.
-
-    </div>
-
-  `;
-
-  $("modal").classList.add("open");
-
-}
 
 
 /* =========================================================
@@ -8984,6 +9531,18 @@ function showCaseResult(drop){
 
 function openCase(i){
 
+  /* Баг-фикс: блокируем кейс до загрузки Firebase */
+  if(
+    !guestMode &&
+    firebaseUser &&
+    !firebaseUser.isAnonymous &&
+    !window.__firebaseLoaded
+  ){
+    return toast(
+      "⏳ Подождите, данные загружаются…"
+    );
+  }
+
   const c=cases[i];
 
 
@@ -9861,6 +10420,8 @@ async function continueGuest(){
   }catch(e){}
 
 
+  window.__firebaseLoaded=true;
+
   guestMode=true;
 
   firebaseUser=null;
@@ -10164,6 +10725,12 @@ async function handleAuthUser(user){
 
         startChatBadgeListener();
 
+        startTradeRequestListener();
+
+        processPendingPayouts();
+
+        window.__myUsername=await getMyUsername();
+
       }catch(e){
 
         setFirebaseStatus(
@@ -10263,12 +10830,16 @@ async function loadFirebaseUser(){
       }catch(e){}
 
 
+      window.__firebaseLoaded=true;
+
       updateUI();
 
     }else{
 
       state=
         createDefaultState();
+
+      window.__firebaseLoaded=true;
 
       updateUI();
 
@@ -10908,6 +11479,11 @@ async function openChatWith(otherUid,otherUsername){
       );
 
 
+  /* кнопка трейда — только если онлайн */
+
+  updateTradeButtonVisibility();
+
+
   /* input send */
 
   const sendBtn=$("chatSendBtn");
@@ -11307,6 +11883,774 @@ function startChatBadgeListener(){
     }
   );
 
+}
+
+
+/* =========================================================
+   MARKET TAB BINDING
+========================================================= */
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+  const mt=$("marketTab");
+  if(mt)mt.onclick=()=>{
+    nav("market");
+    loadMarket();
+    mt.classList.add("active");
+    document.querySelectorAll(".tab").forEach(t=>{
+      if(t!==mt)t.classList.remove("active");
+    });
+  };
+
+  const chatTabEl=$("chatTab");
+  if(chatTabEl)chatTabEl.onclick=openChatOverlay;
+
+  const communityTabEl=$("communityTab");
+  if(communityTabEl)communityTabEl.onclick=openCommunity;
+
+});
+
+
+/* =========================================================
+   TRADE SYSTEM
+========================================================= */
+
+let currentTradeId=null;
+let currentPartnerUid=null;
+let currentPartnerUsername="";
+let tradeListener=null;
+let tradeRequestListener=null;
+let myTradeItems=[]; // items I put in trade (with original inv indices)
+let tradeConfirmedMe=false;
+let tradeConfirmedPartner=false;
+let tradeCountdownTimer=null;
+
+
+function openTradeOverlay(partnerUid,partnerName){
+  currentPartnerUid=partnerUid;
+  currentPartnerUsername=partnerName||"@partner";
+  myTradeItems=[];
+  tradeConfirmedMe=false;
+  tradeConfirmedPartner=false;
+
+  $("tradeMyName").textContent="@"+(window.__myUsername||"me");
+  $("tradePartnerName").textContent="@"+partnerName;
+  $("tradeMyCrystals").value="";
+  $("tradePartnerCrystals").value="";
+
+  renderTradeMySlots();
+  renderTradePartnerSlots({});
+  renderTradeMyInv();
+
+  $("tradeOverlay").classList.add("open");
+  $("tradeConfirmBtn").disabled=false;
+  $("tradeStatusBar").textContent="Добавьте предметы в трейд";
+  $("tradeStatusBar").className="trade-status-bar";
+
+  // Crystal change listener
+  $("tradeMyCrystals").oninput=pushMyTradeState;
+
+  subscribeToTrade();
+}
+
+
+function renderTradeMySlots(){
+  const el=$("tradeMySlots");
+  if(!el)return;
+  let html="";
+  for(let i=0;i<10;i++){
+    const item=myTradeItems[i];
+    if(item){
+      html+=`<div class="trade-slot filled">
+        <span class="trade-slot-emoji">${escapeHTML(item.emoji)}</span>
+        <span class="trade-slot-remove" onclick="removeFromMyTrade(${i})">✕</span>
+      </div>`;
+    }else{
+      html+=`<div class="trade-slot">+</div>`;
+    }
+  }
+  el.innerHTML=html;
+}
+
+
+function renderTradePartnerSlots(data){
+  const el=$("tradePartnerSlots");
+  if(!el)return;
+  let html="";
+  const partnerItems=data.items||[];
+  for(let i=0;i<10;i++){
+    const item=partnerItems[i];
+    if(item){
+      html+=`<div class="trade-slot filled">
+        <span class="trade-slot-emoji">${escapeHTML(item.emoji||"❓")}</span>
+      </div>`;
+    }else{
+      html+=`<div class="trade-slot" style="cursor:default"></div>`;
+    }
+  }
+  $("tradePartnerCrystals").value=data.crystals||"";
+  el.innerHTML=html;
+}
+
+
+function renderTradeMyInv(){
+  const el=$("tradeMyInvGrid");
+  if(!el)return;
+  if(!state.inventory.length){
+    el.innerHTML=`<div class="muted" style="grid-column:1/-1;font-size:12px;padding:8px">Инвентарь пуст</div>`;
+    return;
+  }
+  el.innerHTML=state.inventory.map((x,i)=>`
+    <div class="trade-inv-item" onclick="addToMyTrade(${i})">
+      ${escapeHTML(x.emoji)}
+      <span>${escapeHTML(x.name.substring(0,12))}</span>
+    </div>
+  `).join("");
+}
+
+
+function addToMyTrade(invIdx){
+  if(myTradeItems.length>=10){
+    return toast("Максимум 10 предметов в трейде");
+  }
+  // Check not already in trade
+  if(myTradeItems.some(x=>x._invIdx===invIdx)){
+    return toast("Предмет уже в трейде");
+  }
+  const item=state.inventory[invIdx];
+  if(!item)return;
+  myTradeItems.push({...item,_invIdx:invIdx});
+  renderTradeMySlots();
+  pushMyTradeState();
+}
+
+
+function removeFromMyTrade(slotIdx){
+  if(tradeConfirmedMe){
+    return toast("Вы уже подтвердили трейд, нельзя изменить");
+  }
+  myTradeItems.splice(slotIdx,1);
+  renderTradeMySlots();
+  pushMyTradeState();
+}
+
+
+async function pushMyTradeState(){
+  if(!currentTradeId||!firebaseUser||!db)return;
+  const crystals=parseInt($("tradeMyCrystals")?.value)||0;
+  await db.ref(`prognozer/trades/${currentTradeId}/sides/${firebaseUser.uid}`).set({
+    items:myTradeItems.map(x=>({name:x.name,emoji:x.emoji,price:x.price,type:x.type||"Предмет"})),
+    crystals:crystals,
+    confirmed:tradeConfirmedMe
+  });
+}
+
+
+function subscribeToTrade(){
+  if(!currentTradeId||!db)return;
+  if(tradeListener){
+    db.ref(`prognozer/trades/${currentTradeId}`).off("value",tradeListener);
+  }
+  tradeListener=db.ref(`prognozer/trades/${currentTradeId}`).on("value",snap=>{
+    const data=snap.val();
+    if(!data||data.status==="cancelled"){
+      cancelTrade(true);
+      return;
+    }
+    if(data.status==="done"){
+      $("tradeOverlay").classList.remove("open");
+      toast("✅ Трейд завершён!");
+      return;
+    }
+
+    const partnerData=data.sides?.[currentPartnerUid]||{};
+    renderTradePartnerSlots(partnerData);
+
+    const myData=data.sides?.[firebaseUser?.uid]||{};
+    tradeConfirmedMe=!!myData.confirmed;
+    tradeConfirmedPartner=!!partnerData.confirmed;
+
+    updateTradeStatus(data);
+  });
+}
+
+
+function updateTradeStatus(data){
+  const sb=$("tradeStatusBar");
+  if(!sb)return;
+  const myConf=tradeConfirmedMe;
+  const partConf=tradeConfirmedPartner;
+  const countdown=data.countdown;
+
+  if(countdown>0){
+    sb.className="trade-status-bar countdown";
+    sb.textContent=`⏳ Трейд завершится через ${countdown} сек…`;
+    $("tradeConfirmBtn").disabled=true;
+  }else if(myConf&&partConf){
+    sb.className="trade-status-bar confirmed";
+    sb.textContent="✅ Оба подтвердили! Отсчёт начнётся…";
+    $("tradeConfirmBtn").disabled=true;
+    startTradeCountdown();
+  }else if(myConf&&!partConf){
+    sb.className="trade-status-bar confirmed";
+    sb.textContent="✅ Вы подтвердили. Ожидайте подтверждения от партнёра…";
+    $("tradeConfirmBtn").disabled=true;
+  }else if(!myConf&&partConf){
+    sb.className="trade-status-bar";
+    sb.textContent="⏳ Партнёр подтвердил. Нажмите «Подтвердить трейд»";
+  }else{
+    sb.className="trade-status-bar";
+    sb.textContent="Добавьте предметы в трейд и подтвердите";
+  }
+}
+
+
+async function confirmTrade(){
+  if(!currentTradeId||!firebaseUser||!db)return;
+
+  const myItems=myTradeItems;
+  const crystals=parseInt($("tradeMyCrystals")?.value)||0;
+
+  if(!myItems.length&&crystals<1){
+    return toast("Добавьте хотя бы один предмет или кристалл");
+  }
+
+  tradeConfirmedMe=true;
+  $("tradeConfirmBtn").disabled=true;
+
+  await db.ref(`prognozer/trades/${currentTradeId}/sides/${firebaseUser.uid}`).update({
+    confirmed:true
+  });
+}
+
+
+async function startTradeCountdown(){
+  if(tradeCountdownTimer)return;
+  if(!currentTradeId||!db)return;
+
+  let c=5;
+  await db.ref(`prognozer/trades/${currentTradeId}/countdown`).set(c);
+
+  tradeCountdownTimer=setInterval(async()=>{
+    c--;
+    if(c<=0){
+      clearInterval(tradeCountdownTimer);
+      tradeCountdownTimer=null;
+      await executeTrade();
+    }else{
+      await db.ref(`prognozer/trades/${currentTradeId}/countdown`).set(c);
+    }
+  },1000);
+}
+
+
+async function executeTrade(){
+  if(!currentTradeId||!firebaseUser||!db)return;
+  try{
+    const snap=await db.ref(`prognozer/trades/${currentTradeId}`).once("value");
+    const data=snap.val();
+    if(!data)return;
+
+    const mySide=data.sides?.[firebaseUser.uid]||{};
+    const partnerSide=data.sides?.[currentPartnerUid]||{};
+
+    // Remove my items from inventory and add partner's items
+    const myItemsInTrade=mySide.items||[];
+    const partnerItemsInTrade=partnerSide.items||[];
+    const myCrystals=Number(mySide.crystals)||0;
+    const partnerCrystals=Number(partnerSide.crystals)||0;
+
+    // Remove items I put in trade (by matching)
+    myItemsInTrade.forEach(ti=>{
+      const idx=state.inventory.findIndex(x=>x.name===ti.name&&x.emoji===ti.emoji);
+      if(idx>-1)state.inventory.splice(idx,1);
+    });
+
+    // Add partner items to my inventory
+    partnerItemsInTrade.forEach(ti=>{
+      state.inventory.push({name:ti.name,emoji:ti.emoji,price:ti.price||0,type:ti.type||"Предмет"});
+    });
+
+    // Crystal exchange
+    state.balance=Math.max(0,state.balance-myCrystals+partnerCrystals);
+
+    localSave();
+
+    await db.ref(`prognozer/trades/${currentTradeId}`).update({status:"done"});
+
+    $("tradeOverlay").classList.remove("open");
+    currentTradeId=null;
+    toast("✅ Трейд успешно завершён!");
+
+  }catch(e){
+    toast("Ошибка выполнения трейда");
+  }
+}
+
+
+async function cancelTrade(silent=false){
+  clearInterval(tradeCountdownTimer);
+  tradeCountdownTimer=null;
+
+  if(tradeListener&&currentTradeId&&db){
+    db.ref(`prognozer/trades/${currentTradeId}`).off("value",tradeListener);
+    tradeListener=null;
+  }
+
+  if(currentTradeId&&db&&!silent){
+    try{
+      await db.ref(`prognozer/trades/${currentTradeId}`).update({status:"cancelled"});
+    }catch(e){}
+  }
+
+  $("tradeOverlay").classList.remove("open");
+  currentTradeId=null;
+  currentPartnerUid=null;
+  myTradeItems=[];
+  tradeConfirmedMe=false;
+  tradeConfirmedPartner=false;
+
+  if(!silent)toast("Трейд отменён");
+}
+
+
+// Called from chat dialog
+async function sendTradeRequest(){
+  if(!firebaseUser||!currentChatUid||!db){
+    return toast("Нет подключения");
+  }
+
+  // Check partner online
+  const onSnap=await db.ref(`prognozer/community/online/${currentChatUid}`).once("value");
+  if(!onSnap.val()){
+    return toast("Пользователь оффлайн. Трейд недоступен.");
+  }
+
+  const myName=await getMyUsername()||"me";
+
+  // Create trade session
+  const tradeRef=db.ref("prognozer/trades").push();
+  currentTradeId=tradeRef.key;
+
+  await tradeRef.set({
+    id:tradeRef.key,
+    from:firebaseUser.uid,
+    to:currentChatUid,
+    fromName:myName,
+    toName:currentChatUsername||currentChatUid,
+    status:"pending",
+    countdown:0,
+    createdAt:firebase.database.ServerValue.TIMESTAMP
+  });
+
+  // Show request to partner via Firebase
+  await db.ref(`prognozer/tradeRequests/${currentChatUid}`).set({
+    tradeId:tradeRef.key,
+    fromUid:firebaseUser.uid,
+    fromName:myName,
+    at:firebase.database.ServerValue.TIMESTAMP
+  });
+
+  toast("📩 Запрос на трейд отправлен!");
+  openTradeOverlay(currentChatUid,currentChatUsername||currentChatUid);
+}
+
+
+let pendingTradeId=null;
+let pendingTradeFromUid=null;
+
+
+function startTradeRequestListener(){
+  if(!firebaseUser||!db)return;
+  if(tradeRequestListener){
+    db.ref(`prognozer/tradeRequests/${firebaseUser.uid}`).off("value",tradeRequestListener);
+  }
+  tradeRequestListener=db.ref(`prognozer/tradeRequests/${firebaseUser.uid}`).on("value",snap=>{
+    const data=snap.val();
+    if(!data)return;
+    const banner=$("tradeRequestBanner");
+    if(!banner)return;
+    pendingTradeId=data.tradeId;
+    pendingTradeFromUid=data.fromUid;
+    $("tradeRequestFrom").textContent="@"+escapeHTML(data.fromName||"user");
+    banner.classList.add("show");
+  });
+}
+
+
+async function acceptTradeRequest(){
+  const banner=$("tradeRequestBanner");
+  if(banner)banner.classList.remove("show");
+
+  if(!pendingTradeId||!pendingTradeFromUid||!db)return;
+
+  currentTradeId=pendingTradeId;
+
+  // Get partner name
+  let partnerName="user";
+  try{
+    const pSnap=await db.ref(`prognozer/community/profiles/${pendingTradeFromUid}`).once("value");
+    partnerName=pSnap.val()?.username||"user";
+  }catch(e){}
+
+  // Accept in Firebase
+  await db.ref(`prognozer/trades/${pendingTradeId}`).update({status:"active"});
+  await db.ref(`prognozer/tradeRequests/${firebaseUser.uid}`).remove();
+
+  openTradeOverlay(pendingTradeFromUid,partnerName);
+}
+
+
+async function declineTradeRequest(){
+  const banner=$("tradeRequestBanner");
+  if(banner)banner.classList.remove("show");
+  if(pendingTradeId&&db){
+    try{
+      await db.ref(`prognozer/trades/${pendingTradeId}`).update({status:"cancelled"});
+      await db.ref(`prognozer/tradeRequests/${firebaseUser.uid}`).remove();
+    }catch(e){}
+  }
+  pendingTradeId=null;
+  pendingTradeFromUid=null;
+  toast("Трейд отклонён");
+}
+
+
+// Update trade button visibility based on partner online status
+async function updateTradeButtonVisibility(){
+  const btn=$("chatDialogTradeBtn");
+  if(!btn||!currentChatUid||!db)return;
+  try{
+    const snap=await db.ref(`prognozer/community/online/${currentChatUid}`).once("value");
+    btn.style.display=snap.val()?"inline-flex":"none";
+  }catch(e){
+    btn.style.display="none";
+  }
+}
+
+
+/* =========================================================
+   PLAYER MARKET (AUCTION)
+========================================================= */
+
+let marketFilter_="all";
+let marketListener=null;
+
+
+function openPlayerMarket(){
+  nav("market");
+  loadMarket();
+}
+
+
+async function loadMarket(){
+  const listEl=$("marketList");
+  if(!listEl)return;
+  listEl.innerHTML=`<div class="muted" style="text-align:center;padding:30px">Загружаем…</div>`;
+
+  if(!db){
+    listEl.innerHTML=`<div class="muted" style="text-align:center;padding:20px">Firebase недоступен</div>`;
+    return;
+  }
+
+  if(marketListener){
+    db.ref("prognozer/market").off("value",marketListener);
+  }
+
+  marketListener=db.ref("prognozer/market").on("value",snap=>{
+    const data=snap.val()||{};
+    renderMarketList(data);
+  });
+}
+
+
+function filterMarket(type,btn){
+  marketFilter_=type;
+  document.querySelectorAll(".market-filter-btn").forEach(b=>b.classList.remove("active"));
+  if(btn)btn.classList.add("active");
+  // Re-render from current listener data - force reload
+  loadMarket();
+}
+
+
+function renderMarketList(data){
+  const listEl=$("marketList");
+  if(!listEl)return;
+
+  let items=Object.entries(data)
+    .map(([id,v])=>({id,...v}))
+    .filter(x=>x.status==="active")
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+
+  if(marketFilter_!=="all"){
+    items=items.filter(x=>x.itemType===marketFilter_||x.category===marketFilter_);
+  }
+
+  if(!items.length){
+    listEl.innerHTML=`<div class="muted" style="text-align:center;padding:30px">Пусто. Будь первым — продай предмет!</div>`;
+    return;
+  }
+
+  const myUid=firebaseUser?.uid||"";
+
+  listEl.innerHTML=items.map(x=>`
+    <div class="market-item">
+      <div class="market-item-icon">${escapeHTML(x.emoji||"📦")}</div>
+      <div class="market-item-info">
+        <div class="market-item-name">${escapeHTML(x.name||"Предмет")}</div>
+        <div class="market-item-desc">${escapeHTML(x.desc||"")}</div>
+        <div class="market-item-seller">от @${escapeHTML(x.sellerName||"user")}</div>
+      </div>
+      <div class="market-item-actions">
+        <div class="market-item-price">${Number(x.price||0)} 💎</div>
+        ${
+          x.sellerUid===myUid
+          ?`<button class="market-del-btn" onclick="removeFromMarket('${escapeHTML(x.id)}')">✕ Снять</button>`
+          :`<button class="market-buy-btn" onclick="buyFromMarket('${escapeHTML(x.id)}')">Купить</button>`
+        }
+      </div>
+    </div>
+  `).join("");
+}
+
+
+function openMarketSellForm(){
+  if(!firebaseUser||firebaseUser.isAnonymous){
+    return toast("🔒 Войдите через Google");
+  }
+
+  const form=$("marketSellForm");
+  if(!form)return;
+
+  // Populate inventory select
+  const sel=$("marketSellItemSelect");
+  sel.innerHTML=`<option value="">— Выберите предмет из инвентаря —</option>`;
+  state.inventory.forEach((x,i)=>{
+    const opt=document.createElement("option");
+    opt.value=i;
+    opt.textContent=`${x.emoji} ${x.name} (${x.price}💎)`;
+    sel.appendChild(opt);
+  });
+
+  form.style.display="block";
+  form.scrollIntoView({behavior:"smooth"});
+}
+
+
+async function putItemOnMarket(){
+  if(!firebaseUser||!db)return toast("Нужна авторизация");
+
+  const selIdx=parseInt($("marketSellItemSelect")?.value);
+  const price=parseInt($("marketSellPrice")?.value)||0;
+  const desc=($("marketSellDesc")?.value||"").trim().substring(0,80);
+
+  if(isNaN(selIdx)){
+    return toast("Выберите предмет");
+  }
+  if(price<1){
+    return toast("Укажите цену");
+  }
+
+  const item=state.inventory[selIdx];
+  if(!item)return toast("Предмет не найден");
+
+  const myName=await getMyUsername()||"user";
+
+  try{
+    // Remove item from inventory
+    state.inventory.splice(selIdx,1);
+    localSave();
+
+    await db.ref("prognozer/market").push({
+      name:item.name,
+      emoji:item.emoji,
+      price:price,
+      itemType:item.type||"Предмет",
+      category:item.type||"Предмет",
+      desc:desc,
+      sellerUid:firebaseUser.uid,
+      sellerName:myName,
+      status:"active",
+      createdAt:firebase.database.ServerValue.TIMESTAMP
+    });
+
+    toast("✅ Предмет выставлен на маркет");
+    $("marketSellForm").style.display="none";
+
+  }catch(e){
+    // Return item if failed
+    state.inventory.splice(selIdx,0,item);
+    localSave();
+    toast("Ошибка: "+firebaseError(e));
+  }
+}
+
+
+async function buyFromMarket(marketId){
+  if(!firebaseUser||!db)return toast("Нужна авторизация");
+
+  try{
+    const snap=await db.ref(`prognozer/market/${marketId}`).once("value");
+    const lot=snap.val();
+    if(!lot||lot.status!=="active"){
+      return toast("Лот недоступен");
+    }
+
+    if(lot.sellerUid===firebaseUser.uid){
+      return toast("Нельзя купить свой лот");
+    }
+
+    const price=Number(lot.price)||0;
+
+    if(state.balance<price){
+      return toast("Не хватает 💎 (нужно "+price+")");
+    }
+
+    // Deduct from buyer
+    state.balance-=price;
+    localSave();
+
+    // Mark sold
+    await db.ref(`prognozer/market/${marketId}`).update({status:"sold"});
+
+    // Handle username lot
+    if(lot.category==="username"){
+      // Special: transfer username
+      toast("🏷️ Юзернейм куплен! Перейдите в профиль чтобы применить");
+      // Store pending username for buyer
+      await db.ref(`prognozer/pendingUsernames/${firebaseUser.uid}`).set({
+        username:lot.usernameValue||lot.name,
+        from:lot.sellerUid,
+        boughtAt:firebase.database.ServerValue.TIMESTAMP
+      });
+    }else{
+      // Add to inventory
+      state.inventory.push({
+        name:lot.name,
+        emoji:lot.emoji||"📦",
+        price:price,
+        type:lot.itemType||"Предмет"
+      });
+    }
+
+    localSave();
+
+    // Pay seller
+    await db.ref(`prognozer/pendingPayouts/${lot.sellerUid}`).push({
+      amount:price,
+      from:firebaseUser.uid,
+      lotId:marketId,
+      at:firebase.database.ServerValue.TIMESTAMP
+    });
+
+    toast("✅ Куплено за "+price+" 💎!");
+
+  }catch(e){
+    state.balance+=Number(lot?.price)||0;
+    localSave();
+    toast("Ошибка покупки");
+  }
+}
+
+
+async function removeFromMarket(marketId){
+  if(!firebaseUser||!db)return;
+  try{
+    const snap=await db.ref(`prognozer/market/${marketId}`).once("value");
+    const lot=snap.val();
+    if(!lot||lot.sellerUid!==firebaseUser.uid){
+      return toast("Нет доступа");
+    }
+
+    await db.ref(`prognozer/market/${marketId}`).update({status:"removed"});
+
+    // Return item to inventory (non-username)
+    if(lot.category!=="username"){
+      state.inventory.push({
+        name:lot.name,
+        emoji:lot.emoji||"📦",
+        price:lot.price||0,
+        type:lot.itemType||"Предмет"
+      });
+      localSave();
+    }
+
+    toast("Предмет снят с маркета и возвращён в инвентарь");
+
+  }catch(e){
+    toast("Ошибка");
+  }
+}
+
+
+/* =========================================================
+   SELL USERNAME
+========================================================= */
+
+async function sellMyUsername(){
+  if(!firebaseUser||firebaseUser.isAnonymous||!db){
+    return toast("🔒 Нужна авторизация Google");
+  }
+
+  const price=parseInt($("sellUsernamePrice")?.value)||0;
+  if(price<10){
+    return toast("Минимальная цена 10 💎");
+  }
+
+  const myUsername=await getMyUsername();
+  if(!myUsername){
+    return toast("У вас нет username");
+  }
+
+  const statusEl=$("sellUsernameStatus");
+
+  try{
+    if(statusEl)statusEl.textContent="Выставляем…";
+
+    await db.ref("prognozer/market").push({
+      name:"@"+myUsername,
+      emoji:"🏷️",
+      price:price,
+      itemType:"username",
+      category:"username",
+      usernameValue:myUsername,
+      desc:"Юзернейм @"+myUsername,
+      sellerUid:firebaseUser.uid,
+      sellerName:myUsername,
+      status:"active",
+      createdAt:firebase.database.ServerValue.TIMESTAMP
+    });
+
+    if(statusEl)statusEl.textContent="✅ Юзернейм @"+myUsername+" выставлен за "+price+" 💎";
+    toast("✅ Юзернейм выставлен на маркет");
+
+  }catch(e){
+    if(statusEl)statusEl.textContent="Ошибка: "+firebaseError(e);
+    toast("Ошибка: "+firebaseError(e));
+  }
+}
+
+
+/* =========================================================
+   PENDING PAYOUTS (run on login)
+========================================================= */
+
+async function processPendingPayouts(){
+  if(!firebaseUser||!db)return;
+  try{
+    const snap=await db.ref(`prognozer/pendingPayouts/${firebaseUser.uid}`).once("value");
+    const data=snap.val()||{};
+    const entries=Object.entries(data);
+    if(!entries.length)return;
+    let total=0;
+    entries.forEach(([,v])=>total+=Number(v.amount)||0);
+    if(total>0){
+      state.balance+=total;
+      localSave();
+      toast(`💎 Получено ${total} 💎 от продаж на маркете!`);
+      await db.ref(`prognozer/pendingPayouts/${firebaseUser.uid}`).remove();
+    }
+  }catch(e){}
 }
 
 
