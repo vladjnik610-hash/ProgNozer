@@ -3247,10 +3247,20 @@ textarea{
 
   <button
     class="tab"
-    id="chatTab">
+    id="chatTab"
+    style="position:relative">
 
     <span class="ti">💬</span>
     Чат
+    <span id="chatTabDot" style="
+      display:none;
+      position:absolute;
+      top:5px;right:8px;
+      width:9px;height:9px;
+      border-radius:50%;
+      background:#ff4444;
+      border:1.5px solid rgba(6,12,21,0.98)
+    "></span>
 
   </button>
 
@@ -5162,6 +5172,8 @@ async function updateCommunityDrawer(){
    COMMUNITY PRESENCE
 ========================================================= */
 
+let presenceStarted=false;
+
 async function startPresence(){
 
   if(
@@ -5172,6 +5184,9 @@ async function startPresence(){
   ){
     return;
   }
+
+  if(presenceStarted)return;
+  presenceStarted=true;
 
 
   const username=
@@ -5184,9 +5199,8 @@ async function startPresence(){
   */
 
   if(!username){
-
+    presenceStarted=false;
     return;
-
   }
 
 
@@ -5226,7 +5240,7 @@ async function startPresence(){
 
         rank:"Обычный пользователь",
 
-        lastSeen:
+        at:
           firebase.database.ServerValue.TIMESTAMP
 
       });
@@ -7227,7 +7241,7 @@ async function addFriendByUsername(){
 
 
   let username=
-    input.value.trim().replace(/^@/,"");
+    input.value.trim().replace(/^@/,"").toLowerCase();
 
   if(!username){
 
@@ -10501,6 +10515,8 @@ async function logoutGoogle(){
 
     firebaseUser=null;
 
+    presenceStarted=false;
+
     guestMode=false;
 
     lastAuthUid=null;
@@ -11674,6 +11690,8 @@ async function openChatWith(otherUid,otherUsername){
 
 async function sendChatMessage(){
 
+  if(window.__sendingChat)return;
+
   const input=$("chatInput");
 
   if(!input||!currentChatUid)return;
@@ -11683,6 +11701,7 @@ async function sendChatMessage(){
 
   if(!text)return;
 
+  window.__sendingChat=true;
 
   input.value="";
 
@@ -11785,6 +11804,10 @@ async function sendChatMessage(){
 
     toast("Ошибка отправки");
 
+  }finally{
+
+    window.__sendingChat=false;
+
   }
 
 }
@@ -11793,9 +11816,6 @@ async function sendChatMessage(){
 function closeChatDialog(){
 
   $("chatDialog").classList.remove("open");
-
-  currentChatUid=null;
-
 
   if(chatDialogListener&&db&&currentChatUid){
 
@@ -11810,6 +11830,8 @@ function closeChatDialog(){
   }
 
   chatDialogListener=null;
+
+  currentChatUid=null;
 
 }
 
@@ -11884,7 +11906,7 @@ async function searchUserForChat(){
 
 
   let username=
-    input.value.trim().replace(/^@/,"");
+    input.value.trim().replace(/^@/,"").toLowerCase();
 
   if(!username){
 
@@ -12037,6 +12059,9 @@ function startChatBadgeListener(){
         }
 
       }
+
+      const tabDot=$("chatTabDot");
+      if(tabDot)tabDot.style.display=total>0?"block":"none";
 
     }
   );
