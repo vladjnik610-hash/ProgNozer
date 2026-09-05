@@ -3736,6 +3736,15 @@ textarea{
   </div>
 </div>
 
+<!-- Баннер запроса в друзья -->
+<div class="trade-request-banner" id="friendReqBanner" data-from-uid="">
+  <p>👥 <span class="name" id="friendReqFrom">@user</span> хочет добавить вас в друзья</p>
+  <div class="trade-request-banner-btns">
+    <button class="primary" style="padding:9px 18px;font-size:13px" onclick="acceptFriendFromBanner()">✓ Принять</button>
+    <button class="secondary" style="padding:9px 18px;font-size:13px" onclick="declineFriendFromBanner()">✕ Отклонить</button>
+  </div>
+</div>
+
 
 <!-- =========================================================
      TRADE OVERLAY
@@ -4878,7 +4887,7 @@ async function saveUsername(){
       photoURL:
         firebaseUser.photoURL||"",
 
-      rank:"Silver I",
+      rank:"Обычный пользователь",
 
       uid:firebaseUser.uid,
 
@@ -5215,7 +5224,7 @@ async function startPresence(){
         photoURL:
           firebaseUser.photoURL||"",
 
-        rank:"Silver I",
+        rank:"Обычный пользователь",
 
         lastSeen:
           firebase.database.ServerValue.TIMESTAMP
@@ -5564,7 +5573,9 @@ function renderPost(post){
 
         </div>
 
-        <div class="post-author-info">
+        <div class="post-author-info"
+          ${post.uid&&(!firebaseUser||post.uid!==firebaseUser.uid)?`onclick="openUserProfile('${escapeHTML(post.uid||'')}')" style="cursor:pointer"`:""}
+        >
 
           <div>
 
@@ -5573,7 +5584,7 @@ function renderPost(post){
             </span>
 
             <span class="post-rank">
-              ${escapeHTML(post.rank||"Silver I")}
+              ${escapeHTML(post.rank||"Обычный пользователь")}
             </span>
 
           </div>
@@ -5990,17 +6001,6 @@ function openTradeSelector(){
     уровни/проверку звания.
   */
 
-  const rank="Silver I";
-
-  if(!rank.startsWith("Silver")){
-
-    return toast(
-      "🔒 Торговля доступна с Silver"
-    );
-
-  }
-
-
   if(!state.inventory.length){
 
     return toast(
@@ -6394,7 +6394,7 @@ async function publishCommunityPost(){
       photoURL:
         firebaseUser.photoURL||"",
 
-      rank:"Silver I",
+      rank:"Обычный пользователь",
 
       text:text,
 
@@ -6584,135 +6584,170 @@ async function deleteCommunityPost(id){
 
 async function openUserProfile(uid){
 
-  if(!uid || !db)return;
+  if(!uid||!db)return;
+  if(firebaseUser&&uid===firebaseUser.uid)return toast("Это ваш профиль");
 
   try{
 
-    const snap=
-      await db.ref(
-        "prognozer/community/profiles/"
-        +uid
-      ).once("value");
-
-
-    const p=snap.val();
-
-    if(!p){
-
-      return toast(
-        "Профиль не найден"
-      );
-
-    }
-
-
     const b=$("modalBody");
+    b.innerHTML=`<div class="muted" style="text-align:center;padding:40px">Загружаем профиль…</div>`;
+    $("modal").classList.add("open");
+
+    /* Параллельная загрузка всех данных */
+    const [profSnap,userSnap,friendsSnap,marketSnap]=await Promise.all([
+      db.ref("prognozer/community/profiles/"+uid).once("value"),
+      db.ref("prognozer/users/"+uid).once("value"),
+      db.ref("prognozer/friends/"+uid).once("value"),
+      db.ref("prognozer/market").orderByChild("sellerUid").equalTo(uid).once("value")
+    ]);
+
+    const p=profSnap.val();
+    if(!p)return toast("Профиль не найден");
+
+    const userData=userSnap.val()||{};
+    const inv=Array.isArray(userData.inventory)?userData.inventory:[];
+    const stats=userData.statistics||{};
+    const friendsData=friendsSnap.val()||{};
+    const friendCount=Object.keys(friendsData).length;
+
+    /* Активные лоты */
+    const marketData=marketSnap.val()||{};
+    const activeLots=Object.values(marketData).filter(x=>x.status==="active");
+
+    /* Онлайн */
+    const onSnap=await db.ref("prognozer/community/online/"+uid).once("value");
+    const isOnline=!!onSnap.val();
+
+    /* Ранг */
+    const rank=escapeHTML(p.rank||"Обычный пользователь");
+
+    /* Скины — топ 6 из инвентаря */
+    const topSkins=inv.slice(0,6);
+
+    const isMyFriend=firebaseUser&&(friendsData[firebaseUser.uid]===true);
 
     b.innerHTML=`
+      <div style="text-align:center;padding:4px 0 10px">
 
-      <div style="text-align:center">
-
-        <div
-          class="avatar"
-          style="width:90px;height:90px;margin:auto;font-size:38px">
-
-          ${
-            p.photoURL
-            ?`
-              <img
-                src="${escapeHTML(p.photoURL)}">
-            `
-            :"👤"
-          }
-
+        <!-- Аватарка + онлайн -->
+        <div style="position:relative;width:90px;height:90px;margin:auto">
+          <div class="avatar" style="width:90px;height:90px;font-size:38px">
+            ${p.photoURL?`<img src="${escapeHTML(p.photoURL)}">`:"👤"}
+          </div>
+          ${isOnline?`<div class="online-dot" style="width:18px;height:18px;right:0;bottom:0;border-width:3px"></div>`:""}
         </div>
 
-        <h2 style="margin:12px 0 4px">
-          @${escapeHTML(p.username||"user")}
-        </h2>
+        <!-- Имя + ранг -->
+        <h2 style="margin:12px 0 4px;font-size:24px">@${escapeHTML(p.username||"user")}</h2>
+        <div style="display:inline-block;padding:5px 14px;border-radius:10px;background:#172b42;color:#c6d5e7;font-size:13px;font-weight:700;margin-bottom:6px">
+          ${rank}
+        </div>
+        <div class="muted" style="font-size:12px">${isOnline?"🟢 В сети":"⚫ Не в сети"}</div>
 
-        <div class="muted">
-          ${escapeHTML(p.rank||"Silver I")}
+        <!-- Статистика -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0 0">
+          <div style="background:#0b1726;border:1px solid #1d3b5d;border-radius:14px;padding:12px 6px">
+            <div style="font-size:22px;font-weight:900;color:#4da6ff">${Number(stats.casesOpened||0)}</div>
+            <div style="font-size:11px;color:#7a95ae">кейсов</div>
+          </div>
+          <div style="background:#0b1726;border:1px solid #1d3b5d;border-radius:14px;padding:12px 6px">
+            <div style="font-size:22px;font-weight:900;color:#42ff9a">${Number(stats.upgrades||0)}</div>
+            <div style="font-size:11px;color:#7a95ae">апгрейдов</div>
+          </div>
+          <div style="background:#0b1726;border:1px solid #1d3b5d;border-radius:14px;padding:12px 6px">
+            <div style="font-size:22px;font-weight:900;color:#f0c040">${friendCount}</div>
+            <div style="font-size:11px;color:#7a95ae">друзей</div>
+          </div>
         </div>
 
-        <div
-          class="create-post-options"
-          style="margin-top:20px">
+        <!-- Скины -->
+        ${topSkins.length?`
+        <div style="margin:16px 0 0;text-align:left">
+          <div style="font-size:13px;font-weight:800;color:#8295ad;margin-bottom:8px">🎨 Скины (${inv.length})</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${topSkins.map(x=>`
+              <div style="width:52px;height:52px;border-radius:13px;background:#0d2038;border:1px solid #1d3b5d;display:flex;align-items:center;justify-content:center;font-size:26px" title="${escapeHTML(x.name||'')} — ${x.price||0}💎">
+                ${escapeHTML(x.emoji||"❓")}
+              </div>
+            `).join("")}
+            ${inv.length>6?`<div style="width:52px;height:52px;border-radius:13px;background:#0d2038;border:1px solid #1d3b5d;display:flex;align-items:center;justify-content:center;font-size:13px;color:#8295ad">+${inv.length-6}</div>`:""}
+          </div>
+        </div>`:""}
 
-          <button
-            class="create-option"
-            onclick="addFriend('${escapeHTML(uid)}')">
+        <!-- Активные лоты -->
+        ${activeLots.length?`
+        <div style="margin:16px 0 0;text-align:left">
+          <div style="font-size:13px;font-weight:800;color:#8295ad;margin-bottom:8px">🏪 Активных лотов: ${activeLots.length}</div>
+          <div style="display:grid;gap:7px">
+            ${activeLots.slice(0,3).map(x=>`
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #1c3756;border-radius:13px;background:#0b1726">
+                <span style="font-size:22px">${escapeHTML(x.emoji||"📦")}</span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(x.name||"Предмет")}</div>
+                </div>
+                <div style="color:#55b4ff;font-weight:900;white-space:nowrap">${x.price||0} 💎</div>
+              </div>
+            `).join("")}
+            ${activeLots.length>3?`<div class="muted" style="text-align:center;font-size:12px">ещё ${activeLots.length-3} лота…</div>`:""}
+          </div>
+        </div>`:""}
 
-            <div class="create-option-icon">
-              👥
-            </div>
+        <!-- Кнопки действий -->
+        <div class="create-post-options" style="margin-top:20px">
 
+          <button class="create-option" id="profAddFriendBtn"
+            onclick="addFriend('${escapeHTML(uid)}');
+              document.getElementById('profAddFriendBtn').disabled=true;
+              document.getElementById('profAddFriendBtn').querySelector('b').textContent='Запрос отправлен'">
+            <div class="create-option-icon">👥</div>
             <div class="create-option-info">
-              <b>Добавить в друзья</b>
+              <b>${isMyFriend?"Уже в друзьях":"Добавить в друзья"}</b>
               <span>Отправить запрос</span>
             </div>
-
-            <div class="create-option-arrow">
-              ›
-            </div>
-
+            <div class="create-option-arrow">›</div>
           </button>
 
-          <button
-            class="create-option"
-            onclick="$('modal').classList.remove('open');openChatWith('${escapeHTML(uid)}','${escapeHTML((p.username||'user'))}')">
-
-            <div class="create-option-icon">
-              💬
-            </div>
-
+          <button class="create-option"
+            onclick="$('modal').classList.remove('open');openChatWith('${escapeHTML(uid)}','${escapeHTML(p.username||"user")}')">
+            <div class="create-option-icon">💬</div>
             <div class="create-option-info">
               <b>Написать сообщение</b>
               <span>Открыть диалог</span>
             </div>
-
-            <div class="create-option-arrow">
-              ›
-            </div>
-
+            <div class="create-option-arrow">›</div>
           </button>
 
-          <button
-            class="create-option"
-            onclick="toast('Трейд будет подключён следующим этапом')">
-
-            <div class="create-option-icon">
-              🔄
-            </div>
-
+          <button class="create-option" ${!isOnline?"disabled":""} style="${!isOnline?"opacity:.45":""}"
+            onclick="openTradeWithUser('${escapeHTML(uid)}','${escapeHTML(p.username||"user")}')">
+            <div class="create-option-icon">🔄</div>
             <div class="create-option-info">
               <b>Предложить трейд</b>
-              <span>Обмен предметами</span>
+              <span>${isOnline?"Обмен предметами":"Игрок оффлайн"}</span>
             </div>
-
-            <div class="create-option-arrow">
-              ›
-            </div>
-
+            <div class="create-option-arrow">›</div>
           </button>
 
         </div>
-
       </div>
-
     `;
 
-    $("modal")
-      .classList.add("open");
-
   }catch(e){
-
-    toast(
-      "Ошибка загрузки профиля"
-    );
-
+    toast("Ошибка загрузки профиля");
   }
 
+}
+
+
+/* Открыть трейд напрямую с профиля */
+async function openTradeWithUser(uid,username){
+  if(!firebaseUser||firebaseUser.isAnonymous||!db){
+    return toast("🔒 Нужна авторизация Google");
+  }
+  $("modal").classList.remove("open");
+  /* Сначала отправляем запрос партнёру, трейд откроется только после принятия */
+  currentChatUid=uid;
+  currentChatUsername=username;
+  await sendTradeRequest();
 }
 
 
@@ -6746,6 +6781,8 @@ async function addFriend(uid){
 
   try{
 
+    const myName=await getMyUsername()||"user";
+
     await db.ref(
       "prognozer/friendRequests/"
       +uid
@@ -6755,11 +6792,22 @@ async function addFriend(uid){
 
       from:firebaseUser.uid,
 
+      fromName:myName,
+
       createdAt:
         firebase.database.ServerValue.TIMESTAMP,
 
       status:"pending"
 
+    });
+
+    /* Уведомление-баннер для получателя (в чате и комьюнити) */
+    await db.ref(
+      "prognozer/friendNotifications/"+uid
+    ).set({
+      fromUid:firebaseUser.uid,
+      fromName:myName,
+      at:firebase.database.ServerValue.TIMESTAMP
     });
 
 
@@ -6778,6 +6826,44 @@ async function addFriend(uid){
 }
 
 
+/* Слушатель уведомлений о запросах в друзья */
+function startFriendNotificationListener(){
+  if(!firebaseUser||!db)return;
+  db.ref("prognozer/friendNotifications/"+firebaseUser.uid).on("value",snap=>{
+    const data=snap.val();
+    if(!data)return;
+    const banner=$("friendReqBanner");
+    if(!banner)return;
+    $("friendReqFrom").textContent="@"+escapeHTML(data.fromName||"user");
+    banner.dataset.fromUid=data.fromUid||"";
+    banner.classList.add("show");
+  });
+}
+
+async function acceptFriendFromBanner(){
+  const banner=$("friendReqBanner");
+  if(!banner)return;
+  banner.classList.remove("show");
+  const fromUid=banner.dataset.fromUid;
+  if(!fromUid)return;
+  await acceptFriend(fromUid);
+  if(db&&firebaseUser){
+    await db.ref("prognozer/friendNotifications/"+firebaseUser.uid).remove();
+  }
+}
+
+async function declineFriendFromBanner(){
+  const banner=$("friendReqBanner");
+  if(!banner)return;
+  banner.classList.remove("show");
+  const fromUid=banner.dataset.fromUid;
+  if(fromUid)await declineFriend(fromUid);
+  if(db&&firebaseUser){
+    await db.ref("prognozer/friendNotifications/"+firebaseUser.uid).remove();
+  }
+}
+
+
 /* =========================================================
    COMMUNITY DRAWER ACTIONS
 ========================================================= */
@@ -6786,9 +6872,7 @@ $("drawerAddFriend").onclick=()=>{
 
   closeDrawer();
 
-  toast(
-    "Открой профиль игрока и нажми «Добавить в друзья»"
-  );
+  openFriends();
 
 };
 
@@ -7001,7 +7085,7 @@ async function switchFriendTab(tab){
                 </div>
 
                 <div class="friend-item-sub">
-                  ${escapeHTML(p.rank||"Silver I")}
+                  ${escapeHTML(p.rank||"Обычный пользователь")}
                 </div>
 
               </div>
@@ -7209,7 +7293,7 @@ async function addFriendByUsername(){
 
         <div class="friend-item-info">
           <div class="friend-item-name">@${escapeHTML(p.username)}</div>
-          <div class="friend-item-sub">${escapeHTML(p.rank||"Silver I")}</div>
+          <div class="friend-item-sub">${escapeHTML(p.rank||"Обычный пользователь")}</div>
         </div>
 
         <button
@@ -10766,7 +10850,7 @@ async function handleAuthUser(user){
             photoURL:
               user.photoURL||"",
 
-            rank:"Silver I",
+            rank:"Обычный пользователь",
 
             uid:user.uid,
 
@@ -10786,6 +10870,8 @@ async function handleAuthUser(user){
         startChatBadgeListener();
 
         startTradeRequestListener();
+
+        startFriendNotificationListener();
 
         processPendingPayouts();
 
@@ -11864,7 +11950,7 @@ async function searchUserForChat(){
 
         <div class="friend-item-info">
           <div class="friend-item-name">@${escapeHTML(p.username)}</div>
-          <div class="friend-item-sub">${escapeHTML(p.rank||"Silver I")}</div>
+          <div class="friend-item-sub">${escapeHTML(p.rank||"Обычный пользователь")}</div>
         </div>
 
         <div style="display:flex;gap:7px">
@@ -12285,6 +12371,25 @@ async function executeTrade(){
       return;
     }
 
+    /* Безопасность: текущий пользователь должен быть участником трейда */
+    const myUid=firebaseUser.uid;
+    if(data.from!==myUid&&data.to!==myUid){
+      _tradeExecuting=false;
+      toast("❌ Вы не участник этого трейда");
+      return;
+    }
+
+    /* Оба участника должны подтвердить */
+    const sides=data.sides||{};
+    const bothConfirmed=
+      Object.keys(sides).length>=2&&
+      Object.values(sides).every(s=>s.confirmed===true);
+    if(!bothConfirmed){
+      _tradeExecuting=false;
+      toast("❌ Оба участника должны подтвердить трейд");
+      return;
+    }
+
     const mySide=data.sides?.[firebaseUser.uid]||{};
     const partnerSide=data.sides?.[currentPartnerUid]||{};
 
@@ -12373,12 +12478,12 @@ async function sendTradeRequest(){
 
   const myName=await getMyUsername()||"me";
 
-  // Create trade session
+  // Create trade session (status: "pending" — ждём одобрения)
   const tradeRef=db.ref("prognozer/trades").push();
-  currentTradeId=tradeRef.key;
+  const pendingTradeKey=tradeRef.key;
 
   await tradeRef.set({
-    id:tradeRef.key,
+    id:pendingTradeKey,
     from:firebaseUser.uid,
     to:currentChatUid,
     fromName:myName,
@@ -12390,14 +12495,30 @@ async function sendTradeRequest(){
 
   // Show request to partner via Firebase
   await db.ref(`prognozer/tradeRequests/${currentChatUid}`).set({
-    tradeId:tradeRef.key,
+    tradeId:pendingTradeKey,
     fromUid:firebaseUser.uid,
     fromName:myName,
     at:firebase.database.ServerValue.TIMESTAMP
   });
 
-  toast("📩 Запрос на трейд отправлен!");
-  openTradeOverlay(currentChatUid,currentChatUsername||currentChatUid);
+  toast("📩 Запрос на трейд отправлен! Ожидайте подтверждения…");
+
+  /* Инициатор НЕ открывает трейд сразу — ждёт когда партнёр примет.
+     Подписываемся на изменение статуса трейда */
+  currentTradeId=pendingTradeKey;
+
+  const waitRef=db.ref(`prognozer/trades/${pendingTradeKey}/status`);
+  const waitListener=waitRef.on("value",snap=>{
+    const st=snap.val();
+    if(st==="active"){
+      waitRef.off("value",waitListener);
+      openTradeOverlay(currentChatUid,currentChatUsername||currentChatUid);
+    }else if(st==="cancelled"){
+      waitRef.off("value",waitListener);
+      currentTradeId=null;
+      toast("❌ Партнёр отклонил трейд");
+    }
+  });
 }
 
 
@@ -12427,7 +12548,18 @@ async function acceptTradeRequest(){
   const banner=$("tradeRequestBanner");
   if(banner)banner.classList.remove("show");
 
-  if(!pendingTradeId||!pendingTradeFromUid||!db)return;
+  if(!pendingTradeId||!pendingTradeFromUid||!db||!firebaseUser)return;
+
+  /* Проверяем что трейд действительно адресован нам */
+  try{
+    const tradeSnap=await db.ref(`prognozer/trades/${pendingTradeId}`).once("value");
+    const td=tradeSnap.val();
+    if(!td||td.to!==firebaseUser.uid){
+      return toast("❌ Этот трейд не для вас");
+    }
+  }catch(e){
+    return toast("Ошибка проверки трейда");
+  }
 
   currentTradeId=pendingTradeId;
 
