@@ -4001,7 +4001,8 @@ function normalizeState(x){
   }
 
   return{
-    balance:x.balance,
+    // Баг-фикс: нормализуем баланс — не может быть меньше 0 или NaN
+    balance:Math.max(0,Math.floor(Number(x.balance)||0)),
 
     inventory:
       Array.isArray(x.inventory)
@@ -4087,8 +4088,13 @@ function toast(t){
 
 function updateUI(){
 
-  $("balance").textContent=
-    state.balance+" 💎";
+  // Если Firebase ещё не загружен для Google-пользователя — показываем "загрузка"
+  if(!guestMode&&!window.__firebaseLoaded&&firebaseUser&&!firebaseUser.isAnonymous){
+    $("balance").textContent="⏳ 💎";
+  }else{
+    $("balance").textContent=
+      state.balance+" 💎";
+  }
 
   renderInventory();
 
@@ -4491,6 +4497,16 @@ function sell(i){
 
 
 function buy(id){
+
+  /* Баг-фикс: блокируем покупку до загрузки Firebase */
+  if(
+    !guestMode &&
+    !window.__firebaseLoaded
+  ){
+    return toast(
+      "⏳ Подождите, данные загружаются…"
+    );
+  }
 
   const x=items.find(
     a=>a.id===id
@@ -8092,6 +8108,11 @@ function dblSpin(){
 
   if(dblSpinning)return;
 
+  /* Баг-фикс: блокируем до загрузки Firebase */
+  if(!guestMode&&!window.__firebaseLoaded){
+    $("dblResult").textContent="⏳ Подождите, данные загружаются…";
+    return;
+  }
 
   const tot=
     dblBets.reduce(
@@ -8114,7 +8135,7 @@ function dblSpin(){
 
     return(
       $("dblResult").textContent=
-        "⚠️ Не хватает 💎"
+        "⚠️ Не хватает 💎 (нужно "+tot+", у вас "+state.balance+")"
     );
 
   }
@@ -9536,8 +9557,6 @@ function openCase(i){
   /* Баг-фикс: блокируем кейс до загрузки Firebase */
   if(
     !guestMode &&
-    firebaseUser &&
-    !firebaseUser.isAnonymous &&
     !window.__firebaseLoaded
   ){
     return toast(
@@ -9547,7 +9566,7 @@ function openCase(i){
 
   const c=cases[i];
 
-
+  /* Строгая проверка: баланс должен быть >= стоимости */
   if(
     state.balance<c.cost
   ){
@@ -9820,6 +9839,11 @@ function sellCaseDrop(){
 
 function battle(){
 
+  /* Баг-фикс: блокируем до загрузки Firebase */
+  if(!guestMode&&!window.__firebaseLoaded){
+    return toast("⏳ Подождите, данные загружаются…");
+  }
+
   if(
     getBattleCooldownRemaining()>0
   ){
@@ -10021,6 +10045,11 @@ function contract(){
 ========================================================= */
 
 function royal(){
+
+  /* Баг-фикс: блокируем до загрузки Firebase */
+  if(!guestMode&&!window.__firebaseLoaded){
+    return toast("⏳ Подождите, данные загружаются…");
+  }
 
   if(state.balance<100){
 
@@ -12188,6 +12217,19 @@ async function confirmTrade(){
     return toast("Добавьте хотя бы один предмет или кристалл");
   }
 
+  /* Баг-фикс: проверяем что у пользователя достаточно кристаллов */
+  if(crystals>0&&crystals>state.balance){
+    return toast("Не хватает 💎 для трейда (у вас "+state.balance+" 💎)");
+  }
+
+  /* Баг-фикс: проверяем что предметы для трейда реально есть в инвентаре */
+  for(const ti of myItems){
+    const idx=state.inventory.findIndex(x=>x.name===ti.name&&x.emoji===ti.emoji);
+    if(idx<0){
+      return toast("Предмет «"+ti.name+"» больше не в инвентаре");
+    }
+  }
+
   tradeConfirmedMe=true;
   $("tradeConfirmBtn").disabled=true;
 
@@ -12263,8 +12305,17 @@ async function executeTrade(){
       state.inventory.push({name:ti.name,emoji:ti.emoji,price:ti.price||0,type:ti.type||"Предмет"});
     });
 
+    // Баг-фикс: строгая проверка баланса перед списанием кристаллов
+    if(myCrystals>state.balance){
+      _tradeExecuting=false;
+      await db.ref(`prognozer/trades/${currentTradeId}`).update({status:"cancelled"});
+      toast("❌ Трейд отменён: недостаточно 💎");
+      $("tradeOverlay").classList.remove("open");
+      currentTradeId=null;
+      return;
+    }
     // Crystal exchange
-    state.balance=Math.max(0,state.balance-myCrystals+partnerCrystals);
+    state.balance=state.balance-myCrystals+partnerCrystals;
 
     localSave();
 
@@ -12585,48 +12636,76 @@ async function putItemOnMarket(){
 async function buyFromMarket(marketId){
   if(!firebaseUser||!db)return toast("Нужна авторизация");
 
+  /* Баг-фикс: блокируем до загрузки Firebase */
+  if(!window.__firebaseLoaded){
+    return toast("⏳ Подождите, данные загружаются…");
+  }
+
+  /* Защита от двойного нажатия */
+  if(window.__buyingMarket){
+    return toast("⏳ Покупка уже обрабатывается…");
+  }
+  window.__buyingMarket=true;
+
   try{
-    const snap=await db.ref(`prognozer/market/${marketId}`).once("value");
-    const lot=snap.val();
-    if(!lot||lot.status!=="active"){
-      return toast("Лот недоступен");
+    /* ── Атомарная транзакция: резервируем лот ──
+       transaction() на узле лота — если два пользователя
+       нажмут "Купить" одновременно, только один пройдёт.
+       Второй получит status!=="active" и откажет. */
+    const lotRef=db.ref(`prognozer/market/${marketId}`);
+    let lot=null;
+
+    const txResult=await lotRef.transaction(current=>{
+      if(!current||current.status!=="active"){
+        // Лот уже куплен или недоступен — отменяем транзакцию
+        return; // undefined = abort
+      }
+      if(current.sellerUid===firebaseUser.uid){
+        return; // нельзя купить свой лот
+      }
+      lot=current;
+      // Атомарно меняем статус — никто другой уже не купит
+      return Object.assign({},current,{status:"sold",buyerUid:firebaseUser.uid});
+    });
+
+    if(!txResult.committed){
+      window.__buyingMarket=false;
+      // Определяем причину
+      const snap=await lotRef.once("value");
+      const cur=snap.val();
+      if(!cur||cur.status!=="active") return toast("Лот уже куплен или недоступен");
+      if(cur.sellerUid===firebaseUser.uid) return toast("Нельзя купить свой лот");
+      return toast("Не удалось купить лот, попробуйте снова");
     }
 
-    if(lot.sellerUid===firebaseUser.uid){
-      return toast("Нельзя купить свой лот");
-    }
-
+    // lot заполнен внутри транзакции
     const price=Number(lot.price)||0;
 
+    /* Строгая проверка баланса после транзакции */
     if(state.balance<price){
-      return toast("Не хватает 💎 (нужно "+price+")");
+      // Откатываем статус лота обратно в "active"
+      await lotRef.update({status:"active",buyerUid:null});
+      window.__buyingMarket=false;
+      return toast("Не хватает 💎 (нужно "+price+", у вас "+state.balance+")");
     }
 
-    // Deduct from buyer
+    // Списываем баланс
     state.balance-=price;
     localSave();
-
-    // Mark sold
-    await db.ref(`prognozer/market/${marketId}`).update({status:"sold"});
 
     // Handle username lot
     if(lot.category==="username"){
       const newUsername=lot.usernameValue||(lot.name||"").replace(/^@/,"");
       if(newUsername){
-        // 1. Assign username to buyer
         await db.ref(`prognozer/users/${firebaseUser.uid}/username`).set(newUsername);
-        const buyerProfileSnap=await db.ref(`prognozer/community/profiles/${firebaseUser.uid}`).once("value");
-        const buyerProfile=buyerProfileSnap.val()||{};
         await db.ref(`prognozer/community/profiles/${firebaseUser.uid}`).update({
           username:newUsername,
           uid:firebaseUser.uid,
           updatedAt:firebase.database.ServerValue.TIMESTAMP
         });
-        // Update username registry to point to buyer
         const uKey=newUsername.trim().toLowerCase();
         await db.ref(`prognozer/usernames/${uKey}`).set(firebaseUser.uid);
 
-        // 2. Remove username from seller (they go nameless)
         if(lot.sellerUid){
           await db.ref(`prognozer/users/${lot.sellerUid}/username`).remove();
           await db.ref(`prognozer/community/profiles/${lot.sellerUid}`).update({
@@ -12665,8 +12744,10 @@ async function buyFromMarket(marketId){
   }catch(e){
     state.balance+=Number(lot?.price)||0;
     localSave();
+    window.__buyingMarket=false;
     toast("Ошибка покупки");
   }
+  window.__buyingMarket=false;
 }
 
 
