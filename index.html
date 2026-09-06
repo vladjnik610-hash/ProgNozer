@@ -2058,7 +2058,79 @@ textarea{
 .chat-dialog-name{
   font-size:17px;
   font-weight:900;
-  flex:1
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  color:#d0e8ff
+}
+
+.chat-dialog-name:hover{
+  color:#55b4ff
+}
+
+.chat-online-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#42d94e;
+  flex-shrink:0;
+  display:none
+}
+
+.chat-online-dot.visible{
+  display:block
+}
+
+/* chat avatar in dialog header */
+.chat-dialog-avatar{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  border:2px solid #2a5070;
+  background:#122b49;
+  display:grid;
+  place-items:center;
+  font-size:18px;
+  flex-shrink:0;
+  overflow:hidden;
+  position:relative;
+  cursor:pointer
+}
+
+.chat-dialog-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+.chat-dialog-avatar-dot{
+  position:absolute;
+  right:-1px;
+  bottom:-1px;
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  background:#42d94e;
+  border:2px solid rgba(4,9,17,.97);
+  display:none
+}
+
+.chat-dialog-avatar-dot.visible{
+  display:block
+}
+
+/* chat list online dot */
+.chat-item-online-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#42d94e;
+  border:2px solid #0b1726;
+  position:absolute;
+  right:0;
+  bottom:0
 }
 
 .chat-messages{
@@ -2678,6 +2750,144 @@ textarea{
   color:#7fff60
 }
 
+/* profile inventory */
+.profile-inv-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:10px
+}
+
+.profile-inv-item{
+  border:1px solid #1c3a58;
+  border-radius:14px;
+  background:#091827;
+  padding:10px 6px;
+  text-align:center;
+  cursor:default
+}
+
+.profile-inv-item .pii-emoji{
+  font-size:28px;
+  line-height:1
+}
+
+.profile-inv-item .pii-name{
+  font-size:10px;
+  color:#8295ad;
+  margin-top:4px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.profile-inv-item .pii-price{
+  font-size:11px;
+  color:#55b4ff;
+  font-weight:800;
+  margin-top:2px
+}
+
+/* player profile modal */
+.player-profile-modal{
+  position:fixed;
+  inset:0;
+  z-index:120;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.78);
+  padding:16px
+}
+
+.player-profile-modal.open{
+  display:flex
+}
+
+.player-profile-box{
+  width:min(440px,100%);
+  max-height:88vh;
+  overflow-y:auto;
+  background:linear-gradient(145deg,#0b1c30,#07111d);
+  border:1px solid #28527b;
+  border-radius:26px;
+  padding:20px;
+  box-shadow:0 20px 70px rgba(0,0,0,.6)
+}
+
+.player-profile-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:16px
+}
+
+.player-profile-ava{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  border:2px solid #3a7aae;
+  background:#122b49;
+  display:grid;
+  place-items:center;
+  font-size:30px;
+  flex-shrink:0;
+  overflow:hidden;
+  position:relative
+}
+
+.player-profile-ava img{
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+.player-profile-ava-dot{
+  position:absolute;
+  right:1px;
+  bottom:1px;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#42d94e;
+  border:2px solid #0b1c30;
+  display:none
+}
+
+.player-profile-ava-dot.visible{
+  display:block
+}
+
+.player-profile-info{
+  flex:1
+}
+
+.player-profile-name{
+  font-size:20px;
+  font-weight:900;
+  color:#55b4ff
+}
+
+.player-profile-rank{
+  font-size:12px;
+  color:#8295ad;
+  margin-top:4px
+}
+
+.player-profile-section{
+  font-size:15px;
+  font-weight:800;
+  color:#8295ad;
+  margin:16px 0 8px
+}
+
+.player-profile-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:14px
+}
+
 </style>
 </head>
 
@@ -3011,6 +3221,21 @@ textarea{
       Валюта: 💎
 
     </p>
+
+  </div>
+
+
+  <!-- MY INVENTORY IN PROFILE -->
+
+  <div class="drop" id="profileInventoryDrop">
+
+    <b>🎒 Мой инвентарь</b>
+
+    <div class="profile-inv-grid" id="profileInventoryGrid">
+      <div class="muted" style="grid-column:1/-1;text-align:center;padding:10px;font-size:13px">
+        Инвентарь пуст
+      </div>
+    </div>
 
   </div>
 
@@ -3686,7 +3911,15 @@ textarea{
 
     <button class="chat-back" onclick="closeChatDialog()">‹</button>
 
-    <div class="chat-dialog-name" id="chatDialogName">@user</div>
+    <div class="chat-dialog-avatar" id="chatDialogAvatar" onclick="openChatPartnerProfile()" title="Открыть профиль">
+      👤
+      <div class="chat-dialog-avatar-dot" id="chatDialogAvatarDot"></div>
+    </div>
+
+    <div class="chat-dialog-name" id="chatDialogName" onclick="openChatPartnerProfile()">
+      <span id="chatDialogNameText">@user</span>
+      <span class="chat-online-dot" id="chatOnlineDot"></span>
+    </div>
 
     <div style="display:flex;gap:6px">
 
@@ -3808,6 +4041,41 @@ textarea{
 
 
 <!-- =========================================================
+     PLAYER PROFILE MODAL
+========================================================= -->
+
+<div class="player-profile-modal" id="playerProfileModal">
+  <div class="player-profile-box">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="font-size:18px;font-weight:900">👤 Профиль игрока</div>
+      <button class="close" onclick="closePlayerProfile()" style="float:none">×</button>
+    </div>
+
+    <div class="player-profile-head">
+      <div class="player-profile-ava" id="ppAva">
+        👤
+        <div class="player-profile-ava-dot" id="ppAvaDot"></div>
+      </div>
+      <div class="player-profile-info">
+        <div class="player-profile-name" id="ppName">@user</div>
+        <div class="player-profile-rank" id="ppRank">Обычный пользователь</div>
+        <div id="ppOnlineStatus" style="font-size:12px;margin-top:4px;color:#42d94e;display:none">● Онлайн</div>
+      </div>
+    </div>
+
+    <div class="player-profile-section">🎒 Инвентарь</div>
+    <div class="profile-inv-grid" id="ppInventory">
+      <div class="muted" style="grid-column:1/-1;text-align:center;padding:14px;font-size:13px">Загружаем…</div>
+    </div>
+
+    <div class="player-profile-actions" id="ppActions"></div>
+
+  </div>
+</div>
+
+
+<!-- =========================================================
      FIREBASE
 ========================================================= -->
 
@@ -3817,6 +4085,90 @@ textarea{
 
 
 <script>
+
+/* =========================================================
+   FIREBASE RULES (вставьте в Firebase Console → Realtime Database → Rules)
+   {
+     "rules": {
+       "prognozer": {
+         "users": {
+           "$uid": {
+             ".read": "auth != null",
+             ".write": "auth != null && auth.uid == $uid"
+           }
+         },
+         "community": {
+           "profiles": {
+             ".read": "auth != null",
+             "$uid": {
+               ".write": "auth != null && auth.uid == $uid"
+             }
+           },
+           "posts": {
+             ".read": "auth != null",
+             ".write": "auth != null"
+           },
+           "online": {
+             ".read": "auth != null",
+             "$uid": {
+               ".write": "auth != null && auth.uid == $uid"
+             }
+           }
+         },
+         "chats": {
+           "messages": {
+             "$chatId": {
+               ".read": "auth != null && ($chatId.contains(auth.uid))",
+               ".write": "auth != null && ($chatId.contains(auth.uid))"
+             }
+           },
+           "users": {
+             "$uid": {
+               ".read": "auth != null && auth.uid == $uid",
+               ".write": "auth != null"
+             }
+           }
+         },
+         "friends": {
+           "$uid": {
+             ".read": "auth != null",
+             ".write": "auth != null"
+           }
+         },
+         "friendRequests": {
+           "$uid": {
+             ".read": "auth != null && auth.uid == $uid",
+             ".write": "auth != null"
+           }
+         },
+         "trades": {
+           ".read": "auth != null",
+           ".write": "auth != null"
+         },
+         "tradeRequests": {
+           "$uid": {
+             ".read": "auth != null && auth.uid == $uid",
+             ".write": "auth != null"
+           }
+         },
+         "market": {
+           ".read": "auth != null",
+           ".write": "auth != null"
+         },
+         "pendingPayouts": {
+           "$uid": {
+             ".read": "auth != null && auth.uid == $uid",
+             ".write": "auth != null"
+           }
+         },
+         "usernames": {
+           ".read": "auth != null",
+           ".write": "auth != null"
+         }
+       }
+     }
+   }
+========================================================= */
 
 /* =========================================================
    FIREBASE CONFIG
@@ -4116,12 +4468,30 @@ function updateUI(){
   }
 
   renderInventory();
+  renderProfileInventory();
 
   const s=state.statistics||{};
 
   $("profileStats").textContent=
     `Кейсов: ${s.casesOpened||0} • Апгрейдов: ${s.upgrades||0}`;
 
+}
+
+
+function renderProfileInventory(){
+  const grid=$("profileInventoryGrid");
+  if(!grid)return;
+  if(!state.inventory||!state.inventory.length){
+    grid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:10px;font-size:13px">Инвентарь пуст</div>';
+    return;
+  }
+  grid.innerHTML=state.inventory.slice(0,12).map(x=>`
+    <div class="profile-inv-item">
+      <div class="pii-emoji">${escapeHTML(x.emoji||"📦")}</div>
+      <div class="pii-name">${escapeHTML(x.name||"Предмет")}</div>
+      <div class="pii-price">${Number(x.price||0)} 💎</div>
+    </div>
+  `).join("")+(state.inventory.length>12?`<div class="muted" style="grid-column:1/-1;text-align:center;font-size:12px;padding:6px">...ещё ${state.inventory.length-12} предметов</div>`:"");
 }
 
 
@@ -6616,18 +6986,20 @@ async function openUserProfile(uid){
     b.innerHTML=`<div class="muted" style="text-align:center;padding:40px">Загружаем профиль…</div>`;
     $("modal").classList.add("open");
 
-    /* Параллельная загрузка публичных данных (users/$uid закрыт правилами Firebase) */
-    const [profSnap,friendsSnap,marketSnap]=await Promise.all([
+    /* Параллельная загрузка публичных данных */
+    const [profSnap,friendsSnap,marketSnap,userSnap]=await Promise.all([
       db.ref("prognozer/community/profiles/"+uid).once("value"),
       db.ref("prognozer/friends/"+uid).once("value"),
-      db.ref("prognozer/market").orderByChild("sellerUid").equalTo(uid).once("value")
+      db.ref("prognozer/market").orderByChild("sellerUid").equalTo(uid).once("value"),
+      db.ref("prognozer/users/"+uid).once("value")
     ]);
 
     const p=profSnap.val();
     if(!p)return toast("Профиль не найден");
 
-    const inv=[];
-    const stats={};
+    const userData=userSnap.val()||{};
+    const inv=Array.isArray(userData.inventory)?userData.inventory:[];
+    const stats=userData.statistics||{};
     const friendsData=friendsSnap.val()||{};
     const friendCount=Object.keys(friendsData).length;
 
@@ -11443,6 +11815,18 @@ function loadChatList(){
         }
 
 
+        // Получаем онлайн-статусы для всех собеседников
+        const onlineStatuses={};
+        if(db){
+          try{
+            const onlineSnap=await db.ref("prognozer/community/online").once("value");
+            const onlineData=onlineSnap.val()||{};
+            convos.forEach(([uid])=>{
+              onlineStatuses[uid]=!!onlineData[uid];
+            });
+          }catch(e){}
+        }
+
         listEl.innerHTML=
           convos.map(
             ([otherUid,info])=>`
@@ -11451,18 +11835,20 @@ function loadChatList(){
                 class="chat-item"
                 onclick="openChatWith('${escapeHTML(otherUid)}','${escapeHTML(info.username||otherUid)}')">
 
-                <div class="chat-item-avatar">
+                <div class="chat-item-avatar" style="position:relative">
                   ${
                     info.photoURL
                     ?`<img src="${escapeHTML(info.photoURL)}">`
                     :"👤"
                   }
+                  ${onlineStatuses[otherUid]?'<div class="chat-item-online-dot"></div>':''}
                 </div>
 
                 <div class="chat-item-info">
 
                   <div class="chat-item-name">
                     @${escapeHTML(info.username||otherUid)}
+                    ${onlineStatuses[otherUid]?'<span style="color:#42d94e;font-size:11px;font-weight:700;margin-left:4px">● онлайн</span>':''}
                   </div>
 
                   <div class="chat-item-last">
@@ -11544,11 +11930,39 @@ async function openChatWith(otherUid,otherUsername){
   currentChatUsername=otherUsername;
 
 
-  const nameEl=$("chatDialogName");
+  const nameTextEl=$("chatDialogNameText");
+  if(nameTextEl)
+    nameTextEl.textContent="@"+otherUsername;
 
-  if(nameEl)
-    nameEl.textContent=
-      "@"+otherUsername;
+
+  /* загрузить аватар собеседника в хедер чата */
+  const dialogAva=$("chatDialogAvatar");
+  if(dialogAva){
+    dialogAva.innerHTML='👤<div class="chat-dialog-avatar-dot" id="chatDialogAvatarDot"></div>';
+    if(db){
+      db.ref("prognozer/community/profiles/"+otherUid).once("value").then(snap=>{
+        const p=snap.val();
+        if(p&&p.photoURL){
+          const dot=dialogAva.querySelector(".chat-dialog-avatar-dot");
+          dialogAva.innerHTML=`<img src="${escapeHTML(p.photoURL)}"><div class="chat-dialog-avatar-dot" id="chatDialogAvatarDot"></div>`;
+        }
+      }).catch(()=>{});
+    }
+  }
+
+  /* онлайн статус собеседника */
+  const onlineDot=$("chatOnlineDot");
+  const avaDot=document.getElementById("chatDialogAvatarDot");
+  if(db){
+    db.ref("prognozer/community/online/"+otherUid).once("value").then(snap=>{
+      const isOnline=!!snap.val();
+      if(onlineDot){
+        onlineDot.classList.toggle("visible",isOnline);
+      }
+      const curDot=document.getElementById("chatDialogAvatarDot");
+      if(curDot) curDot.classList.toggle("visible",isOnline);
+    }).catch(()=>{});
+  }
 
 
   /* кнопка добавить в друзья */
@@ -12632,6 +13046,118 @@ async function updateTradeButtonVisibility(){
     btn.style.display="none";
   }
 }
+
+
+/* =========================================================
+   PLAYER PROFILE MODAL
+========================================================= */
+
+async function openChatPartnerProfile(){
+  if(!currentChatUid)return;
+  // Используем существующую функцию openUserProfile
+  await openUserProfile(currentChatUid);
+}
+
+async function openPlayerProfileModal(uid, username){
+  if(!uid||!db)return toast("Нет подключения");
+
+  const modal=$("playerProfileModal");
+  if(!modal)return;
+
+  modal.classList.add("open");
+
+  // Reset
+  $("ppAva").innerHTML='👤<div class="player-profile-ava-dot" id="ppAvaDot"></div>';
+  $("ppName").textContent="@"+(username||uid);
+  $("ppRank").textContent="Обычный пользователь";
+  $("ppOnlineStatus").style.display="none";
+  $("ppInventory").innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:14px;font-size:13px">Загружаем…</div>';
+  $("ppActions").innerHTML="";
+
+  try{
+    // Загружаем профиль
+    const [profileSnap, onlineSnap, userSnap] = await Promise.all([
+      db.ref("prognozer/community/profiles/"+uid).once("value"),
+      db.ref("prognozer/community/online/"+uid).once("value"),
+      db.ref("prognozer/users/"+uid).once("value")
+    ]);
+
+    const profile=profileSnap.val()||{};
+    const isOnline=!!onlineSnap.val();
+    const userData=userSnap.val()||{};
+
+    // Аватар
+    const avaEl=$("ppAva");
+    if(profile.photoURL){
+      avaEl.innerHTML=`<img src="${escapeHTML(profile.photoURL)}"><div class="player-profile-ava-dot" id="ppAvaDot"></div>`;
+    }
+
+    // Онлайн статус
+    const dotEl=document.getElementById("ppAvaDot");
+    if(dotEl&&isOnline) dotEl.classList.add("visible");
+
+    const onlineStatus=$("ppOnlineStatus");
+    if(isOnline&&onlineStatus){
+      onlineStatus.style.display="block";
+    }
+
+    // Имя и ранг
+    const displayName=profile.username||username||uid;
+    $("ppName").textContent="@"+displayName;
+
+    const rank=profile.rank||userData.rank||"Обычный пользователь";
+    $("ppRank").textContent=rank;
+
+    // Инвентарь
+    const inventory=Array.isArray(userData.inventory)?userData.inventory:[];
+    const invEl=$("ppInventory");
+    if(!inventory.length){
+      invEl.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:14px;font-size:13px">Инвентарь пуст</div>';
+    }else{
+      invEl.innerHTML=inventory.slice(0,12).map(x=>`
+        <div class="profile-inv-item">
+          <div class="pii-emoji">${escapeHTML(x.emoji||"📦")}</div>
+          <div class="pii-name">${escapeHTML(x.name||"Предмет")}</div>
+          <div class="pii-price">${Number(x.price||0)} 💎</div>
+        </div>
+      `).join("")+(inventory.length>12?`<div class="muted" style="grid-column:1/-1;text-align:center;font-size:12px;padding:6px">...ещё ${inventory.length-12} предметов</div>`:"");
+    }
+
+    // Кнопки действий
+    const actEl=$("ppActions");
+    const isMe=firebaseUser&&uid===firebaseUser.uid;
+    if(!isMe){
+      actEl.innerHTML=`
+        <button class="primary" style="flex:1;min-width:120px;padding:11px;border-radius:13px;font-weight:800;font-size:14px"
+          onclick="openChatWith('${escapeHTML(uid)}','${escapeHTML(displayName)}');closePlayerProfile()">
+          💬 Написать
+        </button>
+        <button class="secondary" style="flex:1;min-width:120px;padding:11px;border-radius:13px;font-weight:800;font-size:14px"
+          onclick="addFriend('${escapeHTML(uid)}');closePlayerProfile()">
+          👥 В друзья
+        </button>
+      `;
+    }
+
+  }catch(e){
+    $("ppInventory").innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:14px;font-size:13px">Ошибка загрузки профиля</div>';
+  }
+}
+
+function closePlayerProfile(){
+  const modal=$("playerProfileModal");
+  if(modal)modal.classList.remove("open");
+}
+
+// Закрытие по клику на фон
+document.addEventListener("DOMContentLoaded",()=>{
+  const modal=$("playerProfileModal");
+  if(modal){
+    modal.addEventListener("click",e=>{
+      if(e.target===modal)closePlayerProfile();
+    });
+  }
+});
 
 
 /* =========================================================
