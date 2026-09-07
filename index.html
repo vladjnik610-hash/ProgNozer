@@ -3872,6 +3872,38 @@ textarea{
 
 
 <!-- =========================================================
+     FIND USER PANEL (поверх чата, z-index:100)
+========================================================= -->
+
+<div id="findUserPanel" style="
+  position:fixed;inset:0;z-index:100;
+  display:none;flex-direction:column;
+  background:#05101d;
+">
+  <div class="chat-header">
+    <button class="chat-back" onclick="closeFindUserPanel()">‹</button>
+    <div class="chat-header-title">👤 Найти пользователя</div>
+  </div>
+  <div style="padding:16px">
+    <div class="find-user-wrap">
+      <input
+        id="findUserPanelInput"
+        placeholder="Введите @username"
+        type="text"
+        style="margin-bottom:12px">
+      <button
+        class="primary"
+        style="width:100%;padding:13px;font-size:15px"
+        onclick="searchUserInPanel()">
+        🔍 Найти
+      </button>
+      <div id="findUserPanelResult" class="find-user-result" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- =========================================================
      CHAT OVERLAY (список диалогов)
 ========================================================= -->
 
@@ -7089,13 +7121,12 @@ async function openUserProfile(uid){
         <div class="create-post-options" style="margin-top:20px">
 
           <button class="create-option" id="profAddFriendBtn"
-            onclick="addFriend('${escapeHTML(uid)}');
-              document.getElementById('profAddFriendBtn').disabled=true;
-              document.getElementById('profAddFriendBtn').querySelector('b').textContent='Запрос отправлен'">
+            ${isMyFriend?"disabled":""}
+            onclick="${isMyFriend?"":"addFriendFromProfileModal('"+escapeHTML(uid)+"',this)"}">
             <div class="create-option-icon">👥</div>
             <div class="create-option-info">
-              <b>${isMyFriend?"Уже в друзьях":"Добавить в друзья"}</b>
-              <span>Отправить запрос</span>
+              <b>${isMyFriend?"✅ Уже в друзьях":"Добавить в друзья"}</b>
+              <span>${isMyFriend?"Вы уже друзья":"Отправить запрос"}</span>
             </div>
             <div class="create-option-arrow">›</div>
           </button>
@@ -7148,6 +7179,50 @@ async function openTradeWithUser(uid,username){
    FRIENDS
 ========================================================= */
 
+async function addFriendFromProfile(uid,btn){
+  if(btn){btn.disabled=true;btn.textContent="⏳";}
+  const already=await checkAlreadyFriend(uid);
+  if(already){
+    if(btn){btn.textContent="✅ Уже в друзьях";}
+    return toast("Игрок уже у вас в друзьях");
+  }
+  await addFriend(uid);
+  if(btn){btn.textContent="✅ Отправлено";}
+}
+
+async function addFriendFromProfileModal(uid,btn){
+  if(btn){
+    btn.disabled=true;
+    const bEl=btn.querySelector("b");
+    if(bEl)bEl.textContent="⏳ Проверяем…";
+  }
+  const already=await checkAlreadyFriend(uid);
+  if(already){
+    if(btn){
+      const bEl=btn.querySelector("b");
+      const sEl=btn.querySelector("span");
+      if(bEl)bEl.textContent="✅ Уже в друзьях";
+      if(sEl)sEl.textContent="Вы уже друзья";
+    }
+    return toast("Игрок уже у вас в друзьях");
+  }
+  await addFriend(uid);
+  if(btn){
+    const bEl=btn.querySelector("b");
+    const sEl=btn.querySelector("span");
+    if(bEl)bEl.textContent="✅ Запрос отправлен";
+    if(sEl)sEl.textContent="Ожидание подтверждения";
+  }
+}
+
+async function checkAlreadyFriend(uid){
+  if(!firebaseUser||!db)return false;
+  try{
+    const snap=await db.ref("prognozer/friends/"+uid+"/"+firebaseUser.uid).once("value");
+    return !!snap.val();
+  }catch(e){return false;}
+}
+
 async function addFriend(uid){
 
   if(
@@ -7171,6 +7246,13 @@ async function addFriend(uid){
 
   }
 
+  // Проверка: уже в друзьях
+  try{
+    const friendSnap=await db.ref("prognozer/friends/"+uid+"/"+firebaseUser.uid).once("value");
+    if(friendSnap.val()){
+      return toast("Игрок уже у вас в друзьях");
+    }
+  }catch(e){}
 
   try{
 
@@ -11970,10 +12052,37 @@ async function openChatWith(otherUid,otherUsername){
   const friendBtn=$("chatDialogFriendBtn");
 
   if(friendBtn){
-
-    friendBtn.onclick=
-      ()=>addFriend(otherUid);
-
+    // Проверяем статус дружбы и обновляем кнопку
+    if(db){
+      db.ref("prognozer/friends/"+otherUid+"/"+firebaseUser.uid).once("value").then(snap=>{
+        if(snap.val()){
+          friendBtn.title="Уже в друзьях";
+          friendBtn.textContent="✅";
+          friendBtn.disabled=true;
+          friendBtn.style.opacity="0.6";
+        }else{
+          friendBtn.title="Добавить в друзья";
+          friendBtn.textContent="👥";
+          friendBtn.disabled=false;
+          friendBtn.style.opacity="";
+          friendBtn.onclick=async()=>{
+            const already=await checkAlreadyFriend(otherUid);
+            if(already){
+              friendBtn.textContent="✅";
+              friendBtn.disabled=true;
+              return toast("Игрок уже у вас в друзьях");
+            }
+            await addFriend(otherUid);
+            friendBtn.textContent="✅";
+            friendBtn.disabled=true;
+          };
+        }
+      }).catch(()=>{
+        friendBtn.onclick=()=>addFriend(otherUid);
+      });
+    }else{
+      friendBtn.onclick=()=>addFriend(otherUid);
+    }
   }
 
 
@@ -12265,51 +12374,97 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 
 function openFindUserModal(){
+  // Открываем новую панель поиска (z-index:100) — выше chatOverlay (z-index:90)
+  const panel=$("findUserPanel");
+  if(!panel)return;
+  $("findUserPanelResult").innerHTML="";
+  $("findUserPanelInput").value="";
+  panel.style.display="flex";
+  setTimeout(()=>$("findUserPanelInput")?.focus(),200);
 
-  const b=$("modalBody");
-
-  b.innerHTML=`
-
-    <div class="community-modal-title">
-      👤 Найти пользователя
-    </div>
-
-    <div class="find-user-wrap">
-
-      <input
-        id="findUserInput"
-        placeholder="Введите @username"
-        type="text">
-
-      <button
-        class="primary"
-        style="width:100%;padding:12px"
-        onclick="searchUserForChat()">
-        🔍 Найти
-      </button>
-
-      <div id="findUserResult" class="find-user-result"></div>
-
-    </div>
-
-  `;
-
-
-  $("modal").classList.add("open");
-
-  setTimeout(
-    ()=>$("findUserInput")?.focus(),
-    200
-  );
-
-
-  $("findUserInput").onkeydown=e=>{
-
-    if(e.key==="Enter")
-      searchUserForChat();
-
+  $("findUserPanelInput").onkeydown=e=>{
+    if(e.key==="Enter") searchUserInPanel();
   };
+}
 
+function closeFindUserPanel(){
+  const panel=$("findUserPanel");
+  if(panel)panel.style.display="none";
+}
+
+async function searchUserInPanel(){
+  const input=$("findUserPanelInput");
+  const result=$("findUserPanelResult");
+  if(!input||!result)return;
+
+  let username=input.value.trim().replace(/^@/,"").toLowerCase();
+  if(!username){
+    result.innerHTML=`<div class="muted" style="text-align:center;padding:10px">Введите юзернейм</div>`;
+    return;
+  }
+
+  result.innerHTML=`<div class="muted" style="text-align:center;padding:10px">Ищем…</div>`;
+
+  try{
+    const pSnap=await db.ref("prognozer/community/profiles").orderByChild("username").equalTo(username).once("value");
+    const found=pSnap.val();
+
+    if(!found){
+      result.innerHTML=`<div class="muted" style="text-align:center;padding:10px">❌ Пользователь @${escapeHTML(username)} не найден</div>`;
+      return;
+    }
+
+    const [uid,p]=Object.entries(found)[0];
+
+    if(uid===firebaseUser?.uid){
+      result.innerHTML=`<div class="muted" style="text-align:center;padding:10px">Это вы 😊</div>`;
+      return;
+    }
+
+    // Проверяем статус дружбы
+    let isAlreadyFriend=false;
+    try{
+      const fSnap=await db.ref("prognozer/friends/"+uid+"/"+firebaseUser.uid).once("value");
+      isAlreadyFriend=!!fSnap.val();
+    }catch(e){}
+
+    result.innerHTML=`
+      <div class="friend-item" style="margin-top:10px">
+        <div class="friend-item-ava">
+          ${p.photoURL?`<img src="${escapeHTML(p.photoURL)}">`:"👤"}
+        </div>
+        <div class="friend-item-info">
+          <div class="friend-item-name">@${escapeHTML(p.username)}</div>
+          <div class="friend-item-sub">${escapeHTML(p.rank||"Обычный пользователь")}</div>
+        </div>
+        <div style="display:flex;gap:7px">
+          <button class="primary" style="padding:9px 14px;font-size:13px"
+            onclick="closeFindUserPanel();openChatWith('${escapeHTML(uid)}','${escapeHTML(p.username||uid)}')">
+            💬 Написать
+          </button>
+          ${isAlreadyFriend
+            ?`<button class="secondary" disabled style="padding:9px 14px;font-size:13px;opacity:.6">✅ В друзьях</button>`
+            :`<button class="secondary" style="padding:9px 14px;font-size:13px" id="panelAddFriendBtn"
+                onclick="addFriendFromPanel('${escapeHTML(uid)}',this)">👥</button>`
+          }
+        </div>
+      </div>
+    `;
+
+  }catch(e){
+    result.innerHTML=`<div class="muted" style="text-align:center">Ошибка поиска</div>`;
+  }
+}
+
+async function addFriendFromPanel(uid,btn){
+  if(btn){btn.disabled=true;btn.textContent="⏳";}
+  const already=await checkAlreadyFriend(uid);
+  if(already){
+    if(btn){btn.disabled=true;btn.textContent="✅";}
+    return toast("Игрок уже у вас в друзьях");
+  }
+  await addFriend(uid);
+  if(btn){btn.disabled=true;btn.textContent="✅";}
 }
 
 
@@ -12407,7 +12562,7 @@ async function searchUserForChat(){
           <button
             class="secondary"
             style="padding:9px 14px;font-size:13px"
-            onclick="addFriend('${escapeHTML(uid)}');this.disabled=true;this.textContent='Отправлено'">
+            onclick="addFriendFromPanel('${escapeHTML(uid)}',this)">
             👥
           </button>
 
@@ -13054,8 +13209,8 @@ async function updateTradeButtonVisibility(){
 
 async function openChatPartnerProfile(){
   if(!currentChatUid)return;
-  // Используем существующую функцию openUserProfile
-  await openUserProfile(currentChatUid);
+  // Открываем playerProfileModal (z-index:120) — он выше chatDialog (z-index:95)
+  await openPlayerProfileModal(currentChatUid, currentChatUsername);
 }
 
 async function openPlayerProfileModal(uid, username){
@@ -13076,15 +13231,17 @@ async function openPlayerProfileModal(uid, username){
 
   try{
     // Загружаем профиль
-    const [profileSnap, onlineSnap, userSnap] = await Promise.all([
+    const [profileSnap, onlineSnap, userSnap, friendsSnap] = await Promise.all([
       db.ref("prognozer/community/profiles/"+uid).once("value"),
       db.ref("prognozer/community/online/"+uid).once("value"),
-      db.ref("prognozer/users/"+uid).once("value")
+      db.ref("prognozer/users/"+uid).once("value"),
+      firebaseUser?db.ref("prognozer/friends/"+uid+"/"+firebaseUser.uid).once("value"):Promise.resolve({val:()=>null})
     ]);
 
     const profile=profileSnap.val()||{};
     const isOnline=!!onlineSnap.val();
     const userData=userSnap.val()||{};
+    const isAlreadyFriend=!!friendsSnap.val();
 
     // Аватар
     const avaEl=$("ppAva");
@@ -13132,10 +13289,15 @@ async function openPlayerProfileModal(uid, username){
           onclick="openChatWith('${escapeHTML(uid)}','${escapeHTML(displayName)}');closePlayerProfile()">
           💬 Написать
         </button>
-        <button class="secondary" style="flex:1;min-width:120px;padding:11px;border-radius:13px;font-weight:800;font-size:14px"
-          onclick="addFriend('${escapeHTML(uid)}');closePlayerProfile()">
-          👥 В друзья
-        </button>
+        ${isAlreadyFriend
+          ?`<button class="secondary" disabled style="flex:1;min-width:120px;padding:11px;border-radius:13px;font-weight:800;font-size:14px;opacity:.6">
+              ✅ Уже в друзьях
+            </button>`
+          :`<button class="secondary" style="flex:1;min-width:120px;padding:11px;border-radius:13px;font-weight:800;font-size:14px"
+              onclick="addFriendFromProfile('${escapeHTML(uid)}',this)">
+              👥 В друзья
+            </button>`
+        }
       `;
     }
 
