@@ -2999,12 +2999,127 @@ textarea{
     </h1>
 
     <p>
-      Игры • Инвентарь • Магазин
+      Игры • Community • Маркет
     </p>
 
   </div>
 
-  <div class="grid" id="homeGrid"></div>
+  <!-- NEWS TABS -->
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button id="homeTabNews" onclick="switchHomeTab('news')" style="flex:1;padding:10px;border-radius:12px;background:#1678e9;border:none;color:#fff;font-weight:800;font-size:14px">📰 Новости</button>
+    <button id="homeTabRanks" onclick="switchHomeTab('ranks')" style="flex:1;padding:10px;border-radius:12px;background:#0b192a;border:1px solid #24527d;color:#73c0ff;font-weight:800;font-size:14px">⭐ Ранги</button>
+  </div>
+
+  <!-- NEWS TAB CONTENT -->
+  <div id="homeContentNews">
+    <div style="display:grid;gap:13px">
+
+      <div style="border:1px solid #1d4164;border-radius:22px;background:linear-gradient(145deg,#0c1a2b,#071321);padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.28)">
+        <div style="font-size:13px;color:#5ab3ff;font-weight:800;margin-bottom:6px">📢 ОБНОВЛЕНИЕ</div>
+        <div style="font-size:18px;font-weight:900;margin-bottom:8px">Ранговая система запущена!</div>
+        <div style="color:#8da0b8;font-size:14px;line-height:1.5">Теперь в ProgNozer есть ранги: <b style="color:#c0c0e8">Silver</b>, <b style="color:#ffd700">Gold</b> и <b style="color:#b3f0ff">Platinum</b>. Каждый ранг открывает новые привилегии. Попросите администратора выдать вам ранг!</div>
+      </div>
+
+      <div style="border:1px solid #1d4164;border-radius:22px;background:linear-gradient(145deg,#0c1a2b,#071321);padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.28)">
+        <div style="font-size:13px;color:#42ff9a;font-weight:800;margin-bottom:6px">🎁 ФИЧА</div>
+        <div style="font-size:18px;font-weight:900;margin-bottom:8px">Фото в постах Community</div>
+        <div style="color:#8da0b8;font-size:14px;line-height:1.5">Игроки с рангом Silver и выше могут прикреплять фотографии к постам в Community. Поделитесь своими скинами или достижениями!</div>
+      </div>
+
+      <div style="border:1px solid #1d4164;border-radius:22px;background:linear-gradient(145deg,#0c1a2b,#071321);padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.28)">
+        <div style="font-size:13px;color:#f0c040;font-weight:800;margin-bottom:6px">🏪 МАРКЕТ</div>
+        <div style="font-size:18px;font-weight:900;margin-bottom:8px">Торгуйте с другими игроками</div>
+        <div style="color:#8da0b8;font-size:14px;line-height:1.5">Маркет игроков работает! Выставляйте свои предметы на продажу, покупайте редкие скины у других. Можно продать даже свой @username!</div>
+      </div>
+
+      <div style="border:1px solid #1d4164;border-radius:22px;background:linear-gradient(145deg,#0c1a2b,#071321);padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.28)">
+        <div style="font-size:13px;color:#ff8c69;font-weight:800;margin-bottom:6px">💬 ЧАТЫ</div>
+        <div style="font-size:18px;font-weight:900;margin-bottom:8px">Личные сообщения</div>
+        <div style="color:#8da0b8;font-size:14px;line-height:1.5">Общайтесь напрямую с другими игроками через личные сообщения. Нажмите иконку 💬 в шапке или зайдите в профиль игрока.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RANKS TAB CONTENT -->
+  <div id="homeContentRanks" style="display:none">
+    <div style="display:grid;gap:13px">
+
+      <!-- Bronze / Обычный -->
+      <div style="border:1px solid #3a3a4a;border-radius:22px;background:linear-gradient(145deg,#131320,#0c0c1a);padding:20px;box-shadow:0 12px 35px rgba(0,0,0,.28)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="font-size:38px">👤</div>
+          <div>
+            <div style="font-size:20px;font-weight:900;color:#c0bfd0">Обычный пользователь</div>
+            <div style="font-size:12px;color:#6a7a8a;margin-top:2px">Начальный уровень</div>
+          </div>
+        </div>
+        <div style="display:grid;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#8da0b8"><span style="color:#42ff9a">✓</span> Доступ к играм и кейсам</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#8da0b8"><span style="color:#42ff9a">✓</span> Community и чаты</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#8da0b8"><span style="color:#42ff9a">✓</span> Маркет игроков</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#8da0b8"><span style="color:#42ff9a">✓</span> Посты живут 1 день</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#5a6a7a"><span style="color:#ff5d68">✗</span> Фото в постах недоступно</div>
+        </div>
+      </div>
+
+      <!-- Silver -->
+      <div style="border:1px solid #6060a0;border-radius:22px;background:linear-gradient(145deg,#12122a,#0c0c20);padding:20px;box-shadow:0 12px 35px rgba(80,80,200,.15)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="font-size:38px">🥈</div>
+          <div>
+            <div style="font-size:20px;font-weight:900;color:#c0c0e8">Silver</div>
+            <div style="font-size:12px;color:#7070a0;margin-top:2px">Выдаётся администратором</div>
+          </div>
+        </div>
+        <div style="display:grid;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#b0b8d0"><span style="color:#42ff9a">✓</span> Всё из Обычного</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#b0b8d0"><span style="color:#42ff9a">✓</span> <b style="color:#c0c0e8">Фото в постах</b></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#b0b8d0"><span style="color:#42ff9a">✓</span> Посты живут 2 дня</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#b0b8d0"><span style="color:#42ff9a">✓</span> +1 к удаче в кейсах</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#b0b8d0"><span style="color:#42ff9a">✓</span> Лоты на маркете — 2 дня</div>
+        </div>
+      </div>
+
+      <!-- Gold -->
+      <div style="border:1px solid #806000;border-radius:22px;background:linear-gradient(145deg,#1a1400,#130f00);padding:20px;box-shadow:0 12px 35px rgba(200,150,0,.15)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="font-size:38px">🥇</div>
+          <div>
+            <div style="font-size:20px;font-weight:900;color:#ffd700">Gold</div>
+            <div style="font-size:12px;color:#806000;margin-top:2px">Выдаётся администратором</div>
+          </div>
+        </div>
+        <div style="display:grid;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#c8a800"><span style="color:#42ff9a">✓</span> Всё из Silver</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#c8a800"><span style="color:#42ff9a">✓</span> Посты живут 3 дня</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#c8a800"><span style="color:#42ff9a">✓</span> +2 к удаче в кейсах</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#c8a800"><span style="color:#42ff9a">✓</span> Лоты на маркете — 3 дня</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#c8a800"><span style="color:#42ff9a">✓</span> Золотой значок в профиле</div>
+        </div>
+      </div>
+
+      <!-- Platinum -->
+      <div style="border:1px solid #004060;border-radius:22px;background:linear-gradient(145deg,#001525,#000e1a);padding:20px;box-shadow:0 12px 35px rgba(0,150,220,.18)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="font-size:38px">💎</div>
+          <div>
+            <div style="font-size:20px;font-weight:900;color:#b3f0ff">Platinum</div>
+            <div style="font-size:12px;color:#005070;margin-top:2px">Элитный ранг</div>
+          </div>
+        </div>
+        <div style="display:grid;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#7dd3fc"><span style="color:#42ff9a">✓</span> Всё из Gold</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#7dd3fc"><span style="color:#42ff9a">✓</span> Посты живут 7 дней</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#7dd3fc"><span style="color:#42ff9a">✓</span> +3 к удаче в кейсах</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#7dd3fc"><span style="color:#42ff9a">✓</span> Лоты на маркете — 7 дней</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#7dd3fc"><span style="color:#42ff9a">✓</span> Платиновый значок 💎</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#7dd3fc"><span style="color:#42ff9a">✓</span> Максимальный приоритет</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
 </section>
 
@@ -4726,26 +4841,32 @@ function makeGameCard(g){
 }
 
 
+function switchHomeTab(tab){
+  const news=$("homeContentNews");
+  const ranks=$("homeContentRanks");
+  const btnNews=$("homeTabNews");
+  const btnRanks=$("homeTabRanks");
+  if(tab==="news"){
+    if(news)news.style.display="";
+    if(ranks)ranks.style.display="none";
+    if(btnNews){btnNews.style.background="#1678e9";btnNews.style.color="#fff";btnNews.style.border="none";}
+    if(btnRanks){btnRanks.style.background="#0b192a";btnRanks.style.color="#73c0ff";btnRanks.style.border="1px solid #24527d";}
+  }else{
+    if(news)news.style.display="none";
+    if(ranks)ranks.style.display="";
+    if(btnRanks){btnRanks.style.background="#1678e9";btnRanks.style.color="#fff";btnRanks.style.border="none";}
+    if(btnNews){btnNews.style.background="#0b192a";btnNews.style.color="#73c0ff";btnNews.style.border="1px solid #24527d";}
+  }
+}
+
 function renderGrids(){
 
-  for(
-    const id of ["homeGrid","gamesGrid"]
-  ){
-
-    const e=$(id);
-
+  const e=$("gamesGrid");
+  if(e){
     e.innerHTML="";
-
     games
-      .filter(
-        g=>id==="homeGrid" || g.id!=="shop"
-      )
-      .forEach(
-        g=>e.appendChild(
-          makeGameCard(g)
-        )
-      );
-
+      .filter(g=>g.id!=="shop")
+      .forEach(g=>e.appendChild(makeGameCard(g)));
   }
 
 }
@@ -5307,6 +5428,13 @@ async function saveUsername(){
       Публичный профиль Community.
     */
 
+    // Preserve existing rank when saving username
+    let existingRankForSave="Обычный пользователь";
+    try{
+      const rSnap2=await db.ref("prognozer/community/profiles/"+firebaseUser.uid+"/rank").once("value");
+      if(rSnap2.val())existingRankForSave=rSnap2.val();
+    }catch(_){}
+
     await db.ref(
       "prognozer/community/profiles/"
       +firebaseUser.uid
@@ -5320,7 +5448,7 @@ async function saveUsername(){
       photoURL:
         firebaseUser.photoURL||"",
 
-      rank:"Обычный пользователь",
+      rank:existingRankForSave,
 
       uid:firebaseUser.uid,
 
@@ -6782,6 +6910,11 @@ async function publishCommunityPost(){
 
   }
 
+  // Check mute status
+  if(typeof checkMuteStatus==="function"){
+    const muted=await checkMuteStatus();
+    if(muted)return toast("🔇 Вы замьючены и не можете публиковать посты");
+  }
 
   const username=
     await getMyUsername();
@@ -6893,22 +7026,15 @@ async function publishCommunityPost(){
 
     }
 
-    // Inject image, rank, expiry from new systems
-    if(window.__nextPostExtra){
-      if(window.__nextPostExtra.imageUrl)post.imageUrl=window.__nextPostExtra.imageUrl;
-      if(window.__nextPostExtra.expiresAt)post.expiresAt=window.__nextPostExtra.expiresAt;
-      if(window.__nextPostExtra.rank)post.rank=window.__nextPostExtra.rank;
-    }else{
-      post.rank=myRank||"Обычный пользователь";
-    }
-
+    // Always reload rank fresh from Firebase before posting
+    if(typeof loadMyRank==="function") await loadMyRank();
 
     // Add image URL (Silver+)
     if(postImgUrl) post.imageUrl=postImgUrl;
 
     // Add rank and expiry
     const rankCfg_=(typeof getRankConfig==="function")?getRankConfig():{postDays:1};
-    post.rank=(typeof myRank!=="undefined")?myRank:"Обычный пользователь";
+    post.rank=(typeof myRank!=="undefined"&&myRank)?myRank:"Обычный пользователь";
     post.expiresAt=Date.now()+(rankCfg_.postDays||1)*24*3600000;
 
     await postRef.set(post);
@@ -11374,6 +11500,13 @@ async function handleAuthUser(user){
 
         if(username){
 
+          // Load existing rank to preserve it
+          let existingRank="Обычный пользователь";
+          try{
+            const rSnap=await db.ref("prognozer/community/profiles/"+user.uid+"/rank").once("value");
+            if(rSnap.val())existingRank=rSnap.val();
+          }catch(_){}
+
           await db.ref(
             "prognozer/community/profiles/"
             +user.uid
@@ -11387,7 +11520,7 @@ async function handleAuthUser(user){
             photoURL:
               user.photoURL||"",
 
-            rank:"Обычный пользователь",
+            rank:existingRank,
 
             uid:user.uid,
 
@@ -14795,44 +14928,7 @@ function isSafeImageUrl(url){
   }catch(e){return false;}
 }
 
-// Patch openCreatePost to inject image field for Silver+ (canImage)
-(function(){
-  const origOpen=window.openCreatePost;
-  if(!origOpen)return;
-  window.openCreatePost=async function(){
-    await origOpen();
-    // Inject image input for Silver/Gold/Platinum
-    const rankCfg=getRankConfig();
-    if(rankCfg.canImage){
-      const publishBtn=document.getElementById("publishCommunityPost");
-      if(publishBtn&&!document.getElementById("postImageUrlRow")){
-        const row=document.createElement("div");
-        row.id="postImageUrlRow";
-        row.style.cssText="margin:10px 0";
-        row.innerHTML=`<input id="postImageUrl" placeholder="🖼 Ссылка на фото (imgur/ibb/discord)" style="width:100%">`;
-        publishBtn.parentNode.insertBefore(row,publishBtn);
-      }
-    }
-  };
-})();
-
-// Patch publishCommunityPost to save imageUrl + expiresAt + rank
-(function(){
-  const orig=window.publishCommunityPost;
-  if(!orig)return;
-  window.publishCommunityPost=async function(){
-    const muted=await checkMuteStatus();
-    if(muted)return toast("🔇 Вы замьючены и не можете публиковать посты");
-    const imgUrl=($("postImageUrl")?.value||"").trim();
-    if(imgUrl&&!isSafeImageUrl(imgUrl))return toast("❌ Ссылка на фото не поддерживается");
-    const rankCfg=getRankConfig();
-    const days=rankCfg.postDays||1;
-    const expiresAt=Date.now()+days*24*3600000;
-    window.__nextPostExtra={imageUrl:imgUrl,expiresAt,rank:myRank};
-    await orig();
-    window.__nextPostExtra=null;
-  };
-})();
+// Image in posts is now handled directly in publishCommunityPost and openCreatePost
 
 /* =========================================================
    TRANSACTION HISTORY (3 days TTL)
@@ -14965,16 +15061,7 @@ async function runAutoCleanup(){
       return origSell(i);
     };
   }
-  const origOpenCase=window.openCase;
-  if(origOpenCase){
-    window.openCase=function(i){
-      const c=cases[i];
-      if(c&&state.balance>=c.cost){
-        addTransaction("case","Открыт кейс «"+c.name+"»",-c.cost,"🎁","");
-      }
-      return origOpenCase(i);
-    };
-  }
+  // openCase already calls addTransaction internally — no patch needed
 })();
 
 /* =========================================================
@@ -15003,7 +15090,7 @@ async function _newSystemsInit(user){
       await loadAdminCases();
       await loadAdminShopToFront();
       await runAutoCleanup();
-      addTransaction("login","Вход в аккаунт",0,"🔵","");
+      // No login transaction — unnecessary noise
     }
   }
 }
