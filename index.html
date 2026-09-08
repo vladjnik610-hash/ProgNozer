@@ -13771,19 +13771,25 @@ setTimeout(()=>{
 },500);
 
 
+</script>
+
+<script>
+
 /* =========================================================
-   ADMIN PANEL
-   Login: 52866321h / 52866321h (stored in Firebase)
+   ADMIN PANEL — FULL REWRITE
+   Login: 52866321h / 52866321h
 ========================================================= */
 
 const ADMIN_LOGIN="52866321h";
 const ADMIN_PASS="52866321h";
 let isAdminSession=false;
 
-// Inject Admin button in profile screen
-(function injectAdminBtn(){
+/* Inject Admin button into profile page */
+document.addEventListener("DOMContentLoaded",function(){
   const profileSection=document.getElementById("profile");
   if(!profileSection)return;
+  // Remove old injected buttons if any
+  document.getElementById("adminPanelEntry")?.remove();
   const div=document.createElement("div");
   div.id="adminPanelEntry";
   div.style.cssText="margin-top:14px";
@@ -13798,7 +13804,7 @@ let isAdminSession=false;
     </button>
   `;
   profileSection.appendChild(div);
-})();
+});
 
 function openAdminLogin(){
   if(isAdminSession){openAdminPanel();return;}
@@ -13819,12 +13825,10 @@ function openAdminLogin(){
 }
 
 async function doAdminLogin(){
-  const login=$("adminLoginInput")?.value.trim();
-  const pass=$("adminPassInput")?.value.trim();
+  const login=($("adminLoginInput")?.value||"").trim();
+  const pass=($("adminPassInput")?.value||"").trim();
   const errEl=$("adminLoginErr");
-  // Check vs Firebase stored credentials OR hardcoded fallback
-  let ok=false;
-  if(login===ADMIN_LOGIN&&pass===ADMIN_PASS){ok=true;}
+  let ok=(login===ADMIN_LOGIN&&pass===ADMIN_PASS);
   if(!ok&&db){
     try{
       const snap=await db.ref("prognozer/adminCredentials").once("value");
@@ -13867,9 +13871,14 @@ function openAdminPanel(){
         <div class="create-option-info"><b>Управление постами</b><span>Удалять посты пользователей</span></div>
         <div class="create-option-arrow">›</div>
       </button>
+      <button class="create-option" onclick="adminManageUsers()">
+        <div class="create-option-icon">👥</div>
+        <div class="create-option-info"><b>Управление игроками</b><span>Ранги, баны, муты, баланс</span></div>
+        <div class="create-option-arrow">›</div>
+      </button>
       <button class="create-option" onclick="adminGiveRank()">
         <div class="create-option-icon">⭐</div>
-        <div class="create-option-info"><b>Выдать ранг игроку</b><span>Silver, Gold, Platinum</span></div>
+        <div class="create-option-info"><b>Выдать ранг</b><span>Silver, Gold, Platinum</span></div>
         <div class="create-option-arrow">›</div>
       </button>
       <button class="create-option" onclick="adminMuteUser()">
@@ -13882,19 +13891,30 @@ function openAdminPanel(){
         <div class="create-option-info"><b>Бан игрока</b><span>Полная блокировка на N часов</span></div>
         <div class="create-option-arrow">›</div>
       </button>
+      <button class="create-option" onclick="adminGiveBalance()">
+        <div class="create-option-icon">💎</div>
+        <div class="create-option-info"><b>Выдать баланс</b><span>Начислить 💎 игроку</span></div>
+        <div class="create-option-arrow">›</div>
+      </button>
     </div>
     <button class="danger" style="width:100%;margin-top:14px;padding:12px" onclick="isAdminSession=false;$('modal').classList.remove('open');toast('Вы вышли из панели')">🚪 Выйти из панели</button>
   `;
   $("modal").classList.add("open");
 }
 
-/* --- ADMIN: CASES --- */
+/* ============ ADMIN: CASES ============ */
+
 async function adminManageCases(){
   const b=$("modalBody");
-  b.innerHTML=`<div style="font-size:20px;font-weight:900;margin-bottom:14px">🎁 Кейсы</div><div id="adminCasesList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
-  <button class="primary" style="width:100%;padding:12px;margin-top:12px" onclick="adminCreateCase()">➕ Создать кейс</button>
-  <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>`;
-  if(!db)return;
+  b.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="openAdminPanel()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:20px;font-weight:900">🎁 Кейсы</div>
+    </div>
+    <div id="adminCasesList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
+    <button class="primary" style="width:100%;padding:12px;margin-top:12px" onclick="adminCreateCase()">➕ Создать кейс</button>
+  `;
+  if(!db){$("adminCasesList").innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет подключения</div>';return;}
   try{
     const snap=await db.ref("prognozer/adminCases").once("value");
     const data=snap.val()||{};
@@ -13906,25 +13926,32 @@ async function adminManageCases(){
         ${c.imageUrl?`<img src="${escapeHTML(c.imageUrl)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover">`:`<div style="font-size:30px;width:48px;text-align:center">🎁</div>`}
         <div style="flex:1;min-width:0">
           <div style="font-weight:900">${escapeHTML(c.name||"Кейс")}</div>
-          <div style="font-size:12px;color:#8295ad">${c.cost||0} 💎 • ${(c.drops||[]).length} предметов</div>
+          <div style="font-size:12px;color:#8295ad">${c.cost||0} 💎 • ${(c.drops||[]).length} предм.</div>
         </div>
-        <button style="background:#1a3a55;border:1px solid #2a5a7e;color:#7dd3fc;padding:7px 10px;border-radius:9px;font-size:13px" onclick="adminEditCase('${id}')">✏️</button>
-        <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:7px 10px;border-radius:9px;font-size:13px" onclick="adminDeleteCase('${id}',this)">🗑️</button>
+        <button style="background:#1a3a55;border:1px solid #2a5a7e;color:#7dd3fc;padding:7px 10px;border-radius:9px;font-size:13px;margin-right:4px" onclick="adminEditCase('${id}')">✏️</button>
+        <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:7px 10px;border-radius:9px;font-size:13px" onclick="adminDeleteCase('${id}')">🗑️</button>
       </div>
     `).join("");
-  }catch(e){toast("Ошибка загрузки кейсов");}
+  }catch(e){toast("Ошибка загрузки кейсов: "+e.message);}
 }
 
-async function adminDeleteCase(id,btn){
+async function adminDeleteCase(id){
   if(!confirm("Удалить кейс?"))return;
-  try{await db.ref("prognozer/adminCases/"+id).remove();toast("✅ Кейс удалён");adminManageCases();}
-  catch(e){toast("Ошибка");}
+  try{
+    await db.ref("prognozer/adminCases/"+id).remove();
+    toast("✅ Кейс удалён");
+    adminManageCases();
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
 function adminCreateCase(){
+  window._editCaseId=null;
   const b=$("modalBody");
   b.innerHTML=`
-    <div style="font-size:18px;font-weight:900;margin-bottom:14px">➕ Новый кейс</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="adminManageCases()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:18px;font-weight:900">➕ Новый кейс</div>
+    </div>
     <input id="ac_name" placeholder="Название кейса" style="width:100%;margin-bottom:9px">
     <input id="ac_cost" type="number" placeholder="Цена открытия 💎" style="width:100%;margin-bottom:9px">
     <input id="ac_img" placeholder="Ссылка на обложку (imgur/ibb)" style="width:100%;margin-bottom:9px">
@@ -13932,53 +13959,57 @@ function adminCreateCase(){
     <div id="ac_drops_list"></div>
     <button class="secondary" style="width:100%;padding:10px;margin-bottom:10px" onclick="adminAddDropRow()">➕ Добавить предмет</button>
     <button class="primary" style="width:100%;padding:12px" onclick="adminSaveCase()">💾 Сохранить кейс</button>
-    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="adminManageCases()">← Назад</button>
   `;
   adminAddDropRow();
 }
 
-let _editCaseId=null;
 async function adminEditCase(id){
-  _editCaseId=id;
+  window._editCaseId=id;
   try{
     const snap=await db.ref("prognozer/adminCases/"+id).once("value");
     const c=snap.val();
-    if(!c)return;
+    if(!c)return toast("Кейс не найден");
     const b=$("modalBody");
     b.innerHTML=`
-      <div style="font-size:18px;font-weight:900;margin-bottom:14px">✏️ Редактировать кейс</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <button onclick="adminManageCases()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+        <div style="font-size:18px;font-weight:900">✏️ Редактировать кейс</div>
+      </div>
       <input id="ac_name" placeholder="Название кейса" value="${escapeHTML(c.name||"")}" style="width:100%;margin-bottom:9px">
       <input id="ac_cost" type="number" placeholder="Цена открытия 💎" value="${c.cost||""}" style="width:100%;margin-bottom:9px">
       <input id="ac_img" placeholder="Ссылка на обложку" value="${escapeHTML(c.imageUrl||"")}" style="width:100%;margin-bottom:9px">
       <div style="font-size:13px;font-weight:800;color:#8295ad;margin:10px 0 8px">Предметы в кейсе:</div>
       <div id="ac_drops_list"></div>
       <button class="secondary" style="width:100%;padding:10px;margin-bottom:10px" onclick="adminAddDropRow()">➕ Добавить предмет</button>
-      <button class="primary" style="width:100%;padding:12px" onclick="adminSaveCase()">💾 Сохранить</button>
-      <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="adminManageCases()">← Назад</button>
+      <button class="primary" style="width:100%;padding:12px" onclick="adminSaveCase()">💾 Сохранить изменения</button>
     `;
     (c.drops||[]).forEach(d=>adminAddDropRow(d));
-  }catch(e){toast("Ошибка");}
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
-function adminAddDropRow(d=null){
+let _dropRowCount=0;
+function adminAddDropRow(existing){
   const list=$("ac_drops_list");
   if(!list)return;
-  const idx=list.children.length;
-  const row=document.createElement("div");
-  row.style.cssText="display:grid;grid-template-columns:1fr 70px 60px 80px 30px;gap:5px;margin-bottom:7px;align-items:center";
-  row.innerHTML=`
-    <input placeholder="Название предмета" value="${escapeHTML(d?.name||"")}" class="ac_d_name">
-    <input type="number" placeholder="💎" value="${d?.price||""}" class="ac_d_price">
-    <input placeholder="%" type="number" value="${d?.chance||""}" class="ac_d_chance">
-    <input type="number" placeholder="Кол-во" value="${d?.maxCount||""}" class="ac_d_max" title="Макс.выпадений (0=∞)">
-    <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;border-radius:8px;padding:5px;font-size:14px" onclick="this.parentElement.remove()">✕</button>
+  const i=_dropRowCount++;
+  const d=existing||{};
+  const div=document.createElement("div");
+  div.id="drop_row_"+i;
+  div.style.cssText="border:1px solid #1c3a58;border-radius:12px;background:#0b1726;padding:11px;margin-bottom:8px";
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:13px;color:#7dd3fc;font-weight:800">Предмет ${i+1}</span>
+      <button onclick="document.getElementById('drop_row_${i}').remove()" style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:3px 8px;border-radius:7px;font-size:12px">✕</button>
+    </div>
+    <input id="dr_name_${i}" placeholder="Название предмета" value="${escapeHTML(d.name||"")}" style="width:100%;margin-bottom:7px">
+    <input id="dr_img_${i}" placeholder="Ссылка на изображение (необязательно)" value="${escapeHTML(d.imageUrl||"")}" style="width:100%;margin-bottom:7px">
+    <input id="dr_emoji_${i}" placeholder="Эмодзи (если нет картинки) 📦" value="${escapeHTML(d.emoji||"")}" style="width:100%;margin-bottom:7px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      <input id="dr_price_${i}" type="number" placeholder="Цена 💎" value="${d.price||""}" style="width:100%">
+      <input id="dr_chance_${i}" type="number" placeholder="Шанс (1-100)" value="${d.chance||10}" style="width:100%">
+    </div>
   `;
-  // Add image url input
-  const imgRow=document.createElement("div");
-  imgRow.style.cssText="display:grid;grid-template-columns:1fr 60px;gap:5px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #1c3a58";
-  imgRow.innerHTML=`<input placeholder="Ссылка на картинку предмета" value="${escapeHTML(d?.imageUrl||"")}" class="ac_d_img"><select class="ac_d_type" style="padding:11px 6px;border-radius:12px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:13px"><option value="Оружие" ${d?.type==="Оружие"?"selected":""}>Оружие</option><option value="Нож" ${d?.type==="Нож"?"selected":""}>Нож</option><option value="Наклейка" ${d?.type==="Наклейка"?"selected":""}>Наклейка</option><option value="Брелок" ${d?.type==="Брелок"?"selected":""}>Брелок</option><option value="Silver" ${d?.type==="Silver"?"selected":""}>🥈 Silver</option><option value="Gold" ${d?.type==="Gold"?"selected":""}>🥇 Gold</option><option value="Platinum" ${d?.type==="Platinum"?"selected":""}>💎 Platinum</option></select>`;
-  list.appendChild(row);
-  list.appendChild(imgRow);
+  list.appendChild(div);
 }
 
 async function adminSaveCase(){
@@ -13986,73 +14017,102 @@ async function adminSaveCase(){
   const cost=parseInt($("ac_cost")?.value)||0;
   const imageUrl=($("ac_img")?.value||"").trim();
   if(!name||cost<1)return toast("Заполните название и цену");
-  const list=$("ac_drops_list");
-  const nameInputs=[...list.querySelectorAll(".ac_d_name")];
-  const priceInputs=[...list.querySelectorAll(".ac_d_price")];
-  const chanceInputs=[...list.querySelectorAll(".ac_d_chance")];
-  const maxInputs=[...list.querySelectorAll(".ac_d_max")];
-  const imgInputs=[...list.querySelectorAll(".ac_d_img")];
-  const typeSelects=[...list.querySelectorAll(".ac_d_type")];
-  const drops=nameInputs.map((n,i)=>({
-    name:n.value.trim(),
-    price:parseInt(priceInputs[i]?.value)||0,
-    chance:parseFloat(chanceInputs[i]?.value)||10,
-    maxCount:parseInt(maxInputs[i]?.value)||0,
-    imageUrl:(imgInputs[i]?.value||"").trim(),
-    type:typeSelects[i]?.value||"Оружие",
-    droppedCount:0
-  })).filter(d=>d.name);
+  const drops=[];
+  let i=0;
+  while(true){
+    const nameEl=document.getElementById("dr_name_"+i);
+    if(!nameEl){
+      if(i>50)break;
+      // check if row element exists at all
+      const rowEl=document.getElementById("drop_row_"+i);
+      if(!rowEl){i++;if(i>50)break;continue;}
+    }
+    if(nameEl){
+      const dName=nameEl.value.trim();
+      if(dName){
+        drops.push({
+          name:dName,
+          imageUrl:(document.getElementById("dr_img_"+i)?.value||"").trim(),
+          emoji:(document.getElementById("dr_emoji_"+i)?.value||"").trim()||"📦",
+          price:parseInt(document.getElementById("dr_price_"+i)?.value)||0,
+          chance:parseInt(document.getElementById("dr_chance_"+i)?.value)||10
+        });
+      }
+    }
+    i++;
+    if(i>100)break;
+  }
   if(!drops.length)return toast("Добавьте хотя бы один предмет");
-  const data={name,cost,imageUrl,drops,createdAt:firebase.database.ServerValue.TIMESTAMP};
+  const data={name,cost,imageUrl,drops,updatedAt:firebase.database.ServerValue.TIMESTAMP};
   try{
-    if(_editCaseId){await db.ref("prognozer/adminCases/"+_editCaseId).update(data);}
-    else{await db.ref("prognozer/adminCases").push(data);}
-    _editCaseId=null;
+    if(window._editCaseId){
+      await db.ref("prognozer/adminCases/"+window._editCaseId).update(data);
+    }else{
+      await db.ref("prognozer/adminCases").push(data);
+    }
+    window._editCaseId=null;
     toast("✅ Кейс сохранён");
+    await loadAdminCases();
     adminManageCases();
-  }catch(e){toast("Ошибка сохранения");}
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
-/* --- ADMIN: SHOP --- */
+/* ============ ADMIN: SHOP ============ */
+
 async function adminManageShop(){
   const b=$("modalBody");
-  b.innerHTML=`<div style="font-size:20px;font-weight:900;margin-bottom:14px">🛒 Магазин</div><div id="adminShopList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
-  <button class="primary" style="width:100%;padding:12px;margin-top:12px" onclick="adminCreateShopItem()">➕ Добавить скин</button>
-  <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>`;
-  if(!db)return;
+  b.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="openAdminPanel()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:20px;font-weight:900">🛒 Магазин</div>
+    </div>
+    <div id="adminShopList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
+    <button class="primary" style="width:100%;padding:12px;margin-top:12px" onclick="adminCreateShopItem()">➕ Добавить скин</button>
+  `;
+  if(!db){$("adminShopList").innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет подключения</div>';return;}
   try{
     const snap=await db.ref("prognozer/adminShop").once("value");
     const data=snap.val()||{};
     const el=$("adminShopList");
     const entries=Object.entries(data);
-    if(!entries.length){el.innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет скинов</div>';return;}
-    el.innerHTML=entries.map(([id,s])=>`
-      <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #1c3a58;border-radius:14px;background:#0b1726;margin-bottom:8px">
-        ${s.imageUrl?`<img src="${escapeHTML(s.imageUrl)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover">`:`<div style="font-size:28px;width:48px;text-align:center">${s.emoji||"📦"}</div>`}
+    if(!entries.length){el.innerHTML='<div class="muted" style="text-align:center;padding:20px">Скинов нет</div>';return;}
+    el.innerHTML=entries.map(([id,s])=>{
+      const visColor=s.visibility==="hidden"?"#ff5d68":s.visibility==="show"?"#f0c040":"#42ff9a";
+      const visLabel=s.visibility==="hidden"?"🔒 Скрыт":s.visibility==="show"?"👁 Витрина":"💰 Продаётся";
+      return`<div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #1c3a58;border-radius:14px;background:#0b1726;margin-bottom:8px">
+        ${s.imageUrl?`<img src="${escapeHTML(s.imageUrl)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0">`:`<div style="font-size:28px;width:48px;text-align:center;flex-shrink:0">${s.emoji||"📦"}</div>`}
         <div style="flex:1;min-width:0">
-          <div style="font-weight:900;font-size:13px">${escapeHTML(s.name||"Предмет")}</div>
-          <div style="font-size:11px;color:#8295ad">${s.type||""} • ${s.buyPrice||s.price||0}💎 • <span style="color:${s.visibility==="hidden"?"#ff5d68":s.visibility==="show"?"#8295ad":"#42ff9a"}">${s.visibility==="hidden"?"скрыт":s.visibility==="show"?"показан":"продаётся"}</span></div>
+          <div style="font-weight:900;font-size:14px">${escapeHTML(s.name||"Скин")}</div>
+          <div style="font-size:11px;color:#8295ad">${escapeHTML(s.type||"")} • Купить: ${s.buyPrice||s.price||0}💎 • Продать: ${s.sellPrice||0}💎</div>
+          <div style="font-size:11px;color:${visColor};margin-top:2px">${visLabel}</div>
         </div>
-        <button style="background:#1a3a55;border:1px solid #2a5a7e;color:#7dd3fc;padding:7px 10px;border-radius:9px;font-size:13px" onclick="adminEditShopItem('${id}')">✏️</button>
-        <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:7px 10px;border-radius:9px;font-size:13px" onclick="adminDeleteShopItem('${id}')">🗑️</button>
-      </div>
-    `).join("");
-  }catch(e){toast("Ошибка");}
+        <button style="background:#1a3a55;border:1px solid #2a5a7e;color:#7dd3fc;padding:6px 9px;border-radius:9px;font-size:12px;margin-right:4px" onclick="adminEditShopItem('${id}')">✏️</button>
+        <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:6px 9px;border-radius:9px;font-size:12px" onclick="adminDeleteShopItem('${id}')">🗑️</button>
+      </div>`;
+    }).join("");
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
 async function adminDeleteShopItem(id){
-  if(!confirm("Удалить скин?"))return;
-  try{await db.ref("prognozer/adminShop/"+id).remove();toast("✅ Скин удалён");adminManageShop();}
-  catch(e){toast("Ошибка");}
+  if(!confirm("Удалить скин из магазина?"))return;
+  try{
+    await db.ref("prognozer/adminShop/"+id).remove();
+    toast("✅ Скин удалён");
+    await loadAdminShopToFront();
+    adminManageShop();
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
 let _editShopId=null;
-function adminCreateShopItem(existId=null,existing=null){
-  _editShopId=existId;
+function adminCreateShopItem(existId,existing){
+  _editShopId=existId||null;
   const s=existing||{};
   const b=$("modalBody");
   b.innerHTML=`
-    <div style="font-size:18px;font-weight:900;margin-bottom:14px">${existId?"✏️ Редактировать":"➕ Новый"} скин</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="adminManageShop()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:18px;font-weight:900">${existId?"✏️ Редактировать":"➕ Новый"} скин</div>
+    </div>
     <select id="as_type" style="width:100%;padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:15px;margin-bottom:9px">
       <option value="Оружие" ${s.type==="Оружие"?"selected":""}>🔫 Оружие</option>
       <option value="Нож" ${s.type==="Нож"?"selected":""}>🔪 Нож</option>
@@ -14061,15 +14121,17 @@ function adminCreateShopItem(existId=null,existing=null){
     </select>
     <input id="as_name" placeholder="Название скина" value="${escapeHTML(s.name||"")}" style="width:100%;margin-bottom:9px">
     <input id="as_img" placeholder="Ссылка на изображение (imgur/ibb/discord)" value="${escapeHTML(s.imageUrl||"")}" style="width:100%;margin-bottom:9px">
-    <input id="as_buyprice" type="number" placeholder="Цена покупки 💎" value="${s.buyPrice||s.price||""}" style="width:100%;margin-bottom:9px">
-    <input id="as_sellprice" type="number" placeholder="Цена продажи системе 💎" value="${s.sellPrice||""}" style="width:100%;margin-bottom:9px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px">
+      <input id="as_buyprice" type="number" placeholder="Цена покупки 💎" value="${s.buyPrice||s.price||""}">
+      <input id="as_sellprice" type="number" placeholder="Цена продажи 💎" value="${s.sellPrice||""}">
+    </div>
+    <div style="font-size:12px;color:#8295ad;margin-bottom:9px">Цена продажи — сколько игрок получит при продаже системе</div>
     <select id="as_vis" style="width:100%;padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:15px;margin-bottom:14px">
       <option value="sale" ${(s.visibility||"sale")==="sale"?"selected":""}>💰 Продавать в магазине</option>
-      <option value="show" ${s.visibility==="show"?"selected":""}>👁 Только показывать</option>
-      <option value="hidden" ${s.visibility==="hidden"?"selected":""}>🔒 Скрыть (только админ)</option>
+      <option value="show" ${s.visibility==="show"?"selected":""}>👁 Только показывать (витрина)</option>
+      <option value="hidden" ${s.visibility==="hidden"?"selected":""}>🔒 Скрыть (только админ видит)</option>
     </select>
     <button class="primary" style="width:100%;padding:13px" onclick="adminSaveShopItem()">💾 Сохранить</button>
-    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="adminManageShop()">← Назад</button>
   `;
 }
 
@@ -14077,7 +14139,7 @@ async function adminEditShopItem(id){
   try{
     const snap=await db.ref("prognozer/adminShop/"+id).once("value");
     adminCreateShopItem(id,snap.val());
-  }catch(e){toast("Ошибка");}
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
 async function adminSaveShopItem(){
@@ -14087,28 +14149,37 @@ async function adminSaveShopItem(){
   const buyPrice=parseInt($("as_buyprice")?.value)||0;
   const sellPrice=parseInt($("as_sellprice")?.value)||Math.floor(buyPrice*0.7);
   const visibility=$("as_vis")?.value||"sale";
-  if(!name||buyPrice<1)return toast("Заполните название и цену");
+  if(!name||buyPrice<1)return toast("Заполните название и цену покупки");
   const emojiMap={Оружие:"🔫",Нож:"🔪",Наклейка:"🏷️",Брелок:"🔑"};
   const emoji=emojiMap[type]||"📦";
   const data={type,name,imageUrl,buyPrice,sellPrice,price:buyPrice,emoji,visibility,updatedAt:firebase.database.ServerValue.TIMESTAMP};
   try{
-    if(_editShopId){await db.ref("prognozer/adminShop/"+_editShopId).update(data);}
-    else{await db.ref("prognozer/adminShop").push(data);}
+    if(_editShopId){
+      await db.ref("prognozer/adminShop/"+_editShopId).update(data);
+    }else{
+      await db.ref("prognozer/adminShop").push(data);
+    }
     _editShopId=null;
     toast("✅ Скин сохранён");
+    await loadAdminShopToFront();
     adminManageShop();
-    loadAdminShopToFront();
-  }catch(e){toast("Ошибка сохранения");}
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
-/* --- ADMIN: POSTS --- */
+/* ============ ADMIN: POSTS ============ */
+
 async function adminManagePosts(){
   const b=$("modalBody");
-  b.innerHTML=`<div style="font-size:20px;font-weight:900;margin-bottom:14px">📝 Посты</div><div id="adminPostsList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
-  <button class="secondary" style="width:100%;padding:11px;margin-top:10px" onclick="openAdminPanel()">← Назад</button>`;
+  b.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="openAdminPanel()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:20px;font-weight:900">📝 Посты</div>
+    </div>
+    <div id="adminPostsList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
+  `;
   if(!db)return;
   try{
-    const snap=await db.ref("prognozer/community/posts").limitToLast(50).once("value");
+    const snap=await db.ref("prognozer/community/posts").limitToLast(80).once("value");
     const data=snap.val()||{};
     const el=$("adminPostsList");
     const entries=Object.entries(data).reverse();
@@ -14117,26 +14188,198 @@ async function adminManagePosts(){
       <div style="padding:12px;border:1px solid #1c3a58;border-radius:14px;background:#0b1726;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
           <div style="font-weight:900;color:#4da6ff;font-size:13px">@${escapeHTML(p.username||"user")}</div>
-          <div style="color:#5a7a99;font-size:11px">${formatPostDate(p.createdAt)}</div>
-          <button style="margin-left:auto;background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:5px 10px;border-radius:8px;font-size:12px" onclick="adminDeletePost('${id}',this)">🗑️ Удалить</button>
+          <div style="background:#182d44;border-radius:6px;padding:2px 6px;font-size:10px;color:#c6d5e7">${escapeHTML(p.rank||"")}</div>
+          <div style="color:#5a7a99;font-size:11px;margin-left:auto">${formatPostDate(p.createdAt)}</div>
+          <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:4px 8px;border-radius:7px;font-size:11px" onclick="adminDeletePost('${id}',this)">🗑️</button>
         </div>
-        <div style="font-size:13px;color:#c0d0e0;white-space:pre-wrap;overflow-wrap:anywhere">${escapeHTML((p.text||"").substring(0,120))}${(p.text||"").length>120?"…":""}</div>
+        ${p.imageUrl?`<img src="${escapeHTML(p.imageUrl)}" style="width:100%;max-height:120px;border-radius:10px;object-fit:cover;margin-bottom:6px" onerror="this.style.display='none'">`:``}
+        <div style="font-size:13px;color:#c0d0e0;white-space:pre-wrap;overflow-wrap:anywhere">${escapeHTML((p.text||"").substring(0,150))}${(p.text||"").length>150?"…":""}</div>
       </div>
     `).join("");
-  }catch(e){toast("Ошибка");}
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
 async function adminDeletePost(id,btn){
   if(!confirm("Удалить пост?"))return;
-  try{await db.ref("prognozer/community/posts/"+id).remove();btn.closest("div[style*='border']").remove();toast("✅ Пост удалён");}
-  catch(e){toast("Ошибка");}
+  try{
+    await db.ref("prognozer/community/posts/"+id).remove();
+    btn.closest("div[style*='border']").remove();
+    toast("✅ Пост удалён");
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
-/* --- ADMIN: RANK --- */
+/* ============ ADMIN: MANAGE USERS ============ */
+
+async function adminManageUsers(){
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="openAdminPanel()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:20px;font-weight:900">👥 Игроки</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input id="userSearchInput" placeholder="Поиск по @username" style="flex:1">
+      <button class="primary" style="padding:11px 14px" onclick="adminSearchUser()">🔍</button>
+    </div>
+    <div id="adminUserResult"></div>
+  `;
+  document.getElementById("userSearchInput")?.addEventListener("keydown",e=>{
+    if(e.key==="Enter")adminSearchUser();
+  });
+}
+
+async function adminSearchUser(){
+  const username=($("userSearchInput")?.value||"").trim().replace(/^@/,"").toLowerCase();
+  const resEl=$("adminUserResult");
+  if(!username){resEl.innerHTML='<div class="muted" style="text-align:center;padding:10px">Введите username</div>';return;}
+  resEl.innerHTML='<div class="muted" style="text-align:center;padding:10px">Поиск…</div>';
+  try{
+    const snap=await db.ref("prognozer/community/profiles").orderByChild("username").equalTo(username).once("value");
+    const found=snap.val();
+    if(!found){resEl.innerHTML='<div class="muted" style="text-align:center;padding:10px">❌ Не найден</div>';return;}
+    const [uid,p]=Object.entries(found)[0];
+    // Load moderation data
+    let mod={};
+    try{const ms=await db.ref("prognozer/moderation/"+uid).once("value");mod=ms.val()||{};}catch(e){}
+    // Load balance
+    let balance=0;
+    try{const bs=await db.ref("prognozer/users/"+uid+"/balance").once("value");balance=bs.val()||0;}catch(e){}
+    const now=Date.now();
+    const isBanned=!!(mod.banned&&mod.bannedUntil>now);
+    const isMuted=!!(mod.muted&&mod.mutedUntil>now);
+    resEl.innerHTML=`
+      <div style="border:1px solid #1c3a58;border-radius:14px;background:#0b1726;padding:14px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          ${p.photoURL?`<img src="${escapeHTML(p.photoURL)}" style="width:46px;height:46px;border-radius:50%;object-fit:cover">`:`<div style="width:46px;height:46px;background:#122b49;border-radius:50%;display:grid;place-items:center;font-size:22px">👤</div>`}
+          <div>
+            <div style="font-weight:900;color:#4da6ff">@${escapeHTML(p.username||uid)}</div>
+            <div style="font-size:12px;color:#8295ad">${escapeHTML(p.rank||"Обычный пользователь")} • 💎${balance}</div>
+            <div style="font-size:11px;margin-top:2px">
+              ${isBanned?`<span style="color:#ff5d68">🚫 Забанен до ${new Date(mod.bannedUntil).toLocaleString("ru")}</span>`:``}
+              ${isMuted?`<span style="color:#f0c040">🔇 Замьючен до ${new Date(mod.mutedUntil).toLocaleString("ru")}</span>`:``}
+              ${!isBanned&&!isMuted?`<span style="color:#42ff9a">✅ Активен</span>`:``}
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button style="background:#0d2240;border:1px solid #254a6e;color:#7dd3fc;padding:9px;border-radius:10px;font-size:12px;font-weight:800" onclick="adminQuickRank('${uid}','${escapeHTML(username)}')">⭐ Ранг</button>
+          <button style="background:#0d2240;border:1px solid #254a6e;color:#7dd3fc;padding:9px;border-radius:10px;font-size:12px;font-weight:800" onclick="adminQuickBalance('${uid}','${escapeHTML(username)}')">💎 Баланс</button>
+          <button style="background:${isMuted?"#1a2a0d":"#2a1a0d"};border:1px solid ${isMuted?"#4a7a22":"#7a4a22"};color:${isMuted?"#a0e060":"#e0a060"};padding:9px;border-radius:10px;font-size:12px;font-weight:800" onclick="adminQuickMute('${uid}','${escapeHTML(username)}',${isMuted})">${isMuted?"✅ Снять мут":"🔇 Мут"}</button>
+          <button style="background:${isBanned?"#1a0d0d":"#2a0d0d"};border:1px solid ${isBanned?"#5a2222":"#7a2222"};color:${isBanned?"#ff9a9a":"#ff5d68"};padding:9px;border-radius:10px;font-size:12px;font-weight:800" onclick="adminQuickBan('${uid}','${escapeHTML(username)}',${isBanned})">${isBanned?"✅ Разбанить":"🚫 Бан"}</button>
+        </div>
+        <div id="adminUserAction" style="margin-top:10px"></div>
+      </div>
+    `;
+  }catch(e){resEl.innerHTML=`<div class="muted" style="text-align:center;padding:10px">Ошибка: ${e.message}</div>`;}
+}
+
+function adminQuickRank(uid,username){
+  const el=$("adminUserAction");
+  el.innerHTML=`
+    <select id="quickRankSel" style="width:100%;padding:11px;border-radius:10px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:14px;margin-bottom:8px">
+      <option value="Обычный пользователь">👤 Обычный пользователь</option>
+      <option value="Silver">🥈 Silver</option>
+      <option value="Gold">🥇 Gold</option>
+      <option value="Platinum">💎 Platinum</option>
+    </select>
+    <button class="primary" style="width:100%;padding:11px;font-size:13px" onclick="adminDoQuickRank('${uid}','${username}')">✅ Выдать ранг</button>
+  `;
+}
+async function adminDoQuickRank(uid,username){
+  const rank=$("quickRankSel")?.value;
+  try{
+    await db.ref("prognozer/community/profiles/"+uid).update({rank});
+    await db.ref("prognozer/users/"+uid).update({rank});
+    toast(`✅ @${username} — ранг «${rank}» выдан`);
+    $("adminUserAction").innerHTML=`<div style="color:#42ff9a;font-size:13px;padding:6px 0">✅ Ранг «${rank}» выдан</div>`;
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+
+function adminQuickBalance(uid,username){
+  const el=$("adminUserAction");
+  el.innerHTML=`
+    <input id="quickBalAmt" type="number" placeholder="Сумма 💎 (отрицательная = списать)" style="width:100%;margin-bottom:8px">
+    <button class="primary" style="width:100%;padding:11px;font-size:13px" onclick="adminDoQuickBalance('${uid}','${username}')">💎 Применить</button>
+  `;
+}
+async function adminDoQuickBalance(uid,username){
+  const amt=parseInt($("quickBalAmt")?.value)||0;
+  if(amt===0)return toast("Укажите сумму");
+  try{
+    const snap=await db.ref("prognozer/users/"+uid+"/balance").once("value");
+    const cur=Number(snap.val())||0;
+    const newBal=Math.max(0,cur+amt);
+    await db.ref("prognozer/users/"+uid+"/balance").set(newBal);
+    toast(`✅ @${username}: ${cur} → ${newBal} 💎`);
+    $("adminUserAction").innerHTML=`<div style="color:#42ff9a;font-size:13px;padding:6px 0">✅ Баланс: ${newBal} 💎</div>`;
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+
+function adminQuickMute(uid,username,isMuted){
+  const el=$("adminUserAction");
+  if(isMuted){
+    el.innerHTML=`<button class="primary" style="width:100%;padding:11px;font-size:13px" onclick="adminDoUnmute('${uid}','${username}')">🔊 Снять мут</button>`;
+  }else{
+    el.innerHTML=`
+      <input id="quickMuteH" type="number" placeholder="Часов (напр. 24)" min="1" style="width:100%;margin-bottom:8px">
+      <button class="primary" style="width:100%;padding:11px;font-size:13px" onclick="adminDoQuickMute('${uid}','${username}')">🔇 Замьютить</button>
+    `;
+  }
+}
+async function adminDoQuickMute(uid,username){
+  const h=parseInt($("quickMuteH")?.value)||0;
+  if(h<1)return toast("Укажите кол-во часов");
+  const until=Date.now()+h*3600000;
+  try{
+    await db.ref("prognozer/moderation/"+uid).update({muted:true,mutedUntil:until});
+    toast(`✅ @${username} замьючен на ${h}ч`);
+    $("adminUserAction").innerHTML=`<div style="color:#f0c040;font-size:13px;padding:6px 0">🔇 Мут до ${new Date(until).toLocaleString("ru")}</div>`;
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+async function adminDoUnmute(uid,username){
+  try{
+    await db.ref("prognozer/moderation/"+uid).update({muted:false,mutedUntil:0});
+    toast(`✅ Мут снят с @${username}`);
+    $("adminUserAction").innerHTML=`<div style="color:#42ff9a;font-size:13px;padding:6px 0">✅ Мут снят</div>`;
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+
+function adminQuickBan(uid,username,isBanned){
+  const el=$("adminUserAction");
+  if(isBanned){
+    el.innerHTML=`<button class="primary" style="width:100%;padding:11px;font-size:13px" onclick="adminDoUnban('${uid}','${username}')">✅ Разбанить</button>`;
+  }else{
+    el.innerHTML=`
+      <input id="quickBanH" type="number" placeholder="Часов (0 = навсегда)" min="0" style="width:100%;margin-bottom:8px">
+      <button class="danger" style="width:100%;padding:11px;font-size:13px" onclick="adminDoQuickBan('${uid}','${username}')">🚫 Забанить</button>
+    `;
+  }
+}
+async function adminDoQuickBan(uid,username){
+  const h=parseInt($("quickBanH")?.value)||0;
+  const until=h>0?Date.now()+h*3600000:Date.now()+365*24*3600000;
+  try{
+    await db.ref("prognozer/moderation/"+uid).update({banned:true,bannedUntil:until});
+    toast(`✅ @${username} забанен на ${h||"365"}ч`);
+    $("adminUserAction").innerHTML=`<div style="color:#ff5d68;font-size:13px;padding:6px 0">🚫 Бан до ${new Date(until).toLocaleString("ru")}</div>`;
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+async function adminDoUnban(uid,username){
+  try{
+    await db.ref("prognozer/moderation/"+uid).update({banned:false,bannedUntil:0});
+    toast(`✅ Бан снят с @${username}`);
+    $("adminUserAction").innerHTML=`<div style="color:#42ff9a;font-size:13px;padding:6px 0">✅ Разбанен</div>`;
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+
+/* ============ ADMIN: RANK (standalone) ============ */
 async function adminGiveRank(){
   const b=$("modalBody");
   b.innerHTML=`
-    <div style="font-size:18px;font-weight:900;margin-bottom:14px">⭐ Выдать ранг</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="openAdminPanel()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:18px;font-weight:900">⭐ Выдать ранг</div>
+    </div>
     <input id="rankUsername" placeholder="@username игрока" style="width:100%;margin-bottom:9px">
     <select id="rankSelect" style="width:100%;padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:15px;margin-bottom:14px">
       <option value="Обычный пользователь">👤 Обычный пользователь</option>
@@ -14145,11 +14388,9 @@ async function adminGiveRank(){
       <option value="Platinum">💎 Platinum</option>
     </select>
     <button class="primary" style="width:100%;padding:13px" onclick="adminDoGiveRank()">✅ Выдать ранг</button>
-    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>
     <div id="rankResult" style="margin-top:10px;font-size:13px;color:#8295ad;min-height:18px"></div>
   `;
 }
-
 async function adminDoGiveRank(){
   const username=($("rankUsername")?.value||"").trim().replace(/^@/,"").toLowerCase();
   const rank=$("rankSelect")?.value;
@@ -14159,28 +14400,29 @@ async function adminDoGiveRank(){
     if(resEl)resEl.textContent="Ищем пользователя…";
     const snap=await db.ref("prognozer/community/profiles").orderByChild("username").equalTo(username).once("value");
     const found=snap.val();
-    if(!found){if(resEl)resEl.textContent="❌ Пользователь не найден";return;}
+    if(!found){if(resEl)resEl.textContent="❌ Пользователь @"+username+" не найден";return;}
     const [uid]=Object.entries(found)[0];
     await db.ref("prognozer/community/profiles/"+uid).update({rank});
     await db.ref("prognozer/users/"+uid).update({rank});
-    if(resEl)resEl.textContent=`✅ @${username} — ранг «${rank}» выдан`;
+    if(resEl)resEl.textContent="✅ @"+username+" — ранг «"+rank+"» выдан!";
     toast("✅ Ранг выдан");
-  }catch(e){if(resEl)resEl.textContent="Ошибка";toast("Ошибка");}
+  }catch(e){if(resEl)resEl.textContent="Ошибка: "+e.message;}
 }
 
-/* --- ADMIN: MUTE --- */
+/* ============ ADMIN: MUTE ============ */
 async function adminMuteUser(){
   const b=$("modalBody");
   b.innerHTML=`
-    <div style="font-size:18px;font-weight:900;margin-bottom:14px">🔇 Мут игрока</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="openAdminPanel()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:18px;font-weight:900">🔇 Мут игрока</div>
+    </div>
     <input id="muteUsername" placeholder="@username игрока" style="width:100%;margin-bottom:9px">
     <input id="muteHours" type="number" placeholder="На сколько часов (0 = снять мут)" min="0" style="width:100%;margin-bottom:14px">
     <button class="primary" style="width:100%;padding:13px" onclick="adminDoMute()">🔇 Применить</button>
-    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>
     <div id="muteResult" style="margin-top:10px;font-size:13px;color:#8295ad;min-height:18px"></div>
   `;
 }
-
 async function adminDoMute(){
   const username=($("muteUsername")?.value||"").trim().replace(/^@/,"").toLowerCase();
   const hours=parseInt($("muteHours")?.value)||0;
@@ -14197,25 +14439,26 @@ async function adminDoMute(){
     }else{
       const until=Date.now()+hours*3600000;
       await db.ref("prognozer/moderation/"+uid).update({muted:true,mutedUntil:until});
-      if(resEl)resEl.textContent=`✅ @${username} замьючен на ${hours}ч`;
+      if(resEl)resEl.textContent="✅ @"+username+" замьючен на "+hours+"ч";
     }
     toast("✅ Готово");
-  }catch(e){toast("Ошибка");}
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
-/* --- ADMIN: BAN --- */
+/* ============ ADMIN: BAN ============ */
 async function adminBanUser(){
   const b=$("modalBody");
   b.innerHTML=`
-    <div style="font-size:18px;font-weight:900;margin-bottom:14px">🚫 Бан игрока</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="openAdminPanel()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:18px;font-weight:900">🚫 Бан игрока</div>
+    </div>
     <input id="banUsername" placeholder="@username игрока" style="width:100%;margin-bottom:9px">
     <input id="banHours" type="number" placeholder="На сколько часов (0 = разбанить)" min="0" style="width:100%;margin-bottom:14px">
     <button class="primary" style="width:100%;padding:13px" onclick="adminDoBan()">🚫 Применить</button>
-    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>
     <div id="banResult" style="margin-top:10px;font-size:13px;color:#8295ad;min-height:18px"></div>
   `;
 }
-
 async function adminDoBan(){
   const username=($("banUsername")?.value||"").trim().replace(/^@/,"").toLowerCase();
   const hours=parseInt($("banHours")?.value)||0;
@@ -14232,23 +14475,53 @@ async function adminDoBan(){
     }else{
       const until=Date.now()+hours*3600000;
       await db.ref("prognozer/moderation/"+uid).update({banned:true,bannedUntil:until});
-      if(resEl)resEl.textContent=`🚫 @${username} забанен на ${hours}ч`;
+      if(resEl)resEl.textContent="🚫 @"+username+" забанен на "+hours+"ч";
     }
     toast("✅ Готово");
-  }catch(e){toast("Ошибка");}
+  }catch(e){toast("Ошибка: "+e.message);}
 }
 
-/* --- BAN CHECK on login --- */
+/* ============ ADMIN: GIVE BALANCE ============ */
+async function adminGiveBalance(){
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="openAdminPanel()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:18px;font-weight:900">💎 Выдать баланс</div>
+    </div>
+    <input id="balUsername" placeholder="@username игрока" style="width:100%;margin-bottom:9px">
+    <input id="balAmount" type="number" placeholder="Сумма 💎" style="width:100%;margin-bottom:14px">
+    <button class="primary" style="width:100%;padding:13px" onclick="adminDoGiveBalance()">💎 Выдать</button>
+    <div id="balResult" style="margin-top:10px;font-size:13px;color:#8295ad;min-height:18px"></div>
+  `;
+}
+async function adminDoGiveBalance(){
+  const username=($("balUsername")?.value||"").trim().replace(/^@/,"").toLowerCase();
+  const amount=parseInt($("balAmount")?.value)||0;
+  const resEl=$("balResult");
+  if(!username||!amount)return toast("Заполните все поля");
+  try{
+    const snap=await db.ref("prognozer/community/profiles").orderByChild("username").equalTo(username).once("value");
+    const found=snap.val();
+    if(!found){if(resEl)resEl.textContent="❌ Не найден";return;}
+    const [uid]=Object.entries(found)[0];
+    const balSnap=await db.ref("prognozer/users/"+uid+"/balance").once("value");
+    const cur=Number(balSnap.val())||0;
+    const newBal=Math.max(0,cur+amount);
+    await db.ref("prognozer/users/"+uid+"/balance").set(newBal);
+    if(resEl)resEl.textContent="✅ @"+username+": "+cur+" → "+newBal+" 💎";
+    toast("✅ Баланс обновлён");
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+
+/* ============ BAN/MUTE CHECKS ============ */
 async function checkBanStatus(){
   if(!firebaseUser||!db)return false;
   try{
     const snap=await db.ref("prognozer/moderation/"+firebaseUser.uid).once("value");
     const mod=snap.val()||{};
     const now=Date.now();
-    if(mod.banned&&mod.bannedUntil>now){
-      showBanScreen(mod.bannedUntil);
-      return true;
-    }
+    if(mod.banned&&mod.bannedUntil>now){showBanScreen(mod.bannedUntil);return true;}
     return false;
   }catch(e){return false;}
 }
@@ -14261,12 +14534,10 @@ function showBanScreen(until){
     existing.style.cssText="position:fixed;inset:0;z-index:500;background:#030811;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center";
     document.body.appendChild(existing);
   }
-  function updateBanTimer(){
-    const remaining=Math.max(0,until-Date.now());
-    if(remaining<=0){existing.remove();return;}
-    const h=Math.floor(remaining/3600000);
-    const m=Math.floor((remaining%3600000)/60000);
-    const s=Math.floor((remaining%60000)/1000);
+  function upd(){
+    const rem=Math.max(0,until-Date.now());
+    if(rem<=0){existing.remove();return;}
+    const h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000),s=Math.floor((rem%60000)/1000);
     existing.innerHTML=`
       <div style="font-size:60px;margin-bottom:16px">🚫</div>
       <div style="font-size:26px;font-weight:900;color:#ff5d68;margin-bottom:8px">Аккаунт заблокирован</div>
@@ -14276,9 +14547,9 @@ function showBanScreen(until){
         <div style="font-size:36px;font-weight:900;color:#ff5d68;font-family:monospace">${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}</div>
       </div>
     `;
-    setTimeout(updateBanTimer,1000);
+    setTimeout(upd,1000);
   }
-  updateBanTimer();
+  upd();
 }
 
 async function checkMuteStatus(){
@@ -14286,11 +14557,9 @@ async function checkMuteStatus(){
   try{
     const snap=await db.ref("prognozer/moderation/"+firebaseUser.uid).once("value");
     const mod=snap.val()||{};
-    const now=Date.now();
-    return !!(mod.muted&&mod.mutedUntil>now);
+    return !!(mod.muted&&mod.mutedUntil>Date.now());
   }catch(e){return false;}
 }
-
 
 /* =========================================================
    RANK SYSTEM
@@ -14326,7 +14595,6 @@ function getRankEmoji(rank){
   return"👤";
 }
 
-
 /* =========================================================
    DYNAMIC SHOP (from Firebase adminShop)
 ========================================================= */
@@ -14338,39 +14606,40 @@ async function loadAdminShopToFront(){
   try{
     const snap=await db.ref("prognozer/adminShop").once("value");
     const data=snap.val()||{};
-    adminShopItems=Object.entries(data)
-      .map(([id,s])=>({...s,id}))
-      .filter(s=>s.visibility!=="hidden"||(isAdminSession));
+    adminShopItems=Object.entries(data).map(([id,s])=>({...s,id}));
     renderDynamicShop();
   }catch(e){}
 }
 
 function renderDynamicShop(){
   const el=$("shopList");
-  if(!el||!adminShopItems.length)return;
+  if(!el)return;
+  // Remove old dynamic items
+  el.querySelectorAll(".admin-shop-item").forEach(e=>e.remove());
+  el.querySelectorAll(".admin-shop-sep").forEach(e=>e.remove());
 
   const visible=adminShopItems.filter(s=>isAdminSession||s.visibility!=="hidden");
   if(!visible.length)return;
 
-  // Add a separator
   const sep=document.createElement("div");
+  sep.className="admin-shop-sep";
   sep.style.cssText="font-size:14px;font-weight:800;color:#4da6ff;margin:14px 0 8px;padding:8px 0;border-top:1px solid #1c3a58";
   sep.textContent="✨ Новые скины";
   el.appendChild(sep);
 
   visible.forEach(s=>{
     const row=document.createElement("div");
-    row.className="row";
+    row.className="row admin-shop-item";
     row.style.marginBottom="10px";
     const imgHtml=s.imageUrl
-      ?`<img src="${escapeHTML(s.imageUrl)}" style="width:56px;height:56px;border-radius:13px;object-fit:cover;flex-shrink:0">`
+      ?`<img src="${escapeHTML(s.imageUrl)}" style="width:56px;height:56px;border-radius:13px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`
       :`<div class="thumb">${s.emoji||"📦"}</div>`;
+    const visTag=isAdminSession?`<span style="font-size:10px;color:${s.visibility==="hidden"?"#ff5d68":s.visibility==="show"?"#f0c040":"#42ff9a"}"> [${s.visibility}]</span>`:"";
     row.innerHTML=`
       ${imgHtml}
       <div class="grow">
         <b>${escapeHTML(s.name)}</b>
-        <span class="muted">${escapeHTML(s.type||"Предмет")}</span>
-        ${isAdminSession?`<span style="font-size:10px;color:${s.visibility==="hidden"?"#ff5d68":s.visibility==="show"?"#f0c040":"#42ff9a"}"> [${s.visibility}]</span>`:""}
+        <span class="muted">${escapeHTML(s.type||"Предмет")}</span>${visTag}
       </div>
       <span class="price">${s.buyPrice||s.price||0} 💎</span>
       ${s.visibility==="sale"
@@ -14387,17 +14656,16 @@ async function buyAdminShopItem(id){
   const item=adminShopItems.find(s=>s.id===id);
   if(!item)return;
   const price=item.buyPrice||item.price||0;
-  if(state.balance<price)return toast("Не хватает 💎");
+  if(state.balance<price)return toast("Не хватает 💎 (нужно "+price+", у вас "+state.balance+")");
   state.balance-=price;
   const emoji=item.emoji||{Оружие:"🔫",Нож:"🔪",Наклейка:"🏷️",Брелок:"🔑"}[item.type]||"📦";
   state.inventory.push({name:item.name,price:item.sellPrice||Math.floor(price*0.7),emoji,type:item.type||"Предмет",imageUrl:item.imageUrl||""});
   state.statistics.purchases=(state.statistics.purchases||0)+1;
   localSave();
-  addTransaction("purchase",`Куплен ${item.name}`,-price,emoji);
+  if(typeof addTransaction==="function")addTransaction("purchase","Куплен "+item.name,-price,emoji,item.imageUrl||"");
   updateUI();
   toast("✅ "+item.name+" куплен!");
 }
-
 
 /* =========================================================
    DYNAMIC CASES (from Firebase adminCases)
@@ -14417,9 +14685,7 @@ async function loadAdminCases(){
 function renderAdminCases(){
   const gamesSection=document.getElementById("gamesGrid");
   if(!gamesSection)return;
-  // Remove old admin case cards
   document.querySelectorAll(".admin-case-card").forEach(e=>e.remove());
-
   Object.entries(adminCasesData).forEach(([id,c])=>{
     const card=document.createElement("div");
     card.className="card admin-case-card";
@@ -14442,46 +14708,32 @@ async function openAdminCase(caseId){
   const c=adminCasesData[caseId];
   if(!c)return;
   if(state.balance<(c.cost||0))return toast("Не хватает 💎");
-
-  // Rank luck bonus
   const luck=getLuckBonus();
-
-  // Build weighted drops (filter exhausted)
   const available=(c.drops||[]).filter(d=>!d.maxCount||((d.droppedCount||0)<d.maxCount));
   if(!available.length)return toast("Все предметы в этом кейсе закончились");
-
   state.balance-=(c.cost||0);
   state.statistics.casesOpened=(state.statistics.casesOpened||0)+1;
   localSave();
-
-  // Pick with luck bonus applied to rare items
   const drop=pickWithLuck(available,luck);
   pendingDrop=[drop.name,drop.price,drop.emoji||"📦",drop.chance,drop.imageUrl];
-
-  // Increment drop count in Firebase
   if(db){
     const idx=(c.drops||[]).findIndex(d=>d.name===drop.name);
     if(idx>=0){
-      db.ref(`prognozer/adminCases/${caseId}/drops/${idx}/droppedCount`)
-        .transaction(v=>(Number(v)||0)+1);
+      db.ref("prognozer/adminCases/"+caseId+"/drops/"+idx+"/droppedCount").transaction(v=>(Number(v)||0)+1);
     }
   }
-
-  // Refresh local cache
   if(db){
     const snap=await db.ref("prognozer/adminCases/"+caseId).once("value");
     adminCasesData[caseId]=snap.val()||c;
   }
-
-  addTransaction("case",`Открыт кейс «${c.name}» — выпал: ${drop.name}`,-(c.cost||0),drop.imageUrl?null:(drop.emoji||"📦"),drop.imageUrl);
+  if(typeof addTransaction==="function")addTransaction("case","Открыт кейс «"+c.name+"» — "+drop.name,-(c.cost||0),drop.imageUrl?null:(drop.emoji||"📦"),drop.imageUrl||"");
   showAdminCaseOpeningOverlay(c,drop);
 }
 
 function pickWithLuck(drops,luckBonus){
-  // luckBonus increases the weight of more expensive items
   const adjusted=drops.map(d=>{
     const baseChance=d.chance||10;
-    const bonus=d.price>1000?luckBonus:0; // luck applies only to rare items
+    const bonus=d.price>1000?luckBonus:0;
     return{...d,adjustedChance:baseChance+bonus};
   });
   const total=adjusted.reduce((s,d)=>s+d.adjustedChance,0);
@@ -14497,38 +14749,30 @@ function showAdminCaseOpeningOverlay(c,drop){
   $("caseOpeningStatus").textContent="Открываем кейс…";
   $("caseWinCard").classList.remove("show");
   overlay.classList.add("open");
-
-  // Build sequence from case drops
   const allDrops=(c.drops||[]);
   const seq=[];
-  for(let n=0;n<16;n++) seq.push(...allDrops);
+  for(let n=0;n<16;n++)seq.push(...allDrops);
   const winIdx=seq.length-allDrops.length+Math.max(0,allDrops.findIndex(d=>d.name===drop.name));
   seq[winIdx]=drop;
-
   strip.style.transition="none";
   strip.style.transform="translateX(0)";
   strip.innerHTML=seq.map(x=>`
     <div class="roulette-item">
-      ${x.imageUrl
-        ?`<img src="${escapeHTML(x.imageUrl)}" style="width:80px;height:80px;border-radius:10px;object-fit:cover">`
-        :`<div class="ri-emoji">${x.emoji||"📦"}</div>`}
+      ${x.imageUrl?`<img src="${escapeHTML(x.imageUrl)}" style="width:80px;height:80px;border-radius:10px;object-fit:cover">`:`<div class="ri-emoji">${x.emoji||"📦"}</div>`}
       <div class="ri-name">${escapeHTML(x.name||"Предмет")}</div>
       <div class="ri-price">${Number(x.price||0)} 💎</div>
     </div>
   `).join("");
-
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     const card=strip.children[winIdx];
     const v=strip.parentElement;
     const target=card.offsetLeft+card.offsetWidth/2-v.clientWidth/2;
     strip.style.transition="transform 4.8s cubic-bezier(.07,.72,.12,1)";
-    strip.style.transform=`translateX(${-Math.max(0,target)}px)`;
+    strip.style.transform="translateX("+(-Math.max(0,target))+"px)";
   }));
-
   clearTimeout(window.__caseTimer);
   window.__caseTimer=setTimeout(()=>{
     strip.children[winIdx]?.classList.add("win");
-    // Show win card with image
     $("caseWinEmoji").innerHTML=drop.imageUrl
       ?`<img src="${escapeHTML(drop.imageUrl)}" style="width:100px;height:100px;border-radius:16px;object-fit:cover;margin:auto;display:block">`
       :drop.emoji||"📦";
@@ -14538,12 +14782,11 @@ function showAdminCaseOpeningOverlay(c,drop){
   },4900);
 }
 
-
 /* =========================================================
-   IMAGES IN POSTS (Silver+)
+   IMAGES IN POSTS — Silver, Gold, Platinum (canImage ranks)
 ========================================================= */
 
-const SAFE_IMG_DOMAINS=["i.imgur.com","imgur.com","i.ibb.co","postimages.org","i.postimg.cc","cdn.discordapp.com","media.discordapp.net","images.unsplash.com","ibb.co"];
+const SAFE_IMG_DOMAINS=["i.imgur.com","imgur.com","i.ibb.co","postimages.org","i.postimg.cc","cdn.discordapp.com","media.discordapp.net","images.unsplash.com","ibb.co","media.tenor.com","c.tenor.com"];
 
 function isSafeImageUrl(url){
   try{
@@ -14552,65 +14795,50 @@ function isSafeImageUrl(url){
   }catch(e){return false;}
 }
 
-// Inject image URL field into create post (if rank allows)
-const _origOpenCreatePost=openCreatePost;
-window.openCreatePost=async function(){
-  await _origOpenCreatePost();
-  // After modal opens, inject image field if Silver+
-  if(RANK_CONFIG[myRank]?.canImage){
-    const publishBtn=$("publishCommunityPost");
-    if(publishBtn&&!$("postImageUrlRow")){
-      const row=document.createElement("div");
-      row.id="postImageUrlRow";
-      row.style.cssText="margin:10px 0";
-      row.innerHTML=`<input id="postImageUrl" placeholder="🖼 Ссылка на изображение (imgur/ibb/discord) — только Silver+" style="width:100%">`;
-      publishBtn.parentNode.insertBefore(row,publishBtn);
+// Patch openCreatePost to inject image field for Silver+ (canImage)
+(function(){
+  const origOpen=window.openCreatePost;
+  if(!origOpen)return;
+  window.openCreatePost=async function(){
+    await origOpen();
+    // Inject image input for Silver/Gold/Platinum
+    const rankCfg=getRankConfig();
+    if(rankCfg.canImage){
+      const publishBtn=document.getElementById("publishCommunityPost");
+      if(publishBtn&&!document.getElementById("postImageUrlRow")){
+        const row=document.createElement("div");
+        row.id="postImageUrlRow";
+        row.style.cssText="margin:10px 0";
+        row.innerHTML=`<input id="postImageUrl" placeholder="🖼 Ссылка на фото (imgur/ibb/discord)" style="width:100%">`;
+        publishBtn.parentNode.insertBefore(row,publishBtn);
+      }
     }
-  }
-};
+  };
+})();
 
-const _origPublish=publishCommunityPost;
-window.publishCommunityPost=async function(){
-  // Intercept to add imageUrl
-  const imgInput=$("postImageUrl");
-  const imgUrl=imgInput?.value?.trim()||"";
-  if(imgUrl&&!isSafeImageUrl(imgUrl)){
-    return toast("❌ Ссылка на изображение не поддерживается");
-  }
-  window.__postImageUrl=imgUrl||"";
-  await _origPublish();
-};
-
-// Patch post object to include image
-const _origPost=window.publishCommunityPost;
-document.addEventListener("DOMContentLoaded",()=>{
-  // Patch Firebase post save to include imageUrl
-  // (handled via __postImageUrl global injected before save)
-});
-
-
-/* =========================================================
-   IMAGES IN CHAT MESSAGES
-========================================================= */
-
-function renderMsgWithImage(text){
-  // Detect image URLs in text and render them
-  const urlRe=/(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp)(\?[^\s]*)?)/gi;
-  const safe=text.replace(urlRe,(url)=>{
-    if(isSafeImageUrl(url)){
-      return `<img src="${escapeHTML(url)}" style="max-width:200px;max-height:200px;border-radius:10px;display:block;margin-top:6px;object-fit:cover" onerror="this.style.display='none'">`;
-    }
-    return escapeHTML(url);
-  });
-  return safe;
-}
-
+// Patch publishCommunityPost to save imageUrl + expiresAt + rank
+(function(){
+  const orig=window.publishCommunityPost;
+  if(!orig)return;
+  window.publishCommunityPost=async function(){
+    const muted=await checkMuteStatus();
+    if(muted)return toast("🔇 Вы замьючены и не можете публиковать посты");
+    const imgUrl=($("postImageUrl")?.value||"").trim();
+    if(imgUrl&&!isSafeImageUrl(imgUrl))return toast("❌ Ссылка на фото не поддерживается");
+    const rankCfg=getRankConfig();
+    const days=rankCfg.postDays||1;
+    const expiresAt=Date.now()+days*24*3600000;
+    window.__nextPostExtra={imageUrl:imgUrl,expiresAt,rank:myRank};
+    await orig();
+    window.__nextPostExtra=null;
+  };
+})();
 
 /* =========================================================
    TRANSACTION HISTORY (3 days TTL)
 ========================================================= */
 
-const TX_TTL=3*24*3600000; // 3 days
+const TX_TTL=3*24*3600000;
 
 async function addTransaction(type,desc,amount,emoji,imageUrl){
   if(!firebaseUser||!db)return;
@@ -14619,7 +14847,6 @@ async function addTransaction(type,desc,amount,emoji,imageUrl){
       type,desc,amount:amount||0,emoji:emoji||"",imageUrl:imageUrl||"",
       at:firebase.database.ServerValue.TIMESTAMP
     });
-    // Cleanup old
     cleanTransactions();
   }catch(e){}
 }
@@ -14628,13 +14855,11 @@ async function cleanTransactions(){
   if(!firebaseUser||!db)return;
   try{
     const cutoff=Date.now()-TX_TTL;
-    const snap=await db.ref("prognozer/transactions/"+firebaseUser.uid)
-      .orderByChild("at").endAt(cutoff).once("value");
+    const snap=await db.ref("prognozer/transactions/"+firebaseUser.uid).orderByChild("at").endAt(cutoff).once("value");
     const old=snap.val()||{};
     const updates={};
     Object.keys(old).forEach(k=>{updates[k]=null;});
-    if(Object.keys(updates).length)
-      await db.ref("prognozer/transactions/"+firebaseUser.uid).update(updates);
+    if(Object.keys(updates).length)await db.ref("prognozer/transactions/"+firebaseUser.uid).update(updates);
   }catch(e){}
 }
 
@@ -14644,15 +14869,13 @@ async function openTransactionHistory(){
   $("modal").classList.add("open");
   if(!firebaseUser||!db){$("txList").innerHTML='<div class="muted" style="text-align:center;padding:20px">Нужна авторизация</div>';return;}
   try{
-    const snap=await db.ref("prognozer/transactions/"+firebaseUser.uid)
-      .orderByChild("at").limitToLast(60).once("value");
+    const snap=await db.ref("prognozer/transactions/"+firebaseUser.uid).orderByChild("at").limitToLast(60).once("value");
     const data=snap.val()||{};
     const entries=Object.values(data).sort((a,b)=>b.at-a.at);
     const el=$("txList");
     if(!entries.length){el.innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет транзакций</div>';return;}
     el.innerHTML=entries.map(t=>{
-      const isPos=t.amount>0;
-      const isNeg=t.amount<0;
+      const isPos=t.amount>0,isNeg=t.amount<0;
       return`<div style="display:flex;align-items:center;gap:10px;padding:11px;border:1px solid #1c3a58;border-radius:13px;background:#0b1726;margin-bottom:7px">
         ${t.imageUrl?`<img src="${escapeHTML(t.imageUrl)}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="font-size:24px;width:38px;text-align:center;flex-shrink:0">${t.emoji||"📋"}</div>`}
         <div style="flex:1;min-width:0">
@@ -14665,28 +14888,42 @@ async function openTransactionHistory(){
   }catch(e){$("txList").innerHTML='<div class="muted" style="text-align:center;padding:20px">Ошибка загрузки</div>';}
 }
 
-// Add transaction button to profile page
-(function injectTxBtn(){
+/* Inject TX history button in profile */
+document.addEventListener("DOMContentLoaded",function(){
   const profileSection=document.getElementById("profile");
   if(!profileSection)return;
+  if(document.getElementById("txHistoryBtn"))return;
   const div=document.createElement("div");
+  div.id="txHistoryBtn";
   div.style.cssText="margin-top:10px";
   div.innerHTML=`<button onclick="openTransactionHistory()" style="width:100%;padding:13px;border-radius:14px;background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;font-weight:800;font-size:14px">📋 История транзакций</button>`;
   const adminBtn=document.getElementById("adminPanelEntry");
   if(adminBtn)profileSection.insertBefore(div,adminBtn);
   else profileSection.appendChild(div);
-})();
-
+});
 
 /* =========================================================
-   AUTO-CLEANUP: Chats every 3 days, Trades every 1 day
+   IMAGES IN CHAT MESSAGES
+========================================================= */
+
+function renderMsgWithImage(text){
+  const urlRe=/(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp)(\?[^\s]*)?)/gi;
+  return text.replace(urlRe,(url)=>{
+    if(isSafeImageUrl(url)){
+      return`<img src="${escapeHTML(url)}" style="max-width:200px;max-height:200px;border-radius:10px;display:block;margin-top:6px;object-fit:cover" onerror="this.style.display='none'">`;
+    }
+    return escapeHTML(url);
+  });
+}
+
+/* =========================================================
+   AUTO-CLEANUP
 ========================================================= */
 
 async function runAutoCleanup(){
   if(!firebaseUser||!db)return;
   try{
     const chatCutoff=Date.now()-3*24*3600000;
-    // Clean OLD chat messages (only conversations not active recently)
     const chatsSnap=await db.ref("prognozer/chats/users/"+firebaseUser.uid).once("value");
     const chats=chatsSnap.val()||{};
     for(const[uid,info] of Object.entries(chats)){
@@ -14695,107 +14932,15 @@ async function runAutoCleanup(){
         await db.ref("prognozer/chats/messages/"+chatId).remove();
       }
     }
-    // Clean trade history older than 1 day
     const tradeCutoff=Date.now()-24*3600000;
     const tradesSnap=await db.ref("prognozer/trades").orderByChild("createdAt").endAt(tradeCutoff).once("value");
     const oldTrades=tradesSnap.val()||{};
     for(const id of Object.keys(oldTrades)){
       await db.ref("prognozer/trades/"+id).remove();
     }
-    // Clean transactions older than 3 days
     cleanTransactions();
   }catch(e){}
 }
-
-
-/* =========================================================
-   PATCH: renderPost to support images + admin delete
-========================================================= */
-
-// Override to add image in posts and admin delete button
-(function patchRenderPost(){
-  const origFn=renderPost; // capture the real original renderPost defined above
-  window.renderPost=function(post){
-    let html=origFn(post);
-    // Inject image if post has one
-    if(post.imageUrl&&isSafeImageUrl(post.imageUrl)){
-      const imgTag=`<img src="${escapeHTML(post.imageUrl)}" style="width:100%;max-height:280px;border-radius:14px;object-fit:cover;margin:10px 0;display:block" onerror="this.style.display='none'">`;
-      html=html.replace('${extra}',imgTag+'${extra}');
-    }
-    // Admin delete button for all posts
-    if(isAdminSession){
-      html=html.replace(
-        `onclick="deleteCommunityPost('${post.id}')">`,
-        `onclick="adminDeletePost('${post.id}',this)">`
-      );
-      // If not owner, add admin delete
-      if(!firebaseUser||post.uid!==firebaseUser?.uid){
-        // Этот replace не работает надёжно из-за динамического контента — пропускаем
-        // (кнопка удаления для не-владельцев добавляется через adminManagePosts)
-      }
-    }
-    return html;
-  };
-})();
-
-
-/* =========================================================
-   PATCH: publishCommunityPost to add imageUrl + expiresAt + rank
-========================================================= */
-
-(function patchPublish(){
-  const orig=window.publishCommunityPost;
-  if(!orig)return;
-  window.publishCommunityPost=async function(){
-    // Check mute
-    const muted=await checkMuteStatus();
-    if(muted)return toast("🔇 Вы замьючены и не можете публиковать посты");
-
-    const imgUrl=window.__postImageUrl||($("postImageUrl")?.value?.trim())||"";
-    if(imgUrl&&!isSafeImageUrl(imgUrl))return toast("❌ Ссылка на фото не поддерживается");
-
-    // Add rank info and expiry to post after publish
-    const rankCfg=getRankConfig();
-    const days=rankCfg.postDays||1;
-    const expiresAt=Date.now()+days*24*3600000;
-
-    // Monkey-patch: inject into next Firebase push
-    window.__nextPostExtra={imageUrl:imgUrl,expiresAt,rank:myRank};
-    await orig();
-    window.__nextPostExtra=null;
-    window.__postImageUrl="";
-  };
-})();
-
-
-/* =========================================================
-   PATCH: sendChatMessage to support images
-========================================================= */
-
-(function patchChatSend(){
-  const orig=window.sendChatMessage;
-  if(!orig)return;
-  window.sendChatMessage=async function(){
-    const muted=await checkMuteStatus();
-    if(muted)return toast("🔇 Вы замьючены");
-    await orig();
-    // Track transaction
-    addTransaction("chat","Отправлено сообщение в чате",0,"💬");
-  };
-})();
-
-
-/* =========================================================
-   PATCH: renderPost to render images in chat messages
-========================================================= */
-
-// Patch message rendering to show images
-(function patchChatMessages(){
-  const orig=window.sendChatMessage;
-  // We patch the message render in the chat listener instead
-  // by overriding the innerHTML building
-})();
-
 
 /* =========================================================
    PATCH: buy/sell to add transactions
@@ -14807,7 +14952,7 @@ async function runAutoCleanup(){
     window.buy=function(id){
       const x=items.find(a=>a.id===id);
       if(x&&state.balance>=x.price){
-        addTransaction("purchase","Куплен "+x.name,-x.price,x.emoji);
+        addTransaction("purchase","Куплен "+x.name,-x.price,x.emoji,"");
       }
       return origBuy(id);
     };
@@ -14816,7 +14961,7 @@ async function runAutoCleanup(){
   if(origSell){
     window.sell=function(i){
       const x=state.inventory[i];
-      if(x)addTransaction("sale","Продан "+x.name,x.price,x.emoji);
+      if(x)addTransaction("sale","Продан "+x.name,x.price,x.emoji,"");
       return origSell(i);
     };
   }
@@ -14825,63 +14970,54 @@ async function runAutoCleanup(){
     window.openCase=function(i){
       const c=cases[i];
       if(c&&state.balance>=c.cost){
-        addTransaction("case","Открыт кейс «"+c.name+"»",-c.cost,"🎁");
+        addTransaction("case","Открыт кейс «"+c.name+"»",-c.cost,"🎁","");
       }
       return origOpenCase(i);
     };
   }
 })();
 
-
 /* =========================================================
-   INIT all new systems after Firebase ready
+   PATCH: sendChatMessage mute check
 ========================================================= */
 
-(function hookFirebaseReady(){
-  const origInit=window.initFirebase;
-  if(!origInit)return;
-  window.initFirebase=function(){
-    const result=origInit();
-    // Additional init done via auth state change — hooked below
-    return result;
+(function patchChatSend(){
+  const orig=window.sendChatMessage;
+  if(!orig)return;
+  window.sendChatMessage=async function(){
+    const muted=await checkMuteStatus();
+    if(muted)return toast("🔇 Вы замьючены");
+    await orig();
   };
 })();
 
-// Hook into auth state to run new systems
-const _origContinueGoogle=window.continueGoogle;
-document.addEventListener("DOMContentLoaded",()=>{
-  // Wait for Firebase and load dynamic content
-  setTimeout(async()=>{
-    if(firebaseUser&&!firebaseUser.isAnonymous){
-      const banned=await checkBanStatus();
-      if(!banned){
-        await loadMyRank();
-        await loadAdminCases();
-        await loadAdminShopToFront();
-        await runAutoCleanup();
-        addTransaction("login","Вход в аккаунт",0,"🔵");
-      }
+/* =========================================================
+   INIT after Firebase login
+========================================================= */
+
+async function _newSystemsInit(user){
+  if(user&&!user.isAnonymous){
+    const banned=await checkBanStatus();
+    if(!banned){
+      await loadMyRank();
+      await loadAdminCases();
+      await loadAdminShopToFront();
+      await runAutoCleanup();
+      addTransaction("login","Вход в аккаунт",0,"🔵","");
     }
-  },3000);
+  }
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  setTimeout(async()=>{
+    if(typeof firebaseUser!=="undefined"&&firebaseUser&&!firebaseUser.isAnonymous){
+      await _newSystemsInit(firebaseUser);
+    }
+  },3500);
 });
 
-// Also trigger when firebase user logs in
-(function hookAuthChange(){
-  const origOnAuthChange=window.__onAuthChange;
-  window.__newSystemsInit=async function(user){
-    if(user&&!user.isAnonymous){
-      const banned=await checkBanStatus();
-      if(!banned){
-        await loadMyRank();
-        await loadAdminCases();
-        await loadAdminShopToFront();
-        await runAutoCleanup();
-      }
-    }
-  };
-})();
 
 </script>
 
 </body>
- </html>
+</html>
