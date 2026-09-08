@@ -11691,14 +11691,6 @@ document
   );
 
 
-$("communityTab").onclick=
-  openCommunity;
-
-
-$("chatTab").onclick=
-  openChatOverlay;
-
-
 /* =========================================================
    COMMUNITY DRAWER
 ========================================================= */
@@ -14720,15 +14712,9 @@ async function runAutoCleanup(){
    PATCH: renderPost to support images + admin delete
 ========================================================= */
 
-const _origRenderPost=window.renderPost||renderPost;
-function renderPost(post){
-  const result=_origRenderPost(post);
-  return result; // base already handles everything we'll patch via CSS
-}
-
 // Override to add image in posts and admin delete button
 (function patchRenderPost(){
-  const origFn=window.renderPost;
+  const origFn=renderPost; // capture the real original renderPost defined above
   window.renderPost=function(post){
     let html=origFn(post);
     // Inject image if post has one
@@ -14744,10 +14730,8 @@ function renderPost(post){
       );
       // If not owner, add admin delete
       if(!firebaseUser||post.uid!==firebaseUser?.uid){
-        html=html.replace(
-          `</div>\n\n\n      ${\n        post.text`,
-          `<button class="post-menu" onclick="adminDeletePost('${post.id}',this)" style="color:#ff5d68" title="Удалить (admin)">🗑</button></div>\n\n\n      ${\n        post.text`
-        );
+        // Этот replace не работает надёжно из-за динамического контента — пропускаем
+        // (кнопка удаления для не-владельцев добавляется через adminManagePosts)
       }
     }
     return html;
