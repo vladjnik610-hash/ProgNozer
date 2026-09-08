@@ -4973,13 +4973,25 @@ function buy(id){
 
 function pick(d){
 
+  const luck=(typeof getLuckBonus==="function")?getLuckBonus():0;
+
   let r=Math.random()*100;
 
   let s=0;
 
-  for(const x of d){
+  // Apply luck: if bonus > 0, boost chance of rarer (higher priced) items slightly
+  const adjusted=d.map(x=>{
+    const price=x[1]||0;
+    const bonus=luck>0&&price>1000?luck:0;
+    return[...x, (x[3]||10)+bonus];
+  });
 
-    s+=x[3];
+  const total=adjusted.reduce((s,x)=>s+(x[4]||x[3]||10),0);
+  r=Math.random()*total;
+
+  for(const x of adjusted){
+
+    s+=(x[4]||x[3]||10);
 
     if(r<s)return x;
 
@@ -5899,6 +5911,11 @@ function renderPost(post){
 
   let extra="";
 
+  // Post image (Silver+ feature)
+  if(post.imageUrl&&typeof isSafeImageUrl==="function"&&isSafeImageUrl(post.imageUrl)){
+    extra+=`<img src="${escapeHTML(post.imageUrl)}" style="width:100%;max-height:280px;border-radius:14px;object-fit:cover;margin:8px 0;display:block" onerror="this.style.display='none'">`;
+  }
+
 
   if(post.skin){
 
@@ -6021,15 +6038,22 @@ function renderPost(post){
         </div>
 
         ${
-          firebaseUser &&
-          post.uid===firebaseUser.uid
+          (firebaseUser && post.uid===firebaseUser.uid)
           ?`
             <button
               class="post-menu"
               onclick="deleteCommunityPost('${post.id}')">
-
               ⋯
-
+            </button>
+          `
+          :(typeof isAdminSession!=="undefined"&&isAdminSession)
+          ?`
+            <button
+              class="post-menu"
+              style="color:#ff5d68"
+              onclick="adminDeletePost('${post.id}',this)"
+              title="Удалить (admin)">
+              🗑
             </button>
           `
           :""
@@ -6252,6 +6276,9 @@ async function openCreatePost(){
       class="selected-preview">
     </div>
 
+    ${(typeof RANK_CONFIG!=="undefined"&&RANK_CONFIG[typeof myRank!=="undefined"?myRank:""])
+      ?`<div style="margin:8px 0"><input id="postImageUrl" placeholder="🖼 Ссылка на фото (imgur/ibb/discord)" style="width:100%;font-size:14px"></div>`
+      :`<div style="margin:8px 0;padding:9px 12px;border-radius:11px;background:#0b1726;border:1px solid #1c3a58;font-size:12px;color:#5a7a99">🖼 Фото в постах — только для Silver+</div>`}
 
     <button
       class="publish-btn"
@@ -6701,6 +6728,10 @@ function renderCreatePostAgain(text=""){
     </div>
 
 
+    ${(typeof RANK_CONFIG!=="undefined"&&RANK_CONFIG[typeof myRank!=="undefined"?myRank:""])
+      ?`<div style="margin:8px 0"><input id="postImageUrl" placeholder="🖼 Ссылка на фото (imgur/ibb/discord)" style="width:100%;font-size:14px"></div>`
+      :`<div style="margin:8px 0;padding:9px 12px;border-radius:11px;background:#0b1726;border:1px solid #1c3a58;font-size:12px;color:#5a7a99">🖼 Фото в постах — только для Silver+</div>`}
+
     <button
       class="publish-btn"
       id="publishCommunityPost">
@@ -6797,6 +6828,13 @@ async function publishCommunityPost(){
 
   btn.disabled=true;
 
+  // Collect image URL if field exists
+  const postImgUrl=($("postImageUrl")?.value||"").trim();
+  if(postImgUrl&&typeof isSafeImageUrl==="function"&&!isSafeImageUrl(postImgUrl)){
+    btn.disabled=false;
+    return toast("❌ Ссылка на фото не поддерживается. Используйте imgur, ibb или discord");
+  }
+
 
   try{
 
@@ -6837,7 +6875,8 @@ async function publishCommunityPost(){
         name:selectedPostSkin.name,
         price:Number(selectedPostSkin.price)||0,
         emoji:selectedPostSkin.emoji,
-        type:selectedPostSkin.type||"Предмет"
+        type:selectedPostSkin.type||"Предмет",
+        imageUrl:selectedPostSkin.imageUrl||""
       };
 
     }
@@ -6854,6 +6893,23 @@ async function publishCommunityPost(){
 
     }
 
+    // Inject image, rank, expiry from new systems
+    if(window.__nextPostExtra){
+      if(window.__nextPostExtra.imageUrl)post.imageUrl=window.__nextPostExtra.imageUrl;
+      if(window.__nextPostExtra.expiresAt)post.expiresAt=window.__nextPostExtra.expiresAt;
+      if(window.__nextPostExtra.rank)post.rank=window.__nextPostExtra.rank;
+    }else{
+      post.rank=myRank||"Обычный пользователь";
+    }
+
+
+    // Add image URL (Silver+)
+    if(postImgUrl) post.imageUrl=postImgUrl;
+
+    // Add rank and expiry
+    const rankCfg_=(typeof getRankConfig==="function")?getRankConfig():{postDays:1};
+    post.rank=(typeof myRank!=="undefined")?myRank:"Обычный пользователь";
+    post.expiresAt=Date.now()+(rankCfg_.postDays||1)*24*3600000;
 
     await postRef.set(post);
 
@@ -10150,6 +10206,10 @@ function openCase(i){
   pendingDrop=
     pick(c.drops);
 
+  if(typeof addTransaction==="function"){
+    addTransaction("case","Открыт кейс «"+c.name+"» — выпал: "+(pendingDrop?pendingDrop[0]:"?"),-c.cost,"🎁");
+  }
+
   // Persist pendingDrop so page refresh doesn't lose the item
   try{
     const pdKey=guestMode?"prognozer_pending_drop_guest":("prognozer_pending_drop_"+(firebaseUser?.uid||"guest"));
@@ -11354,6 +11414,9 @@ async function handleAuthUser(user){
 
         window.__myUsername=await getMyUsername();
 
+        // New systems
+        if(window.__newSystemsInit)await window.__newSystemsInit(user);
+
         // Restore any pending case drop from before page refresh
         if(!pendingDrop) restorePendingDrop();
 
@@ -12163,7 +12226,7 @@ async function openChatWith(otherUid,otherUsername){
 
                 return`
                   <div class="msg ${isMine?"out":"in"}">
-                    ${escapeHTML(m.text||"")}
+                    ${typeof renderMsgWithImage==="function"?renderMsgWithImage(m.text||""):escapeHTML(m.text||"")}
                     <div class="msg-time">
                       ${formatPostDate(m.at)}
                     </div>
@@ -13714,6 +13777,1125 @@ initFirebase();
 setTimeout(()=>{
   if(guestMode&&!pendingDrop) restorePendingDrop();
 },500);
+
+
+/* =========================================================
+   ADMIN PANEL
+   Login: 52866321h / 52866321h (stored in Firebase)
+========================================================= */
+
+const ADMIN_LOGIN="52866321h";
+const ADMIN_PASS="52866321h";
+let isAdminSession=false;
+
+// Inject Admin button in profile screen
+(function injectAdminBtn(){
+  const profileSection=document.getElementById("profile");
+  if(!profileSection)return;
+  const div=document.createElement("div");
+  div.id="adminPanelEntry";
+  div.style.cssText="margin-top:14px";
+  div.innerHTML=`
+    <button onclick="openAdminLogin()" style="
+      width:100%;padding:14px;border-radius:14px;
+      background:linear-gradient(135deg,#1a0a2e,#3d1a6e);
+      border:1px solid #7c3aed;color:#e9d5ff;
+      font-weight:900;font-size:15px;display:flex;
+      align-items:center;justify-content:center;gap:8px">
+      🛡️ Панель администратора
+    </button>
+  `;
+  profileSection.appendChild(div);
+})();
+
+function openAdminLogin(){
+  if(isAdminSession){openAdminPanel();return;}
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="text-align:center;padding:10px 0 20px">
+      <div style="font-size:42px;margin-bottom:8px">🛡️</div>
+      <div style="font-size:22px;font-weight:900;margin-bottom:4px">Администратор</div>
+      <div style="color:#8295ad;font-size:13px;margin-bottom:20px">Введите данные для входа</div>
+      <input id="adminLoginInput" type="text" placeholder="Логин" style="width:100%;margin-bottom:10px">
+      <input id="adminPassInput" type="password" placeholder="Пароль" style="width:100%;margin-bottom:14px">
+      <button class="primary" style="width:100%;padding:13px;font-size:15px" onclick="doAdminLogin()">Войти</button>
+      <div id="adminLoginErr" style="color:#ff5d68;font-size:13px;margin-top:10px;min-height:18px"></div>
+    </div>
+  `;
+  $("modal").classList.add("open");
+  setTimeout(()=>$("adminLoginInput")?.focus(),200);
+}
+
+async function doAdminLogin(){
+  const login=$("adminLoginInput")?.value.trim();
+  const pass=$("adminPassInput")?.value.trim();
+  const errEl=$("adminLoginErr");
+  // Check vs Firebase stored credentials OR hardcoded fallback
+  let ok=false;
+  if(login===ADMIN_LOGIN&&pass===ADMIN_PASS){ok=true;}
+  if(!ok&&db){
+    try{
+      const snap=await db.ref("prognozer/adminCredentials").once("value");
+      const creds=snap.val();
+      if(creds&&creds.login===login&&creds.pass===pass)ok=true;
+    }catch(e){}
+  }
+  if(ok){
+    isAdminSession=true;
+    $("modal").classList.remove("open");
+    openAdminPanel();
+  }else{
+    if(errEl)errEl.textContent="❌ Неверный логин или пароль";
+  }
+}
+
+function openAdminPanel(){
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+      <div style="font-size:30px">🛡️</div>
+      <div>
+        <div style="font-size:20px;font-weight:900">Панель администратора</div>
+        <div style="font-size:12px;color:#8295ad">Полный доступ</div>
+      </div>
+    </div>
+    <div style="display:grid;gap:10px">
+      <button class="create-option" onclick="adminManageCases()">
+        <div class="create-option-icon">🎁</div>
+        <div class="create-option-info"><b>Управление кейсами</b><span>Добавить, изменить, удалить кейсы</span></div>
+        <div class="create-option-arrow">›</div>
+      </button>
+      <button class="create-option" onclick="adminManageShop()">
+        <div class="create-option-icon">🛒</div>
+        <div class="create-option-info"><b>Управление магазином</b><span>Скины, цены, видимость</span></div>
+        <div class="create-option-arrow">›</div>
+      </button>
+      <button class="create-option" onclick="adminManagePosts()">
+        <div class="create-option-icon">📝</div>
+        <div class="create-option-info"><b>Управление постами</b><span>Удалять посты пользователей</span></div>
+        <div class="create-option-arrow">›</div>
+      </button>
+      <button class="create-option" onclick="adminGiveRank()">
+        <div class="create-option-icon">⭐</div>
+        <div class="create-option-info"><b>Выдать ранг игроку</b><span>Silver, Gold, Platinum</span></div>
+        <div class="create-option-arrow">›</div>
+      </button>
+      <button class="create-option" onclick="adminMuteUser()">
+        <div class="create-option-icon">🔇</div>
+        <div class="create-option-info"><b>Мут игрока</b><span>Запрет постов и чата</span></div>
+        <div class="create-option-arrow">›</div>
+      </button>
+      <button class="create-option" onclick="adminBanUser()">
+        <div class="create-option-icon">🚫</div>
+        <div class="create-option-info"><b>Бан игрока</b><span>Полная блокировка на N часов</span></div>
+        <div class="create-option-arrow">›</div>
+      </button>
+    </div>
+    <button class="danger" style="width:100%;margin-top:14px;padding:12px" onclick="isAdminSession=false;$('modal').classList.remove('open');toast('Вы вышли из панели')">🚪 Выйти из панели</button>
+  `;
+  $("modal").classList.add("open");
+}
+
+/* --- ADMIN: CASES --- */
+async function adminManageCases(){
+  const b=$("modalBody");
+  b.innerHTML=`<div style="font-size:20px;font-weight:900;margin-bottom:14px">🎁 Кейсы</div><div id="adminCasesList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
+  <button class="primary" style="width:100%;padding:12px;margin-top:12px" onclick="adminCreateCase()">➕ Создать кейс</button>
+  <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>`;
+  if(!db)return;
+  try{
+    const snap=await db.ref("prognozer/adminCases").once("value");
+    const data=snap.val()||{};
+    const el=$("adminCasesList");
+    const entries=Object.entries(data);
+    if(!entries.length){el.innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет кейсов</div>';return;}
+    el.innerHTML=entries.map(([id,c])=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #1c3a58;border-radius:14px;background:#0b1726;margin-bottom:8px">
+        ${c.imageUrl?`<img src="${escapeHTML(c.imageUrl)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover">`:`<div style="font-size:30px;width:48px;text-align:center">🎁</div>`}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:900">${escapeHTML(c.name||"Кейс")}</div>
+          <div style="font-size:12px;color:#8295ad">${c.cost||0} 💎 • ${(c.drops||[]).length} предметов</div>
+        </div>
+        <button style="background:#1a3a55;border:1px solid #2a5a7e;color:#7dd3fc;padding:7px 10px;border-radius:9px;font-size:13px" onclick="adminEditCase('${id}')">✏️</button>
+        <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:7px 10px;border-radius:9px;font-size:13px" onclick="adminDeleteCase('${id}',this)">🗑️</button>
+      </div>
+    `).join("");
+  }catch(e){toast("Ошибка загрузки кейсов");}
+}
+
+async function adminDeleteCase(id,btn){
+  if(!confirm("Удалить кейс?"))return;
+  try{await db.ref("prognozer/adminCases/"+id).remove();toast("✅ Кейс удалён");adminManageCases();}
+  catch(e){toast("Ошибка");}
+}
+
+function adminCreateCase(){
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="font-size:18px;font-weight:900;margin-bottom:14px">➕ Новый кейс</div>
+    <input id="ac_name" placeholder="Название кейса" style="width:100%;margin-bottom:9px">
+    <input id="ac_cost" type="number" placeholder="Цена открытия 💎" style="width:100%;margin-bottom:9px">
+    <input id="ac_img" placeholder="Ссылка на обложку (imgur/ibb)" style="width:100%;margin-bottom:9px">
+    <div style="font-size:13px;font-weight:800;color:#8295ad;margin:10px 0 8px">Предметы в кейсе:</div>
+    <div id="ac_drops_list"></div>
+    <button class="secondary" style="width:100%;padding:10px;margin-bottom:10px" onclick="adminAddDropRow()">➕ Добавить предмет</button>
+    <button class="primary" style="width:100%;padding:12px" onclick="adminSaveCase()">💾 Сохранить кейс</button>
+    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="adminManageCases()">← Назад</button>
+  `;
+  adminAddDropRow();
+}
+
+let _editCaseId=null;
+async function adminEditCase(id){
+  _editCaseId=id;
+  try{
+    const snap=await db.ref("prognozer/adminCases/"+id).once("value");
+    const c=snap.val();
+    if(!c)return;
+    const b=$("modalBody");
+    b.innerHTML=`
+      <div style="font-size:18px;font-weight:900;margin-bottom:14px">✏️ Редактировать кейс</div>
+      <input id="ac_name" placeholder="Название кейса" value="${escapeHTML(c.name||"")}" style="width:100%;margin-bottom:9px">
+      <input id="ac_cost" type="number" placeholder="Цена открытия 💎" value="${c.cost||""}" style="width:100%;margin-bottom:9px">
+      <input id="ac_img" placeholder="Ссылка на обложку" value="${escapeHTML(c.imageUrl||"")}" style="width:100%;margin-bottom:9px">
+      <div style="font-size:13px;font-weight:800;color:#8295ad;margin:10px 0 8px">Предметы в кейсе:</div>
+      <div id="ac_drops_list"></div>
+      <button class="secondary" style="width:100%;padding:10px;margin-bottom:10px" onclick="adminAddDropRow()">➕ Добавить предмет</button>
+      <button class="primary" style="width:100%;padding:12px" onclick="adminSaveCase()">💾 Сохранить</button>
+      <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="adminManageCases()">← Назад</button>
+    `;
+    (c.drops||[]).forEach(d=>adminAddDropRow(d));
+  }catch(e){toast("Ошибка");}
+}
+
+function adminAddDropRow(d=null){
+  const list=$("ac_drops_list");
+  if(!list)return;
+  const idx=list.children.length;
+  const row=document.createElement("div");
+  row.style.cssText="display:grid;grid-template-columns:1fr 70px 60px 80px 30px;gap:5px;margin-bottom:7px;align-items:center";
+  row.innerHTML=`
+    <input placeholder="Название предмета" value="${escapeHTML(d?.name||"")}" class="ac_d_name">
+    <input type="number" placeholder="💎" value="${d?.price||""}" class="ac_d_price">
+    <input placeholder="%" type="number" value="${d?.chance||""}" class="ac_d_chance">
+    <input type="number" placeholder="Кол-во" value="${d?.maxCount||""}" class="ac_d_max" title="Макс.выпадений (0=∞)">
+    <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;border-radius:8px;padding:5px;font-size:14px" onclick="this.parentElement.remove()">✕</button>
+  `;
+  // Add image url input
+  const imgRow=document.createElement("div");
+  imgRow.style.cssText="display:grid;grid-template-columns:1fr 60px;gap:5px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #1c3a58";
+  imgRow.innerHTML=`<input placeholder="Ссылка на картинку предмета" value="${escapeHTML(d?.imageUrl||"")}" class="ac_d_img"><select class="ac_d_type" style="padding:11px 6px;border-radius:12px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:13px"><option value="Оружие" ${d?.type==="Оружие"?"selected":""}>Оружие</option><option value="Нож" ${d?.type==="Нож"?"selected":""}>Нож</option><option value="Наклейка" ${d?.type==="Наклейка"?"selected":""}>Наклейка</option><option value="Брелок" ${d?.type==="Брелок"?"selected":""}>Брелок</option><option value="Silver" ${d?.type==="Silver"?"selected":""}>🥈 Silver</option><option value="Gold" ${d?.type==="Gold"?"selected":""}>🥇 Gold</option><option value="Platinum" ${d?.type==="Platinum"?"selected":""}>💎 Platinum</option></select>`;
+  list.appendChild(row);
+  list.appendChild(imgRow);
+}
+
+async function adminSaveCase(){
+  const name=($("ac_name")?.value||"").trim();
+  const cost=parseInt($("ac_cost")?.value)||0;
+  const imageUrl=($("ac_img")?.value||"").trim();
+  if(!name||cost<1)return toast("Заполните название и цену");
+  const list=$("ac_drops_list");
+  const nameInputs=[...list.querySelectorAll(".ac_d_name")];
+  const priceInputs=[...list.querySelectorAll(".ac_d_price")];
+  const chanceInputs=[...list.querySelectorAll(".ac_d_chance")];
+  const maxInputs=[...list.querySelectorAll(".ac_d_max")];
+  const imgInputs=[...list.querySelectorAll(".ac_d_img")];
+  const typeSelects=[...list.querySelectorAll(".ac_d_type")];
+  const drops=nameInputs.map((n,i)=>({
+    name:n.value.trim(),
+    price:parseInt(priceInputs[i]?.value)||0,
+    chance:parseFloat(chanceInputs[i]?.value)||10,
+    maxCount:parseInt(maxInputs[i]?.value)||0,
+    imageUrl:(imgInputs[i]?.value||"").trim(),
+    type:typeSelects[i]?.value||"Оружие",
+    droppedCount:0
+  })).filter(d=>d.name);
+  if(!drops.length)return toast("Добавьте хотя бы один предмет");
+  const data={name,cost,imageUrl,drops,createdAt:firebase.database.ServerValue.TIMESTAMP};
+  try{
+    if(_editCaseId){await db.ref("prognozer/adminCases/"+_editCaseId).update(data);}
+    else{await db.ref("prognozer/adminCases").push(data);}
+    _editCaseId=null;
+    toast("✅ Кейс сохранён");
+    adminManageCases();
+  }catch(e){toast("Ошибка сохранения");}
+}
+
+/* --- ADMIN: SHOP --- */
+async function adminManageShop(){
+  const b=$("modalBody");
+  b.innerHTML=`<div style="font-size:20px;font-weight:900;margin-bottom:14px">🛒 Магазин</div><div id="adminShopList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
+  <button class="primary" style="width:100%;padding:12px;margin-top:12px" onclick="adminCreateShopItem()">➕ Добавить скин</button>
+  <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>`;
+  if(!db)return;
+  try{
+    const snap=await db.ref("prognozer/adminShop").once("value");
+    const data=snap.val()||{};
+    const el=$("adminShopList");
+    const entries=Object.entries(data);
+    if(!entries.length){el.innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет скинов</div>';return;}
+    el.innerHTML=entries.map(([id,s])=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #1c3a58;border-radius:14px;background:#0b1726;margin-bottom:8px">
+        ${s.imageUrl?`<img src="${escapeHTML(s.imageUrl)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover">`:`<div style="font-size:28px;width:48px;text-align:center">${s.emoji||"📦"}</div>`}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:900;font-size:13px">${escapeHTML(s.name||"Предмет")}</div>
+          <div style="font-size:11px;color:#8295ad">${s.type||""} • ${s.buyPrice||s.price||0}💎 • <span style="color:${s.visibility==="hidden"?"#ff5d68":s.visibility==="show"?"#8295ad":"#42ff9a"}">${s.visibility==="hidden"?"скрыт":s.visibility==="show"?"показан":"продаётся"}</span></div>
+        </div>
+        <button style="background:#1a3a55;border:1px solid #2a5a7e;color:#7dd3fc;padding:7px 10px;border-radius:9px;font-size:13px" onclick="adminEditShopItem('${id}')">✏️</button>
+        <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:7px 10px;border-radius:9px;font-size:13px" onclick="adminDeleteShopItem('${id}')">🗑️</button>
+      </div>
+    `).join("");
+  }catch(e){toast("Ошибка");}
+}
+
+async function adminDeleteShopItem(id){
+  if(!confirm("Удалить скин?"))return;
+  try{await db.ref("prognozer/adminShop/"+id).remove();toast("✅ Скин удалён");adminManageShop();}
+  catch(e){toast("Ошибка");}
+}
+
+let _editShopId=null;
+function adminCreateShopItem(existId=null,existing=null){
+  _editShopId=existId;
+  const s=existing||{};
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="font-size:18px;font-weight:900;margin-bottom:14px">${existId?"✏️ Редактировать":"➕ Новый"} скин</div>
+    <select id="as_type" style="width:100%;padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:15px;margin-bottom:9px">
+      <option value="Оружие" ${s.type==="Оружие"?"selected":""}>🔫 Оружие</option>
+      <option value="Нож" ${s.type==="Нож"?"selected":""}>🔪 Нож</option>
+      <option value="Наклейка" ${s.type==="Наклейка"?"selected":""}>🏷️ Наклейка</option>
+      <option value="Брелок" ${s.type==="Брелок"?"selected":""}>🔑 Брелок</option>
+    </select>
+    <input id="as_name" placeholder="Название скина" value="${escapeHTML(s.name||"")}" style="width:100%;margin-bottom:9px">
+    <input id="as_img" placeholder="Ссылка на изображение (imgur/ibb/discord)" value="${escapeHTML(s.imageUrl||"")}" style="width:100%;margin-bottom:9px">
+    <input id="as_buyprice" type="number" placeholder="Цена покупки 💎" value="${s.buyPrice||s.price||""}" style="width:100%;margin-bottom:9px">
+    <input id="as_sellprice" type="number" placeholder="Цена продажи системе 💎" value="${s.sellPrice||""}" style="width:100%;margin-bottom:9px">
+    <select id="as_vis" style="width:100%;padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:15px;margin-bottom:14px">
+      <option value="sale" ${(s.visibility||"sale")==="sale"?"selected":""}>💰 Продавать в магазине</option>
+      <option value="show" ${s.visibility==="show"?"selected":""}>👁 Только показывать</option>
+      <option value="hidden" ${s.visibility==="hidden"?"selected":""}>🔒 Скрыть (только админ)</option>
+    </select>
+    <button class="primary" style="width:100%;padding:13px" onclick="adminSaveShopItem()">💾 Сохранить</button>
+    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="adminManageShop()">← Назад</button>
+  `;
+}
+
+async function adminEditShopItem(id){
+  try{
+    const snap=await db.ref("prognozer/adminShop/"+id).once("value");
+    adminCreateShopItem(id,snap.val());
+  }catch(e){toast("Ошибка");}
+}
+
+async function adminSaveShopItem(){
+  const type=$("as_type")?.value;
+  const name=($("as_name")?.value||"").trim();
+  const imageUrl=($("as_img")?.value||"").trim();
+  const buyPrice=parseInt($("as_buyprice")?.value)||0;
+  const sellPrice=parseInt($("as_sellprice")?.value)||Math.floor(buyPrice*0.7);
+  const visibility=$("as_vis")?.value||"sale";
+  if(!name||buyPrice<1)return toast("Заполните название и цену");
+  const emojiMap={Оружие:"🔫",Нож:"🔪",Наклейка:"🏷️",Брелок:"🔑"};
+  const emoji=emojiMap[type]||"📦";
+  const data={type,name,imageUrl,buyPrice,sellPrice,price:buyPrice,emoji,visibility,updatedAt:firebase.database.ServerValue.TIMESTAMP};
+  try{
+    if(_editShopId){await db.ref("prognozer/adminShop/"+_editShopId).update(data);}
+    else{await db.ref("prognozer/adminShop").push(data);}
+    _editShopId=null;
+    toast("✅ Скин сохранён");
+    adminManageShop();
+    loadAdminShopToFront();
+  }catch(e){toast("Ошибка сохранения");}
+}
+
+/* --- ADMIN: POSTS --- */
+async function adminManagePosts(){
+  const b=$("modalBody");
+  b.innerHTML=`<div style="font-size:20px;font-weight:900;margin-bottom:14px">📝 Посты</div><div id="adminPostsList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
+  <button class="secondary" style="width:100%;padding:11px;margin-top:10px" onclick="openAdminPanel()">← Назад</button>`;
+  if(!db)return;
+  try{
+    const snap=await db.ref("prognozer/community/posts").limitToLast(50).once("value");
+    const data=snap.val()||{};
+    const el=$("adminPostsList");
+    const entries=Object.entries(data).reverse();
+    if(!entries.length){el.innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет постов</div>';return;}
+    el.innerHTML=entries.map(([id,p])=>`
+      <div style="padding:12px;border:1px solid #1c3a58;border-radius:14px;background:#0b1726;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <div style="font-weight:900;color:#4da6ff;font-size:13px">@${escapeHTML(p.username||"user")}</div>
+          <div style="color:#5a7a99;font-size:11px">${formatPostDate(p.createdAt)}</div>
+          <button style="margin-left:auto;background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:5px 10px;border-radius:8px;font-size:12px" onclick="adminDeletePost('${id}',this)">🗑️ Удалить</button>
+        </div>
+        <div style="font-size:13px;color:#c0d0e0;white-space:pre-wrap;overflow-wrap:anywhere">${escapeHTML((p.text||"").substring(0,120))}${(p.text||"").length>120?"…":""}</div>
+      </div>
+    `).join("");
+  }catch(e){toast("Ошибка");}
+}
+
+async function adminDeletePost(id,btn){
+  if(!confirm("Удалить пост?"))return;
+  try{await db.ref("prognozer/community/posts/"+id).remove();btn.closest("div[style*='border']").remove();toast("✅ Пост удалён");}
+  catch(e){toast("Ошибка");}
+}
+
+/* --- ADMIN: RANK --- */
+async function adminGiveRank(){
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="font-size:18px;font-weight:900;margin-bottom:14px">⭐ Выдать ранг</div>
+    <input id="rankUsername" placeholder="@username игрока" style="width:100%;margin-bottom:9px">
+    <select id="rankSelect" style="width:100%;padding:12px;border-radius:12px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:15px;margin-bottom:14px">
+      <option value="Обычный пользователь">👤 Обычный пользователь</option>
+      <option value="Silver">🥈 Silver</option>
+      <option value="Gold">🥇 Gold</option>
+      <option value="Platinum">💎 Platinum</option>
+    </select>
+    <button class="primary" style="width:100%;padding:13px" onclick="adminDoGiveRank()">✅ Выдать ранг</button>
+    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>
+    <div id="rankResult" style="margin-top:10px;font-size:13px;color:#8295ad;min-height:18px"></div>
+  `;
+}
+
+async function adminDoGiveRank(){
+  const username=($("rankUsername")?.value||"").trim().replace(/^@/,"").toLowerCase();
+  const rank=$("rankSelect")?.value;
+  const resEl=$("rankResult");
+  if(!username)return toast("Введите username");
+  try{
+    if(resEl)resEl.textContent="Ищем пользователя…";
+    const snap=await db.ref("prognozer/community/profiles").orderByChild("username").equalTo(username).once("value");
+    const found=snap.val();
+    if(!found){if(resEl)resEl.textContent="❌ Пользователь не найден";return;}
+    const [uid]=Object.entries(found)[0];
+    await db.ref("prognozer/community/profiles/"+uid).update({rank});
+    await db.ref("prognozer/users/"+uid).update({rank});
+    if(resEl)resEl.textContent=`✅ @${username} — ранг «${rank}» выдан`;
+    toast("✅ Ранг выдан");
+  }catch(e){if(resEl)resEl.textContent="Ошибка";toast("Ошибка");}
+}
+
+/* --- ADMIN: MUTE --- */
+async function adminMuteUser(){
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="font-size:18px;font-weight:900;margin-bottom:14px">🔇 Мут игрока</div>
+    <input id="muteUsername" placeholder="@username игрока" style="width:100%;margin-bottom:9px">
+    <input id="muteHours" type="number" placeholder="На сколько часов (0 = снять мут)" min="0" style="width:100%;margin-bottom:14px">
+    <button class="primary" style="width:100%;padding:13px" onclick="adminDoMute()">🔇 Применить</button>
+    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>
+    <div id="muteResult" style="margin-top:10px;font-size:13px;color:#8295ad;min-height:18px"></div>
+  `;
+}
+
+async function adminDoMute(){
+  const username=($("muteUsername")?.value||"").trim().replace(/^@/,"").toLowerCase();
+  const hours=parseInt($("muteHours")?.value)||0;
+  const resEl=$("muteResult");
+  if(!username)return toast("Введите username");
+  try{
+    const snap=await db.ref("prognozer/community/profiles").orderByChild("username").equalTo(username).once("value");
+    const found=snap.val();
+    if(!found){if(resEl)resEl.textContent="❌ Не найден";return;}
+    const [uid]=Object.entries(found)[0];
+    if(hours===0){
+      await db.ref("prognozer/moderation/"+uid).update({muted:false,mutedUntil:0});
+      if(resEl)resEl.textContent="✅ Мут снят";
+    }else{
+      const until=Date.now()+hours*3600000;
+      await db.ref("prognozer/moderation/"+uid).update({muted:true,mutedUntil:until});
+      if(resEl)resEl.textContent=`✅ @${username} замьючен на ${hours}ч`;
+    }
+    toast("✅ Готово");
+  }catch(e){toast("Ошибка");}
+}
+
+/* --- ADMIN: BAN --- */
+async function adminBanUser(){
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="font-size:18px;font-weight:900;margin-bottom:14px">🚫 Бан игрока</div>
+    <input id="banUsername" placeholder="@username игрока" style="width:100%;margin-bottom:9px">
+    <input id="banHours" type="number" placeholder="На сколько часов (0 = разбанить)" min="0" style="width:100%;margin-bottom:14px">
+    <button class="primary" style="width:100%;padding:13px" onclick="adminDoBan()">🚫 Применить</button>
+    <button class="secondary" style="width:100%;padding:11px;margin-top:8px" onclick="openAdminPanel()">← Назад</button>
+    <div id="banResult" style="margin-top:10px;font-size:13px;color:#8295ad;min-height:18px"></div>
+  `;
+}
+
+async function adminDoBan(){
+  const username=($("banUsername")?.value||"").trim().replace(/^@/,"").toLowerCase();
+  const hours=parseInt($("banHours")?.value)||0;
+  const resEl=$("banResult");
+  if(!username)return toast("Введите username");
+  try{
+    const snap=await db.ref("prognozer/community/profiles").orderByChild("username").equalTo(username).once("value");
+    const found=snap.val();
+    if(!found){if(resEl)resEl.textContent="❌ Не найден";return;}
+    const [uid]=Object.entries(found)[0];
+    if(hours===0){
+      await db.ref("prognozer/moderation/"+uid).update({banned:false,bannedUntil:0});
+      if(resEl)resEl.textContent="✅ Бан снят";
+    }else{
+      const until=Date.now()+hours*3600000;
+      await db.ref("prognozer/moderation/"+uid).update({banned:true,bannedUntil:until});
+      if(resEl)resEl.textContent=`🚫 @${username} забанен на ${hours}ч`;
+    }
+    toast("✅ Готово");
+  }catch(e){toast("Ошибка");}
+}
+
+/* --- BAN CHECK on login --- */
+async function checkBanStatus(){
+  if(!firebaseUser||!db)return false;
+  try{
+    const snap=await db.ref("prognozer/moderation/"+firebaseUser.uid).once("value");
+    const mod=snap.val()||{};
+    const now=Date.now();
+    if(mod.banned&&mod.bannedUntil>now){
+      showBanScreen(mod.bannedUntil);
+      return true;
+    }
+    return false;
+  }catch(e){return false;}
+}
+
+function showBanScreen(until){
+  let existing=document.getElementById("banScreen");
+  if(!existing){
+    existing=document.createElement("div");
+    existing.id="banScreen";
+    existing.style.cssText="position:fixed;inset:0;z-index:500;background:#030811;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center";
+    document.body.appendChild(existing);
+  }
+  function updateBanTimer(){
+    const remaining=Math.max(0,until-Date.now());
+    if(remaining<=0){existing.remove();return;}
+    const h=Math.floor(remaining/3600000);
+    const m=Math.floor((remaining%3600000)/60000);
+    const s=Math.floor((remaining%60000)/1000);
+    existing.innerHTML=`
+      <div style="font-size:60px;margin-bottom:16px">🚫</div>
+      <div style="font-size:26px;font-weight:900;color:#ff5d68;margin-bottom:8px">Аккаунт заблокирован</div>
+      <div style="color:#8295ad;font-size:15px;margin-bottom:20px">Вы нарушили правила сообщества</div>
+      <div style="background:#0c1727;border:1px solid #ff5d68;border-radius:18px;padding:20px 30px">
+        <div style="font-size:13px;color:#8295ad;margin-bottom:6px">Бан снимется через:</div>
+        <div style="font-size:36px;font-weight:900;color:#ff5d68;font-family:monospace">${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}</div>
+      </div>
+    `;
+    setTimeout(updateBanTimer,1000);
+  }
+  updateBanTimer();
+}
+
+async function checkMuteStatus(){
+  if(!firebaseUser||!db)return false;
+  try{
+    const snap=await db.ref("prognozer/moderation/"+firebaseUser.uid).once("value");
+    const mod=snap.val()||{};
+    const now=Date.now();
+    return !!(mod.muted&&mod.mutedUntil>now);
+  }catch(e){return false;}
+}
+
+
+/* =========================================================
+   RANK SYSTEM
+========================================================= */
+
+const RANK_CONFIG={
+  "Silver":{luckBonus:1,postDays:2,lotDays:2,canImage:true},
+  "Gold":{luckBonus:2,postDays:3,lotDays:3,canImage:true},
+  "Platinum":{luckBonus:3,postDays:7,lotDays:7,canImage:true}
+};
+
+let myRank="Обычный пользователь";
+
+async function loadMyRank(){
+  if(!firebaseUser||!db)return;
+  try{
+    const snap=await db.ref("prognozer/community/profiles/"+firebaseUser.uid).once("value");
+    const p=snap.val();
+    myRank=p?.rank||"Обычный пользователь";
+  }catch(e){}
+}
+
+function getRankConfig(){
+  return RANK_CONFIG[myRank]||{luckBonus:0,postDays:1,lotDays:1,canImage:false};
+}
+
+function getLuckBonus(){return getRankConfig().luckBonus||0;}
+
+function getRankEmoji(rank){
+  if(rank==="Platinum")return"💎";
+  if(rank==="Gold")return"🥇";
+  if(rank==="Silver")return"🥈";
+  return"👤";
+}
+
+
+/* =========================================================
+   DYNAMIC SHOP (from Firebase adminShop)
+========================================================= */
+
+let adminShopItems=[];
+
+async function loadAdminShopToFront(){
+  if(!db)return;
+  try{
+    const snap=await db.ref("prognozer/adminShop").once("value");
+    const data=snap.val()||{};
+    adminShopItems=Object.entries(data)
+      .map(([id,s])=>({...s,id}))
+      .filter(s=>s.visibility!=="hidden"||(isAdminSession));
+    renderDynamicShop();
+  }catch(e){}
+}
+
+function renderDynamicShop(){
+  const el=$("shopList");
+  if(!el||!adminShopItems.length)return;
+
+  const visible=adminShopItems.filter(s=>isAdminSession||s.visibility!=="hidden");
+  if(!visible.length)return;
+
+  // Add a separator
+  const sep=document.createElement("div");
+  sep.style.cssText="font-size:14px;font-weight:800;color:#4da6ff;margin:14px 0 8px;padding:8px 0;border-top:1px solid #1c3a58";
+  sep.textContent="✨ Новые скины";
+  el.appendChild(sep);
+
+  visible.forEach(s=>{
+    const row=document.createElement("div");
+    row.className="row";
+    row.style.marginBottom="10px";
+    const imgHtml=s.imageUrl
+      ?`<img src="${escapeHTML(s.imageUrl)}" style="width:56px;height:56px;border-radius:13px;object-fit:cover;flex-shrink:0">`
+      :`<div class="thumb">${s.emoji||"📦"}</div>`;
+    row.innerHTML=`
+      ${imgHtml}
+      <div class="grow">
+        <b>${escapeHTML(s.name)}</b>
+        <span class="muted">${escapeHTML(s.type||"Предмет")}</span>
+        ${isAdminSession?`<span style="font-size:10px;color:${s.visibility==="hidden"?"#ff5d68":s.visibility==="show"?"#f0c040":"#42ff9a"}"> [${s.visibility}]</span>`:""}
+      </div>
+      <span class="price">${s.buyPrice||s.price||0} 💎</span>
+      ${s.visibility==="sale"
+        ?`<button class="primary" style="padding:10px 14px;font-size:13px" onclick="buyAdminShopItem('${s.id}')">Купить</button>`
+        :s.visibility==="show"?`<span style="color:#8295ad;font-size:12px;padding:10px">витрина</span>`
+        :`<span style="color:#ff5d68;font-size:12px;padding:10px">скрыт</span>`}
+    `;
+    el.appendChild(row);
+  });
+}
+
+async function buyAdminShopItem(id){
+  if(!guestMode&&!window.__firebaseLoaded)return toast("⏳ Загрузка…");
+  const item=adminShopItems.find(s=>s.id===id);
+  if(!item)return;
+  const price=item.buyPrice||item.price||0;
+  if(state.balance<price)return toast("Не хватает 💎");
+  state.balance-=price;
+  const emoji=item.emoji||{Оружие:"🔫",Нож:"🔪",Наклейка:"🏷️",Брелок:"🔑"}[item.type]||"📦";
+  state.inventory.push({name:item.name,price:item.sellPrice||Math.floor(price*0.7),emoji,type:item.type||"Предмет",imageUrl:item.imageUrl||""});
+  state.statistics.purchases=(state.statistics.purchases||0)+1;
+  localSave();
+  addTransaction("purchase",`Куплен ${item.name}`,-price,emoji);
+  updateUI();
+  toast("✅ "+item.name+" куплен!");
+}
+
+
+/* =========================================================
+   DYNAMIC CASES (from Firebase adminCases)
+========================================================= */
+
+let adminCasesData={};
+
+async function loadAdminCases(){
+  if(!db)return;
+  try{
+    const snap=await db.ref("prognozer/adminCases").once("value");
+    adminCasesData=snap.val()||{};
+    if(Object.keys(adminCasesData).length)renderAdminCases();
+  }catch(e){}
+}
+
+function renderAdminCases(){
+  const gamesSection=document.getElementById("gamesGrid");
+  if(!gamesSection)return;
+  // Remove old admin case cards
+  document.querySelectorAll(".admin-case-card").forEach(e=>e.remove());
+
+  Object.entries(adminCasesData).forEach(([id,c])=>{
+    const card=document.createElement("div");
+    card.className="card admin-case-card";
+    card.innerHTML=`
+      <div style="text-align:center">
+        ${c.imageUrl
+          ?`<img src="${escapeHTML(c.imageUrl)}" style="width:70px;height:70px;border-radius:14px;object-fit:cover;margin:0 auto 10px;display:block">`
+          :`<div class="icon">🎁</div>`}
+        <b style="font-size:17px;display:block;margin-bottom:4px">${escapeHTML(c.name||"Кейс")}</b>
+        <span style="color:#8295ad;font-size:14px">${c.cost||0} 💎</span>
+      </div>
+    `;
+    card.onclick=()=>openAdminCase(id);
+    gamesSection.appendChild(card);
+  });
+}
+
+async function openAdminCase(caseId){
+  if(!guestMode&&!window.__firebaseLoaded)return toast("⏳ Загрузка…");
+  const c=adminCasesData[caseId];
+  if(!c)return;
+  if(state.balance<(c.cost||0))return toast("Не хватает 💎");
+
+  // Rank luck bonus
+  const luck=getLuckBonus();
+
+  // Build weighted drops (filter exhausted)
+  const available=(c.drops||[]).filter(d=>!d.maxCount||((d.droppedCount||0)<d.maxCount));
+  if(!available.length)return toast("Все предметы в этом кейсе закончились");
+
+  state.balance-=(c.cost||0);
+  state.statistics.casesOpened=(state.statistics.casesOpened||0)+1;
+  localSave();
+
+  // Pick with luck bonus applied to rare items
+  const drop=pickWithLuck(available,luck);
+  pendingDrop=[drop.name,drop.price,drop.emoji||"📦",drop.chance,drop.imageUrl];
+
+  // Increment drop count in Firebase
+  if(db){
+    const idx=(c.drops||[]).findIndex(d=>d.name===drop.name);
+    if(idx>=0){
+      db.ref(`prognozer/adminCases/${caseId}/drops/${idx}/droppedCount`)
+        .transaction(v=>(Number(v)||0)+1);
+    }
+  }
+
+  // Refresh local cache
+  if(db){
+    const snap=await db.ref("prognozer/adminCases/"+caseId).once("value");
+    adminCasesData[caseId]=snap.val()||c;
+  }
+
+  addTransaction("case",`Открыт кейс «${c.name}» — выпал: ${drop.name}`,-(c.cost||0),drop.imageUrl?null:(drop.emoji||"📦"),drop.imageUrl);
+  showAdminCaseOpeningOverlay(c,drop);
+}
+
+function pickWithLuck(drops,luckBonus){
+  // luckBonus increases the weight of more expensive items
+  const adjusted=drops.map(d=>{
+    const baseChance=d.chance||10;
+    const bonus=d.price>1000?luckBonus:0; // luck applies only to rare items
+    return{...d,adjustedChance:baseChance+bonus};
+  });
+  const total=adjusted.reduce((s,d)=>s+d.adjustedChance,0);
+  let r=Math.random()*total;
+  for(const d of adjusted){r-=d.adjustedChance;if(r<=0)return d;}
+  return adjusted[adjusted.length-1];
+}
+
+function showAdminCaseOpeningOverlay(c,drop){
+  const overlay=$("caseOpeningOverlay");
+  const strip=$("caseOpeningStrip");
+  $("caseOpeningTitle").textContent="🎁 "+escapeHTML(c.name||"Кейс");
+  $("caseOpeningStatus").textContent="Открываем кейс…";
+  $("caseWinCard").classList.remove("show");
+  overlay.classList.add("open");
+
+  // Build sequence from case drops
+  const allDrops=(c.drops||[]);
+  const seq=[];
+  for(let n=0;n<16;n++) seq.push(...allDrops);
+  const winIdx=seq.length-allDrops.length+Math.max(0,allDrops.findIndex(d=>d.name===drop.name));
+  seq[winIdx]=drop;
+
+  strip.style.transition="none";
+  strip.style.transform="translateX(0)";
+  strip.innerHTML=seq.map(x=>`
+    <div class="roulette-item">
+      ${x.imageUrl
+        ?`<img src="${escapeHTML(x.imageUrl)}" style="width:80px;height:80px;border-radius:10px;object-fit:cover">`
+        :`<div class="ri-emoji">${x.emoji||"📦"}</div>`}
+      <div class="ri-name">${escapeHTML(x.name||"Предмет")}</div>
+      <div class="ri-price">${Number(x.price||0)} 💎</div>
+    </div>
+  `).join("");
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const card=strip.children[winIdx];
+    const v=strip.parentElement;
+    const target=card.offsetLeft+card.offsetWidth/2-v.clientWidth/2;
+    strip.style.transition="transform 4.8s cubic-bezier(.07,.72,.12,1)";
+    strip.style.transform=`translateX(${-Math.max(0,target)}px)`;
+  }));
+
+  clearTimeout(window.__caseTimer);
+  window.__caseTimer=setTimeout(()=>{
+    strip.children[winIdx]?.classList.add("win");
+    // Show win card with image
+    $("caseWinEmoji").innerHTML=drop.imageUrl
+      ?`<img src="${escapeHTML(drop.imageUrl)}" style="width:100px;height:100px;border-radius:16px;object-fit:cover;margin:auto;display:block">`
+      :drop.emoji||"📦";
+    $("caseWinName").textContent=drop.name||"Предмет";
+    $("caseWinPrice").textContent=(drop.price||0)+" 💎";
+    $("caseWinCard").classList.add("show");
+  },4900);
+}
+
+
+/* =========================================================
+   IMAGES IN POSTS (Silver+)
+========================================================= */
+
+const SAFE_IMG_DOMAINS=["i.imgur.com","imgur.com","i.ibb.co","postimages.org","i.postimg.cc","cdn.discordapp.com","media.discordapp.net","images.unsplash.com","ibb.co"];
+
+function isSafeImageUrl(url){
+  try{
+    const u=new URL(url);
+    return(u.protocol==="https:"||u.protocol==="http:")&&SAFE_IMG_DOMAINS.some(d=>u.hostname===d||u.hostname.endsWith("."+d));
+  }catch(e){return false;}
+}
+
+// Inject image URL field into create post (if rank allows)
+const _origOpenCreatePost=openCreatePost;
+window.openCreatePost=async function(){
+  await _origOpenCreatePost();
+  // After modal opens, inject image field if Silver+
+  if(RANK_CONFIG[myRank]?.canImage){
+    const publishBtn=$("publishCommunityPost");
+    if(publishBtn&&!$("postImageUrlRow")){
+      const row=document.createElement("div");
+      row.id="postImageUrlRow";
+      row.style.cssText="margin:10px 0";
+      row.innerHTML=`<input id="postImageUrl" placeholder="🖼 Ссылка на изображение (imgur/ibb/discord) — только Silver+" style="width:100%">`;
+      publishBtn.parentNode.insertBefore(row,publishBtn);
+    }
+  }
+};
+
+const _origPublish=publishCommunityPost;
+window.publishCommunityPost=async function(){
+  // Intercept to add imageUrl
+  const imgInput=$("postImageUrl");
+  const imgUrl=imgInput?.value?.trim()||"";
+  if(imgUrl&&!isSafeImageUrl(imgUrl)){
+    return toast("❌ Ссылка на изображение не поддерживается");
+  }
+  window.__postImageUrl=imgUrl||"";
+  await _origPublish();
+};
+
+// Patch post object to include image
+const _origPost=window.publishCommunityPost;
+document.addEventListener("DOMContentLoaded",()=>{
+  // Patch Firebase post save to include imageUrl
+  // (handled via __postImageUrl global injected before save)
+});
+
+
+/* =========================================================
+   IMAGES IN CHAT MESSAGES
+========================================================= */
+
+function renderMsgWithImage(text){
+  // Detect image URLs in text and render them
+  const urlRe=/(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp)(\?[^\s]*)?)/gi;
+  const safe=text.replace(urlRe,(url)=>{
+    if(isSafeImageUrl(url)){
+      return `<img src="${escapeHTML(url)}" style="max-width:200px;max-height:200px;border-radius:10px;display:block;margin-top:6px;object-fit:cover" onerror="this.style.display='none'">`;
+    }
+    return escapeHTML(url);
+  });
+  return safe;
+}
+
+
+/* =========================================================
+   TRANSACTION HISTORY (3 days TTL)
+========================================================= */
+
+const TX_TTL=3*24*3600000; // 3 days
+
+async function addTransaction(type,desc,amount,emoji,imageUrl){
+  if(!firebaseUser||!db)return;
+  try{
+    await db.ref("prognozer/transactions/"+firebaseUser.uid).push({
+      type,desc,amount:amount||0,emoji:emoji||"",imageUrl:imageUrl||"",
+      at:firebase.database.ServerValue.TIMESTAMP
+    });
+    // Cleanup old
+    cleanTransactions();
+  }catch(e){}
+}
+
+async function cleanTransactions(){
+  if(!firebaseUser||!db)return;
+  try{
+    const cutoff=Date.now()-TX_TTL;
+    const snap=await db.ref("prognozer/transactions/"+firebaseUser.uid)
+      .orderByChild("at").endAt(cutoff).once("value");
+    const old=snap.val()||{};
+    const updates={};
+    Object.keys(old).forEach(k=>{updates[k]=null;});
+    if(Object.keys(updates).length)
+      await db.ref("prognozer/transactions/"+firebaseUser.uid).update(updates);
+  }catch(e){}
+}
+
+async function openTransactionHistory(){
+  const b=$("modalBody");
+  b.innerHTML=`<div style="font-size:20px;font-weight:900;margin-bottom:14px">📋 История транзакций</div><div id="txList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div><button class="secondary" style="width:100%;padding:11px;margin-top:10px" onclick="$('modal').classList.remove('open')">Закрыть</button>`;
+  $("modal").classList.add("open");
+  if(!firebaseUser||!db){$("txList").innerHTML='<div class="muted" style="text-align:center;padding:20px">Нужна авторизация</div>';return;}
+  try{
+    const snap=await db.ref("prognozer/transactions/"+firebaseUser.uid)
+      .orderByChild("at").limitToLast(60).once("value");
+    const data=snap.val()||{};
+    const entries=Object.values(data).sort((a,b)=>b.at-a.at);
+    const el=$("txList");
+    if(!entries.length){el.innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет транзакций</div>';return;}
+    el.innerHTML=entries.map(t=>{
+      const isPos=t.amount>0;
+      const isNeg=t.amount<0;
+      return`<div style="display:flex;align-items:center;gap:10px;padding:11px;border:1px solid #1c3a58;border-radius:13px;background:#0b1726;margin-bottom:7px">
+        ${t.imageUrl?`<img src="${escapeHTML(t.imageUrl)}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="font-size:24px;width:38px;text-align:center;flex-shrink:0">${t.emoji||"📋"}</div>`}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(t.desc||"")}</div>
+          <div style="font-size:11px;color:#5a7a99;margin-top:2px">${formatPostDate(t.at)}</div>
+        </div>
+        ${t.amount?`<div style="font-weight:900;white-space:nowrap;color:${isPos?"#42ff9a":isNeg?"#ff5d68":"#8295ad"}">${isPos?"+":""}${t.amount} 💎</div>`:""}
+      </div>`;
+    }).join("");
+  }catch(e){$("txList").innerHTML='<div class="muted" style="text-align:center;padding:20px">Ошибка загрузки</div>';}
+}
+
+// Add transaction button to profile page
+(function injectTxBtn(){
+  const profileSection=document.getElementById("profile");
+  if(!profileSection)return;
+  const div=document.createElement("div");
+  div.style.cssText="margin-top:10px";
+  div.innerHTML=`<button onclick="openTransactionHistory()" style="width:100%;padding:13px;border-radius:14px;background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;font-weight:800;font-size:14px">📋 История транзакций</button>`;
+  const adminBtn=document.getElementById("adminPanelEntry");
+  if(adminBtn)profileSection.insertBefore(div,adminBtn);
+  else profileSection.appendChild(div);
+})();
+
+
+/* =========================================================
+   AUTO-CLEANUP: Chats every 3 days, Trades every 1 day
+========================================================= */
+
+async function runAutoCleanup(){
+  if(!firebaseUser||!db)return;
+  try{
+    const chatCutoff=Date.now()-3*24*3600000;
+    // Clean OLD chat messages (only conversations not active recently)
+    const chatsSnap=await db.ref("prognozer/chats/users/"+firebaseUser.uid).once("value");
+    const chats=chatsSnap.val()||{};
+    for(const[uid,info] of Object.entries(chats)){
+      if((info.lastAt||0)<chatCutoff){
+        const chatId=getChatId(firebaseUser.uid,uid);
+        await db.ref("prognozer/chats/messages/"+chatId).remove();
+      }
+    }
+    // Clean trade history older than 1 day
+    const tradeCutoff=Date.now()-24*3600000;
+    const tradesSnap=await db.ref("prognozer/trades").orderByChild("createdAt").endAt(tradeCutoff).once("value");
+    const oldTrades=tradesSnap.val()||{};
+    for(const id of Object.keys(oldTrades)){
+      await db.ref("prognozer/trades/"+id).remove();
+    }
+    // Clean transactions older than 3 days
+    cleanTransactions();
+  }catch(e){}
+}
+
+
+/* =========================================================
+   PATCH: renderPost to support images + admin delete
+========================================================= */
+
+const _origRenderPost=window.renderPost||renderPost;
+function renderPost(post){
+  const result=_origRenderPost(post);
+  return result; // base already handles everything we'll patch via CSS
+}
+
+// Override to add image in posts and admin delete button
+(function patchRenderPost(){
+  const origFn=window.renderPost;
+  window.renderPost=function(post){
+    let html=origFn(post);
+    // Inject image if post has one
+    if(post.imageUrl&&isSafeImageUrl(post.imageUrl)){
+      const imgTag=`<img src="${escapeHTML(post.imageUrl)}" style="width:100%;max-height:280px;border-radius:14px;object-fit:cover;margin:10px 0;display:block" onerror="this.style.display='none'">`;
+      html=html.replace('${extra}',imgTag+'${extra}');
+    }
+    // Admin delete button for all posts
+    if(isAdminSession){
+      html=html.replace(
+        `onclick="deleteCommunityPost('${post.id}')">`,
+        `onclick="adminDeletePost('${post.id}',this)">`
+      );
+      // If not owner, add admin delete
+      if(!firebaseUser||post.uid!==firebaseUser?.uid){
+        html=html.replace(
+          `</div>\n\n\n      ${\n        post.text`,
+          `<button class="post-menu" onclick="adminDeletePost('${post.id}',this)" style="color:#ff5d68" title="Удалить (admin)">🗑</button></div>\n\n\n      ${\n        post.text`
+        );
+      }
+    }
+    return html;
+  };
+})();
+
+
+/* =========================================================
+   PATCH: publishCommunityPost to add imageUrl + expiresAt + rank
+========================================================= */
+
+(function patchPublish(){
+  const orig=window.publishCommunityPost;
+  if(!orig)return;
+  window.publishCommunityPost=async function(){
+    // Check mute
+    const muted=await checkMuteStatus();
+    if(muted)return toast("🔇 Вы замьючены и не можете публиковать посты");
+
+    const imgUrl=window.__postImageUrl||($("postImageUrl")?.value?.trim())||"";
+    if(imgUrl&&!isSafeImageUrl(imgUrl))return toast("❌ Ссылка на фото не поддерживается");
+
+    // Add rank info and expiry to post after publish
+    const rankCfg=getRankConfig();
+    const days=rankCfg.postDays||1;
+    const expiresAt=Date.now()+days*24*3600000;
+
+    // Monkey-patch: inject into next Firebase push
+    window.__nextPostExtra={imageUrl:imgUrl,expiresAt,rank:myRank};
+    await orig();
+    window.__nextPostExtra=null;
+    window.__postImageUrl="";
+  };
+})();
+
+
+/* =========================================================
+   PATCH: sendChatMessage to support images
+========================================================= */
+
+(function patchChatSend(){
+  const orig=window.sendChatMessage;
+  if(!orig)return;
+  window.sendChatMessage=async function(){
+    const muted=await checkMuteStatus();
+    if(muted)return toast("🔇 Вы замьючены");
+    await orig();
+    // Track transaction
+    addTransaction("chat","Отправлено сообщение в чате",0,"💬");
+  };
+})();
+
+
+/* =========================================================
+   PATCH: renderPost to render images in chat messages
+========================================================= */
+
+// Patch message rendering to show images
+(function patchChatMessages(){
+  const orig=window.sendChatMessage;
+  // We patch the message render in the chat listener instead
+  // by overriding the innerHTML building
+})();
+
+
+/* =========================================================
+   PATCH: buy/sell to add transactions
+========================================================= */
+
+(function patchBuySell(){
+  const origBuy=window.buy;
+  if(origBuy){
+    window.buy=function(id){
+      const x=items.find(a=>a.id===id);
+      if(x&&state.balance>=x.price){
+        addTransaction("purchase","Куплен "+x.name,-x.price,x.emoji);
+      }
+      return origBuy(id);
+    };
+  }
+  const origSell=window.sell;
+  if(origSell){
+    window.sell=function(i){
+      const x=state.inventory[i];
+      if(x)addTransaction("sale","Продан "+x.name,x.price,x.emoji);
+      return origSell(i);
+    };
+  }
+  const origOpenCase=window.openCase;
+  if(origOpenCase){
+    window.openCase=function(i){
+      const c=cases[i];
+      if(c&&state.balance>=c.cost){
+        addTransaction("case","Открыт кейс «"+c.name+"»",-c.cost,"🎁");
+      }
+      return origOpenCase(i);
+    };
+  }
+})();
+
+
+/* =========================================================
+   INIT all new systems after Firebase ready
+========================================================= */
+
+(function hookFirebaseReady(){
+  const origInit=window.initFirebase;
+  if(!origInit)return;
+  window.initFirebase=function(){
+    const result=origInit();
+    // Additional init done via auth state change — hooked below
+    return result;
+  };
+})();
+
+// Hook into auth state to run new systems
+const _origContinueGoogle=window.continueGoogle;
+document.addEventListener("DOMContentLoaded",()=>{
+  // Wait for Firebase and load dynamic content
+  setTimeout(async()=>{
+    if(firebaseUser&&!firebaseUser.isAnonymous){
+      const banned=await checkBanStatus();
+      if(!banned){
+        await loadMyRank();
+        await loadAdminCases();
+        await loadAdminShopToFront();
+        await runAutoCleanup();
+        addTransaction("login","Вход в аккаунт",0,"🔵");
+      }
+    }
+  },3000);
+});
+
+// Also trigger when firebase user logs in
+(function hookAuthChange(){
+  const origOnAuthChange=window.__onAuthChange;
+  window.__newSystemsInit=async function(user){
+    if(user&&!user.isAnonymous){
+      const banned=await checkBanStatus();
+      if(!banned){
+        await loadMyRank();
+        await loadAdminCases();
+        await loadAdminShopToFront();
+        await runAutoCleanup();
+      }
+    }
+  };
+})();
 
 </script>
 
