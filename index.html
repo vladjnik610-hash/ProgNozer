@@ -275,15 +275,15 @@ button:disabled{
   height:100%;
   margin:auto;
   display:grid;
-  grid-template-columns:repeat(7,1fr)
+  grid-template-columns:repeat(8,1fr)
 }
 
 .tab{
   background:none;
   border-radius:0;
   color:#75889f;
-  padding:7px 2px;
-  font-size:13px
+  padding:5px 1px;
+  font-size:11px
 }
 
 .tab.active{
@@ -292,8 +292,8 @@ button:disabled{
 
 .ti{
   display:block;
-  font-size:27px;
-  line-height:31px
+  font-size:22px;
+  line-height:26px
 }
 
 /* ================= MODAL ================= */
@@ -4654,7 +4654,7 @@ function renderProfileInventory(){
   }
   grid.innerHTML=state.inventory.slice(0,12).map(x=>`
     <div class="profile-inv-item">
-      <div class="pii-emoji">${escapeHTML(x.emoji||"📦")}</div>
+      <div class="pii-emoji">${itemThumb(x,48)}</div>
       <div class="pii-name">${escapeHTML(x.name||"Предмет")}</div>
       <div class="pii-price">${Number(x.price||0)} 💎</div>
     </div>
@@ -4799,7 +4799,13 @@ function nav(id){
   }
 
   if(id==="shop"){
-    renderShop();
+    if(window._adminShopItems&&window._adminShopItems.length){
+      renderShop();
+    }else if(window.db){
+      loadAdminShopToFront();
+    }else{
+      renderShop();
+    }
   }
 
   if(id==="profile"){
@@ -4920,7 +4926,7 @@ function renderInventory(){
       <div class="row">
 
         <div class="thumb">
-          ${x.emoji}
+          ${itemThumb(x,44)}
         </div>
 
         <div class="grow">
@@ -4990,7 +4996,30 @@ function renderShop(){
     `).join("");
     e.querySelectorAll(".buy").forEach(b=>b.onclick=()=>buyAdminShopItem(b.dataset.sid));
   }else{
-    e.innerHTML='<div class="drop center muted" style="padding:30px">Магазин загружается…</div>';
+    // Try to load if db is available
+    if(window.db){
+      loadAdminShopToFront().then(()=>{
+        if(!window._adminShopItems||!window._adminShopItems.length){
+          e.innerHTML='<div class="drop center muted" style="padding:30px">Магазин пуст</div>';
+        }
+      }).catch(()=>{
+        e.innerHTML='<div class="drop center muted" style="padding:30px">Не удалось загрузить магазин</div>';
+      });
+    }else{
+      e.innerHTML='<div class="drop center muted" style="padding:30px">Загрузка…</div>';
+      // Retry when db becomes available
+      let _retries=0;
+      const _shopRetry=setInterval(async()=>{
+        _retries++;
+        if(window.db){
+          clearInterval(_shopRetry);
+          await loadAdminShopToFront();
+        }else if(_retries>20){
+          clearInterval(_shopRetry);
+          e.innerHTML='<div class="drop center muted" style="padding:30px">Нет подключения</div>';
+        }
+      },500);
+    }
   }
 }
 
@@ -5148,6 +5177,16 @@ function escapeHTML(value){
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#039;");
 
+}
+
+
+/* ── универсальная иконка предмета ── */
+function itemThumb(x,size){
+  size=size||44;
+  if(x&&x.imageUrl){
+    return `<img src="${escapeHTML(x.imageUrl)}" style="width:${size}px;height:${size}px;border-radius:${Math.round(size*0.22)}px;object-fit:cover;display:block;">`;
+  }
+  return `<span style="font-size:${Math.round(size*0.6)}px;line-height:${size}px;display:block;text-align:center">${escapeHTML(x&&x.emoji||"📦")}</span>`;
 }
 
 
@@ -6502,7 +6541,7 @@ function openSkinSelector(){
               data-index="${i}">
 
               <div class="selector-item-icon">
-                ${x.emoji}
+                ${itemThumb(x,44)}
               </div>
 
               <div class="selector-item-info">
@@ -6617,7 +6656,7 @@ function openTradeSelector(){
               data-index="${i}">
 
               <div class="selector-item-icon">
-                ${x.emoji}
+                ${itemThumb(x,44)}
               </div>
 
               <div class="selector-item-info">
@@ -9370,11 +9409,11 @@ function renderUpgradeUI(b){
 
     <div class="upg-ring-center">
 
-      <span
+      <div
         class="upg-ring-emoji"
         id="upgRingEmoji">
         ❔
-      </span>
+      </div>
 
       <span
         class="upg-ring-pct"
@@ -9481,7 +9520,7 @@ function renderUpgSources(){
         id="upgS${i}">
 
         <div class="upg-src-thumb">
-          ${x.emoji}
+          ${itemThumb(x,40)}
         </div>
 
         <div class="upg-src-info">
@@ -9543,9 +9582,7 @@ function renderUpgSources(){
           state.inventory[i];
 
 
-        $("upgRingEmoji")
-          .textContent=
-          src.emoji;
+        $("upgRingEmoji").innerHTML=itemThumb(src,56);
 
 
         $("upgRingPct")
@@ -9721,8 +9758,7 @@ function renderUpgTargets(){
           .disabled=false;
 
 
-        $("upgRingEmoji")
-          .textContent=t.emoji;
+        $("upgRingEmoji").innerHTML=itemThumb(t,56);
 
 
         $("upgRingPct")
@@ -10410,7 +10446,7 @@ function openCase(i){
         <div class="roulette-item">
 
           <div class="ri-emoji">
-            ${x[2]}
+            ${x[4]?`<img src="${escapeHTML(x[4])}" style="width:64px;height:64px;border-radius:10px;object-fit:cover">`:escapeHTML(x[2]||"📦")}
           </div>
 
           <div class="ri-name">
@@ -12904,7 +12940,7 @@ function renderTradeMySlots(){
     const item=myTradeItems[i];
     if(item){
       html+=`<div class="trade-slot filled" onclick="showTradeItemInfo(this)" data-name="${escapeHTML(item.name||'?')}" data-type="${escapeHTML(item.type||'Предмет')}" data-price="${escapeHTML(String(item.price||0))}" data-emoji="${escapeHTML(item.emoji||'❓')}">
-        <span class="trade-slot-emoji">${escapeHTML(item.emoji)}</span>
+        <div class="trade-slot-emoji">${itemThumb(item,46)}</div>
         <span class="trade-slot-remove" onclick="event.stopPropagation();removeFromMyTrade(${i})">✕</span>
       </div>`;
     }else{
@@ -12925,7 +12961,7 @@ function renderTradePartnerSlots(data){
     if(item){
       const itemInfo=escapeHTML(item.name||"?")+"\n"+escapeHTML(item.type||"Предмет")+" • "+escapeHTML(String(item.price||0))+" 💎";
       html+=`<div class="trade-slot filled" onclick="showTradeItemInfo(this)" data-name="${escapeHTML(item.name||'?')}" data-type="${escapeHTML(item.type||'Предмет')}" data-price="${escapeHTML(String(item.price||0))}" data-emoji="${escapeHTML(item.emoji||'❓')}" title="${itemInfo}">
-        <span class="trade-slot-emoji">${escapeHTML(item.emoji||"❓")}</span>
+        <div class="trade-slot-emoji">${itemThumb(item,46)}</div>
       </div>`;
     }else{
       html+=`<div class="trade-slot" style="cursor:default"></div>`;
@@ -12948,7 +12984,8 @@ function showTradeItemInfo(el){
     popup.style.cssText="position:fixed;z-index:999;background:#0d1f35;border:1px solid #3a8bd3;border-radius:14px;padding:12px 16px;font-size:14px;max-width:220px;box-shadow:0 8px 30px rgba(0,0,0,.6);pointer-events:none;transition:.15s;";
     document.body.appendChild(popup);
   }
-  popup.innerHTML=`<div style="font-size:28px;text-align:center;margin-bottom:6px">${emoji}</div><div style="font-weight:900;margin-bottom:3px">${escapeHTML(name)}</div><div style="color:#8295ad;font-size:12px">${escapeHTML(type)}</div><div style="color:#55b4ff;font-weight:900;margin-top:4px">${escapeHTML(price)} 💎</div>`;
+  const _popItem={emoji,imageUrl:el.dataset.img||el.dataset.imageUrl||""};
+  popup.innerHTML=`<div style="width:60px;height:60px;margin:0 auto 6px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center">${itemThumb(_popItem,60)}</div><div style="font-weight:900;margin-bottom:3px">${escapeHTML(name)}</div><div style="color:#8295ad;font-size:12px">${escapeHTML(type)}</div><div style="color:#55b4ff;font-weight:900;margin-top:4px">${escapeHTML(price)} 💎</div>`;
   const rect=el.getBoundingClientRect();
   popup.style.display="block";
   popup.style.left=Math.min(rect.left,window.innerWidth-240)+"px";
@@ -12967,7 +13004,7 @@ function renderTradeMyInv(){
   }
   el.innerHTML=state.inventory.map((x,i)=>`
     <div class="trade-inv-item" onclick="addToMyTrade(${i})">
-      ${escapeHTML(x.emoji)}
+      ${itemThumb(x,38)}
       <span>${escapeHTML(x.name.substring(0,12))}</span>
     </div>
   `).join("");
@@ -13575,7 +13612,7 @@ function renderMarketList(data){
 
   listEl.innerHTML=items.map(x=>`
     <div class="market-item">
-      <div class="market-item-icon">${escapeHTML(x.emoji||"📦")}</div>
+      <div class="market-item-icon">${itemThumb(x,44)}</div>
       <div class="market-item-info">
         <div class="market-item-name">${escapeHTML(x.name||"Предмет")}</div>
         <div class="market-item-desc">${escapeHTML(x.desc||"")}</div>
@@ -13893,9 +13930,16 @@ loadGuest();
 
 renderGrids();
 
-renderShop();
-
 initFirebase();
+
+// Load shop from Firebase for all users (including guest)
+document.addEventListener("DOMContentLoaded", ()=>{
+  setTimeout(async()=>{
+    if(window.db){
+      await loadAdminShopToFront();
+    }
+  }, 2000);
+});
 
 // Restore any unsaved case drop after page refresh (guest mode)
 setTimeout(()=>{
@@ -15199,14 +15243,14 @@ async function runAutoCleanup(){
 ========================================================= */
 
 async function _newSystemsInit(user){
+  // Always load shop and cases (public data)
+  await loadAdminCases();
+  await loadAdminShopToFront();
   if(user&&!user.isAnonymous){
     const banned=await checkBanStatus();
     if(!banned){
       await loadMyRank();
-      await loadAdminCases();
-      await loadAdminShopToFront();
       await runAutoCleanup();
-      // No login transaction — unnecessary noise
     }
   }
 }
