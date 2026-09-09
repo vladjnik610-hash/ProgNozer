@@ -3396,11 +3396,15 @@ textarea{
 
 <section class="screen" id="shop">
 
-  <h2>🛒 Магазин</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <h2 style="margin:7px 0 4px">🛒 Магазин</h2>
+  </div>
+  <div style="font-size:13px;color:#8295ad;margin-bottom:16px">Скины от администраторов</div>
 
   <div
     class="list"
     id="shopList">
+    <div class="drop center muted" style="padding:30px">Загрузка…</div>
   </div>
 
 </section>
@@ -3581,6 +3585,16 @@ textarea{
 
     <span class="ti">🎮</span>
     Игры
+
+  </button>
+
+
+  <button
+    class="tab"
+    data-screen="shop">
+
+    <span class="ti">🛒</span>
+    Магазин
 
   </button>
 
@@ -4510,6 +4524,12 @@ function createDefaultState(){
 }
 
 
+function safeBalance(v){
+  const n=Math.floor(Number(v)||0);
+  if(!isFinite(n)||isNaN(n))return 0;
+  return Math.min(999999999,Math.max(0,n));
+}
+
 function normalizeState(x){
 
   const d=createDefaultState();
@@ -4520,7 +4540,7 @@ function normalizeState(x){
 
   return{
     // Баг-фикс: нормализуем баланс — не может быть меньше 0 или NaN
-    balance:Math.max(0,Math.floor(Number(x.balance)||0)),
+    balance:safeBalance(x.balance),
 
     inventory:
       Array.isArray(x.inventory)
@@ -4610,8 +4630,8 @@ function updateUI(){
   if(!guestMode&&!window.__firebaseLoaded&&firebaseUser&&!firebaseUser.isAnonymous){
     $("balance").textContent="⏳ 💎";
   }else{
-    $("balance").textContent=
-      state.balance+" 💎";
+    const _bal=Math.min(Math.max(0,Math.floor(Number(state.balance)||0)),999999999);
+    $("balance").textContent=_bal.toLocaleString("ru")+" 💎";
   }
 
   renderInventory();
@@ -4865,7 +4885,6 @@ function renderGrids(){
   if(e){
     e.innerHTML="";
     games
-      .filter(g=>g.id!=="shop")
       .forEach(g=>e.appendChild(makeGameCard(g)));
   }
 
@@ -4948,51 +4967,31 @@ function renderInventory(){
 ========================================================= */
 
 function renderShop(){
-
   const e=$("shopList");
-
-  e.innerHTML=
-    items.map(
-      x=>`
+  if(!e)return;
+  if(window._adminShopItems && window._adminShopItems.length){
+    const forSale=window._adminShopItems.filter(x=>(x.visibility==="sale"||!x.visibility));
+    if(!forSale.length){
+      e.innerHTML='<div class="drop center muted" style="padding:30px">Магазин пуст</div>';
+      return;
+    }
+    e.innerHTML=forSale.map(x=>`
       <div class="row">
-
         <div class="thumb">
-          ${x.emoji}
+          ${x.imageUrl?`<img src="${escapeHTML(x.imageUrl)}" style="width:44px;height:44px;border-radius:10px;object-fit:cover">`:`<span style="font-size:28px">${x.emoji||'📦'}</span>`}
         </div>
-
         <div class="grow">
-
           <b>${escapeHTML(x.name)}</b>
-
-          <span class="muted">
-            ${x.type}
-          </span>
-
+          <span class="muted">${escapeHTML(x.type||'Предмет')}</span>
         </div>
-
-        <span class="price">
-          ${x.price} 💎
-        </span>
-
-        <button
-          class="buy primary"
-          data-id="${x.id}">
-
-          Купить
-
-        </button>
-
+        <span class="price">${x.buyPrice||x.price||0} 💎</span>
+        <button class="buy primary" data-sid="${x._id}">Купить</button>
       </div>
-      `
-    ).join("");
-
-  e.querySelectorAll(".buy")
-    .forEach(
-      b=>b.onclick=()=>buy(
-        +b.dataset.id
-      )
-    );
-
+    `).join("");
+    e.querySelectorAll(".buy").forEach(b=>b.onclick=()=>buyAdminShopItem(b.dataset.sid));
+  }else{
+    e.innerHTML='<div class="drop center muted" style="padding:30px">Магазин загружается…</div>';
+  }
 }
 
 
@@ -6965,7 +6964,7 @@ async function publishCommunityPost(){
   const postImgUrl=($("postImageUrl")?.value||"").trim();
   if(postImgUrl&&typeof isSafeImageUrl==="function"&&!isSafeImageUrl(postImgUrl)){
     btn.disabled=false;
-    return toast("❌ Ссылка на фото не поддерживается. Используйте imgur, ibb или discord");
+    return toast("❌ Неверная ссылка. Нужна прямая ссылка на изображение (.jpg/.png) — imgur, ibb.co, discord CDN");
   }
 
 
@@ -14046,6 +14045,7 @@ async function adminManageCases(){
     </div>
     <div id="adminCasesList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
     <button class="primary" style="width:100%;padding:12px;margin-top:12px" onclick="adminCreateCase()">➕ Создать кейс</button>
+    <button class="secondary" style="width:100%;padding:12px;margin-top:8px;background:#1a0a2e;border-color:#7c3aed;color:#e9d5ff" onclick="adminManageCasesTrash()">🗑️ Корзина удалённых кейсов</button>
   `;
   if(!db){$("adminCasesList").innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет подключения</div>';return;}
   try{
@@ -14069,10 +14069,15 @@ async function adminManageCases(){
 }
 
 async function adminDeleteCase(id){
-  if(!confirm("Удалить кейс?"))return;
+  if(!confirm("Удалить кейс? Он попадёт в корзину."))return;
   try{
+    const snap=await db.ref("prognozer/adminCases/"+id).once("value");
+    const caseData=snap.val();
+    if(caseData){
+      await db.ref("prognozer/adminCasesTrash").push({...caseData,deletedAt:firebase.database.ServerValue.TIMESTAMP});
+    }
     await db.ref("prognozer/adminCases/"+id).remove();
-    toast("✅ Кейс удалён");
+    toast("✅ Кейс удалён (в корзине)");
     adminManageCases();
   }catch(e){toast("Ошибка: "+e.message);}
 }
@@ -14116,11 +14121,22 @@ async function adminEditCase(id){
       <button class="secondary" style="width:100%;padding:10px;margin-bottom:10px" onclick="adminAddDropRow()">➕ Добавить предмет</button>
       <button class="primary" style="width:100%;padding:12px" onclick="adminSaveCase()">💾 Сохранить изменения</button>
     `;
+    window._editCaseDrops=c.drops||[];
     (c.drops||[]).forEach(d=>adminAddDropRow(d));
   }catch(e){toast("Ошибка: "+e.message);}
 }
 
 let _dropRowCount=0;
+function getAdminShopOptions(selectedName){
+  const opts=[];
+  if(window._adminShopItems&&window._adminShopItems.length){
+    window._adminShopItems.forEach(s=>{
+      const sel=s.name===selectedName?'selected':'';
+      opts.push(`<option value="${escapeHTML(s.name)}" data-price="${s.buyPrice||s.price||0}" data-emoji="${escapeHTML(s.emoji||'📦')}" data-img="${escapeHTML(s.imageUrl||'')}" ${sel}>${escapeHTML(s.emoji||'')} ${escapeHTML(s.name)} (${s.buyPrice||s.price||0}💎)</option>`);
+    });
+  }
+  return opts.join('');
+}
 function adminAddDropRow(existing){
   const list=$("ac_drops_list");
   if(!list)return;
@@ -14129,20 +14145,51 @@ function adminAddDropRow(existing){
   const div=document.createElement("div");
   div.id="drop_row_"+i;
   div.style.cssText="border:1px solid #1c3a58;border-radius:12px;background:#0b1726;padding:11px;margin-bottom:8px";
+  const hasShopItems=window._adminShopItems&&window._adminShopItems.length;
   div.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <span style="font-size:13px;color:#7dd3fc;font-weight:800">Предмет ${i+1}</span>
       <button onclick="document.getElementById('drop_row_${i}').remove()" style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:3px 8px;border-radius:7px;font-size:12px">✕</button>
     </div>
-    <input id="dr_name_${i}" placeholder="Название предмета" value="${escapeHTML(d.name||"")}" style="width:100%;margin-bottom:7px">
-    <input id="dr_img_${i}" placeholder="Ссылка на изображение (необязательно)" value="${escapeHTML(d.imageUrl||"")}" style="width:100%;margin-bottom:7px">
-    <input id="dr_emoji_${i}" placeholder="Эмодзи (если нет картинки) 📦" value="${escapeHTML(d.emoji||"")}" style="width:100%;margin-bottom:7px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-      <input id="dr_price_${i}" type="number" placeholder="Цена 💎" value="${d.price||""}" style="width:100%">
-      <input id="dr_chance_${i}" type="number" placeholder="Шанс (1-100)" value="${d.chance||10}" style="width:100%">
+    ${hasShopItems?`
+    <div style="font-size:11px;color:#8295ad;margin-bottom:5px">Выбрать скин из магазина:</div>
+    <select id="dr_skin_${i}" onchange="adminFillDropFromSkin(${i})" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2a4f72;background:#081522;color:#fff;font-size:13px;margin-bottom:7px">
+      <option value="">— выбрать скин —</option>
+      ${getAdminShopOptions(d.name||'')}
+    </select>
+    <div style="font-size:11px;color:#8295ad;margin-bottom:4px">или введите вручную:</div>
+    `:''}
+    <input id="dr_name_${i}" placeholder="Название предмета" value="${escapeHTML(d.name||'')} " style="width:100%;margin-bottom:7px">
+    <input id="dr_img_${i}" placeholder="Ссылка на изображение (необязательно)" value="${escapeHTML(d.imageUrl||'')}" style="width:100%;margin-bottom:7px">
+    <input id="dr_emoji_${i}" placeholder="Эмодзи (если нет картинки) 📦" value="${escapeHTML(d.emoji||'')}" style="width:100%;margin-bottom:7px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px">
+      <input id="dr_price_${i}" type="number" placeholder="Цена 💎" value="${d.price||''}" style="width:100%">
+      <input id="dr_chance_${i}" type="number" step="0.00001" min="0.00001" placeholder="Шанс % (напр. 0.00001)" value="${d.chance!==undefined?d.chance:10}" style="width:100%">
+      <input id="dr_maxcount_${i}" type="number" min="0" placeholder="Макс. выпадений (0=∞)" value="${d.maxCount!==undefined?d.maxCount:0}" style="width:100%">
     </div>
+    <div style="font-size:10px;color:#526a82;margin-top:4px">Макс. выпадений: 0 = бесконечно. Когда лимит исчерпан — предмет больше не выпадает из кейса.</div>
   `;
+  div.querySelector(`#dr_name_${i}`).value=(d.name||'').trim();
   list.appendChild(div);
+}
+
+function adminFillDropFromSkin(i){
+  const sel=document.getElementById('dr_skin_'+i);
+  if(!sel)return;
+  const opt=sel.options[sel.selectedIndex];
+  if(!opt||!opt.value)return;
+  const name=opt.value;
+  const price=opt.dataset.price||0;
+  const emoji=opt.dataset.emoji||'📦';
+  const img=opt.dataset.img||'';
+  const nameEl=document.getElementById('dr_name_'+i);
+  const imgEl=document.getElementById('dr_img_'+i);
+  const emojiEl=document.getElementById('dr_emoji_'+i);
+  const priceEl=document.getElementById('dr_price_'+i);
+  if(nameEl)nameEl.value=name;
+  if(imgEl)imgEl.value=img;
+  if(emojiEl)emojiEl.value=emoji;
+  if(priceEl)priceEl.value=price;
 }
 
 async function adminSaveCase(){
@@ -14163,12 +14210,19 @@ async function adminSaveCase(){
     if(nameEl){
       const dName=nameEl.value.trim();
       if(dName){
+        const rawChance=parseFloat(document.getElementById("dr_chance_"+i)?.value)||10;
+        const rawMax=parseInt(document.getElementById("dr_maxcount_"+i)?.value)||0;
+        // Preserve existing droppedCount when editing
+        const existingDrops=(window._editCaseDrops||[]);
+        const existingDrop=existingDrops.find(ed=>ed.name===dName);
         drops.push({
           name:dName,
           imageUrl:(document.getElementById("dr_img_"+i)?.value||"").trim(),
           emoji:(document.getElementById("dr_emoji_"+i)?.value||"").trim()||"📦",
           price:parseInt(document.getElementById("dr_price_"+i)?.value)||0,
-          chance:parseInt(document.getElementById("dr_chance_"+i)?.value)||10
+          chance:rawChance,
+          maxCount:rawMax>0?rawMax:0,
+          droppedCount:existingDrop?parseInt(existingDrop.droppedCount)||0:0
         });
       }
     }
@@ -14187,6 +14241,61 @@ async function adminSaveCase(){
     toast("✅ Кейс сохранён");
     await loadAdminCases();
     adminManageCases();
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+
+/* ============ ADMIN: CASES TRASH ============ */
+
+async function adminManageCasesTrash(){
+  const b=$("modalBody");
+  b.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="adminManageCases()" style="background:#0d1f35;border:1px solid #254a6e;color:#7dd3fc;padding:7px 12px;border-radius:10px;font-size:13px">← Назад</button>
+      <div style="font-size:20px;font-weight:900">🗑️ Корзина кейсов</div>
+    </div>
+    <div id="adminTrashList"><div class="muted" style="text-align:center;padding:20px">Загружаем…</div></div>
+  `;
+  if(!db){$("adminTrashList").innerHTML='<div class="muted" style="text-align:center;padding:20px">Нет подключения</div>';return;}
+  try{
+    const snap=await db.ref("prognozer/adminCasesTrash").once("value");
+    const data=snap.val()||{};
+    const el=$("adminTrashList");
+    const entries=Object.entries(data);
+    if(!entries.length){el.innerHTML='<div class="muted" style="text-align:center;padding:20px">Корзина пуста</div>';return;}
+    el.innerHTML=entries.map(([id,c])=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #3a1010;border-radius:14px;background:#0b1726;margin-bottom:8px">
+        ${c.imageUrl?`<img src="${escapeHTML(c.imageUrl)}" style="width:44px;height:44px;border-radius:10px;object-fit:cover">`:`<div style="font-size:28px;width:44px;text-align:center">🎁</div>`}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:900">${escapeHTML(c.name||"Кейс")}</div>
+          <div style="font-size:11px;color:#8295ad">${c.cost||0} 💎 • Удалён: ${c.deletedAt?new Date(c.deletedAt).toLocaleString("ru"):"—"}</div>
+        </div>
+        <button style="background:#0d2240;border:1px solid #254a6e;color:#7dd3fc;padding:7px 10px;border-radius:9px;font-size:12px;margin-right:4px" onclick="adminRestoreCase('${id}')">♻️</button>
+        <button style="background:#3a1010;border:1px solid #6b2222;color:#fca5a5;padding:7px 10px;border-radius:9px;font-size:12px" onclick="adminPermanentDeleteCase('${id}')">❌</button>
+      </div>
+    `).join("");
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+
+async function adminRestoreCase(id){
+  try{
+    const snap=await db.ref("prognozer/adminCasesTrash/"+id).once("value");
+    const c=snap.val();
+    if(!c)return toast("Кейс не найден");
+    const {deletedAt,...caseData}=c;
+    await db.ref("prognozer/adminCases").push(caseData);
+    await db.ref("prognozer/adminCasesTrash/"+id).remove();
+    toast("✅ Кейс восстановлен");
+    adminManageCasesTrash();
+    loadAdminCases();
+  }catch(e){toast("Ошибка: "+e.message);}
+}
+
+async function adminPermanentDeleteCase(id){
+  if(!confirm("Удалить навсегда? Это нельзя отменить!"))return;
+  try{
+    await db.ref("prognozer/adminCasesTrash/"+id).remove();
+    toast("✅ Кейс удалён навсегда");
+    adminManageCasesTrash();
   }catch(e){toast("Ошибка: "+e.message);}
 }
 
@@ -14740,7 +14849,8 @@ async function loadAdminShopToFront(){
     const snap=await db.ref("prognozer/adminShop").once("value");
     const data=snap.val()||{};
     adminShopItems=Object.entries(data).map(([id,s])=>({...s,id}));
-    renderDynamicShop();
+    window._adminShopItems=adminShopItems.map(s=>({...s,_id:s.id}));
+    renderShop();
   }catch(e){}
 }
 
@@ -14786,7 +14896,7 @@ function renderDynamicShop(){
 
 async function buyAdminShopItem(id){
   if(!guestMode&&!window.__firebaseLoaded)return toast("⏳ Загрузка…");
-  const item=adminShopItems.find(s=>s.id===id);
+  const item=adminShopItems.find(s=>s.id===id||s._id===id);
   if(!item)return;
   const price=item.buyPrice||item.price||0;
   if(state.balance<price)return toast("Не хватает 💎 (нужно "+price+", у вас "+state.balance+")");
@@ -14842,7 +14952,7 @@ async function openAdminCase(caseId){
   if(!c)return;
   if(state.balance<(c.cost||0))return toast("Не хватает 💎");
   const luck=getLuckBonus();
-  const available=(c.drops||[]).filter(d=>!d.maxCount||((d.droppedCount||0)<d.maxCount));
+  const available=(c.drops||[]).filter(d=>!(parseInt(d.maxCount)>0)||((parseInt(d.droppedCount)||0)<parseInt(d.maxCount)));
   if(!available.length)return toast("Все предметы в этом кейсе закончились");
   state.balance-=(c.cost||0);
   state.statistics.casesOpened=(state.statistics.casesOpened||0)+1;
@@ -14865,7 +14975,7 @@ async function openAdminCase(caseId){
 
 function pickWithLuck(drops,luckBonus){
   const adjusted=drops.map(d=>{
-    const baseChance=d.chance||10;
+    const baseChance=parseFloat(d.chance)||10;
     const bonus=d.price>1000?luckBonus:0;
     return{...d,adjustedChance:baseChance+bonus};
   });
@@ -14919,12 +15029,18 @@ function showAdminCaseOpeningOverlay(c,drop){
    IMAGES IN POSTS — Silver, Gold, Platinum (canImage ranks)
 ========================================================= */
 
-const SAFE_IMG_DOMAINS=["i.imgur.com","imgur.com","i.ibb.co","postimages.org","i.postimg.cc","cdn.discordapp.com","media.discordapp.net","images.unsplash.com","ibb.co","media.tenor.com","c.tenor.com"];
+const SAFE_IMG_DOMAINS=["i.imgur.com","imgur.com","i.ibb.co","ibb.co","ibb.co.com","postimages.org","i.postimg.cc","cdn.discordapp.com","media.discordapp.net","images.unsplash.com","media.tenor.com","c.tenor.com","gyazo.com","i.gyazo.com","prnt.sc","steamcommunity-a.akamaihd.net"];
 
 function isSafeImageUrl(url){
+  if(!url||typeof url!=="string")return false;
   try{
     const u=new URL(url);
-    return(u.protocol==="https:"||u.protocol==="http:")&&SAFE_IMG_DOMAINS.some(d=>u.hostname===d||u.hostname.endsWith("."+d));
+    if(u.protocol!=="https:"&&u.protocol!=="http:")return false;
+    if(SAFE_IMG_DOMAINS.some(d=>u.hostname===d||u.hostname.endsWith("."+d)))return true;
+    // Allow direct image file links from any host as fallback
+    const path=u.pathname.toLowerCase();
+    if(/\.(jpg|jpeg|png|gif|webp)(\?|$)/.test(path+u.search))return true;
+    return false;
   }catch(e){return false;}
 }
 
