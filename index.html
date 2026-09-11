@@ -674,10 +674,7 @@ button:active{transform:scale(.97)}
   <div class="hs-top">
     <div class="hs-clock-big" id="hsClockBig">--:--</div>
     <div class="hs-date-str" id="hsDateStr"></div>
-    <div class="hs-msk-badge">
-      <span class="hs-msk-dot"></span>
-      МСК <span id="hsMskTime">--:--</span>
-    </div>
+
   </div>
 
   <!-- app grid -->
@@ -925,12 +922,10 @@ const MONTHS = ['января','февраля','марта','апреля','м�
 let serverDeltaMs = null;
 
 function getMskNow(){
-  if(serverDeltaMs !== null){
-    // точное серверное МСК
-    return new Date(Date.now() + serverDeltaMs);
-  }
-  // быстрый fallback через Intl (не зависит от локального часового пояса)
-  const mskStr = new Date().toLocaleString('en-US',{timeZone:'Europe/Moscow'});
+  // берём реальное UTC-время (скорректированное с сервером если есть)
+  const utcMs = serverDeltaMs !== null ? Date.now() + serverDeltaMs : Date.now();
+  // всегда конвертируем в МСК через Intl — не зависит от локального часового пояса
+  const mskStr = new Date(utcMs).toLocaleString('en-US',{timeZone:'Europe/Moscow'});
   return new Date(mskStr);
 }
 
@@ -968,9 +963,8 @@ async function fetchServerMskTime(){
   try{
     const r = await fetch('https://worldtimeapi.org/api/timezone/Europe/Moscow');
     const d = await r.json();
-    // unixtime — секунды UTC; для МСК (UTC+3) прибавляем 3 часа
-    const mskMs = d.unixtime * 1000 + 3 * 3600 * 1000;
-    serverDeltaMs = mskMs - Date.now();
+    // unixtime — секунды UTC; getMskNow() сам переведёт в МСК через Intl
+    serverDeltaMs = d.unixtime * 1000 - Date.now();
     updateClock();
   }catch(e){
     // fallback уже работает через Intl в getMskNow()
