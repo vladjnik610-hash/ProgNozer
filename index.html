@@ -918,13 +918,19 @@ const DAYS   = ['вс','пн','вт','ср','чт','пт','сб'];
 const MONTHS = ['января','февраля','марта','апреля','мая','июня',
                 'июля','августа','сентября','октября','ноября','декабря'];
 
-// serverDeltaMs: сколько прибавить к Date.now() чтобы получить МСК
-let serverDeltaMs = null;
+// Якорь серверного времени — не зависит от локальных часов устройства
+let serverStartMs  = null;   // абсолютное UTC-время в момент ответа сервера (мс)
+let clientStartPerf = null;  // performance.now() в тот же момент
 
 function getMskNow(){
-  // берём реальное UTC-время (скорректированное с сервером если есть)
-  const utcMs = serverDeltaMs !== null ? Date.now() + serverDeltaMs : Date.now();
-  // всегда конвертируем в МСК через Intl — не зависит от локального часового пояса
+  let utcMs;
+  if(serverStartMs !== null){
+    // performance.now() монотонен и НЕ меняется при смене часов на устройстве
+    utcMs = serverStartMs + (performance.now() - clientStartPerf);
+  } else {
+    utcMs = Date.now();
+  }
+  // конвертируем UTC → МСК через Intl — не зависит от локального часового пояса
   const mskStr = new Date(utcMs).toLocaleString('en-US',{timeZone:'Europe/Moscow'});
   return new Date(mskStr);
 }
@@ -963,8 +969,10 @@ async function fetchServerMskTime(){
   try{
     const r = await fetch('https://worldtimeapi.org/api/timezone/Europe/Moscow');
     const d = await r.json();
-    // unixtime — секунды UTC; getMskNow() сам переведёт в МСК через Intl
-    serverDeltaMs = d.unixtime * 1000 - Date.now();
+    // Фиксируем серверное UTC-время и монотонный счётчик в одной точке.
+    // После этого performance.now() отсчитывает время независимо от часов устройства.
+    serverStartMs   = d.unixtime * 1000;
+    clientStartPerf = performance.now();
     updateClock();
   }catch(e){
     // fallback уже работает через Intl в getMskNow()
