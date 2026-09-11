@@ -925,44 +925,21 @@ let serverStartMs   = 0;      // UTC-время в момент ответа с�
 let clientStartPerf = 0;      // performance.now() в тот же момент
 let serverReady     = false;  // true после первого успешного запроса
 
-// Возвращает объект {h, m, s, day, date, month} в МСК
-// или null если синхронизация ещё не выполнена.
-// Никогда не обращается к Date.now() или локальным часам устройства.
 function getMskNow(){
   if(!serverReady) return null;
 
-  // performance.now() монотонен: не прыгает при смене часов на устройстве
   const utcMs = serverStartMs + (performance.now() - clientStartPerf);
 
-  // Разбираем UTC вручную — без toLocaleString/new Date(строка),
-  // которые прогоняют время через локальный часовой пояс устройства.
-  // МСК = UTC+3, больше никаких зависимостей от окружения.
-  const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
-  const mskMs  = utcMs + MSK_OFFSET_MS;
-  const mskSec = Math.floor(mskMs / 1000);
+  const d = new Date(utcMs + 3 * 60 * 60 * 1000);
 
-  const s    = mskSec % 60;
-  const m    = Math.floor(mskSec / 60) % 60;
-  const h    = Math.floor(mskSec / 3600) % 24;
-
-  // Для даты: количество дней с эпохи (UTC+3)
-  const daysSinceEpoch = Math.floor(mskMs / 86400000);
-  // Алгоритм Фликерингера для гражданского календаря
-  const z = daysSinceEpoch + 719468;
-  const era = Math.floor((z >= 0 ? z : z - 146096) / 146097);
-  const doe = z - era * 146097;
-  const yoe = Math.floor((doe - Math.floor(doe/1460) + Math.floor(doe/36524) - Math.floor(doe/146096)) / 365);
-  const y   = yoe + era * 400;
-  const doy = doe - (365*yoe + Math.floor(yoe/4) - Math.floor(yoe/100));
-  const mp  = Math.floor((5*doy + 2) / 153);
-  const d   = doy - Math.floor((153*mp + 2) / 5) + 1;
-  const mo  = mp + (mp < 10 ? 2 : -10);
-  const yr  = y + (mo <= 1 ? 1 : 0);
-
-  // День недели: 0=вс … 6=сб
-  const dow = ((daysSinceEpoch % 7) + 4) % 7;
-
-  return { h, m, s, day: dow, date: d, month: mo };
+  return {
+    h:     d.getUTCHours(),
+    m:     d.getUTCMinutes(),
+    s:     d.getUTCSeconds(),
+    day:   d.getUTCDay(),
+    date:  d.getUTCDate(),
+    month: d.getUTCMonth()
+  };
 }
 
 function fmt2(n){ return String(n).padStart(2,'0'); }
@@ -1003,7 +980,7 @@ async function fetchServerMskTime(){
                           {cache:'no-store'});
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d = await r.json();
-    serverStartMs   = d.unixtime * 1000;
+    serverStartMs   = Date.parse(d.utc_datetime);
     clientStartPerf = performance.now();
     serverReady     = true;
     updateClock();
