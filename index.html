@@ -7,1668 +7,367 @@
 
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
-
-html,body{
-  min-height:100%;
-  font-family:Arial,Helvetica,sans-serif;
-  color:#1a2a45
-}
-
+html,body{min-height:100%;font-family:Arial,Helvetica,sans-serif;color:#1a2a45}
 button{border:0;cursor:pointer;font-family:inherit}
 button:active{transform:scale(.97)}
 
-/* ================= AUTH SCREEN ================= */
-
-.auth-screen{
-  position:fixed;
-  inset:0;
-  z-index:200;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:24px;
-  background:
-    radial-gradient(ellipse at 30% 0%,#ffffff 0%,#cde5ff 30%,#a8cdf0 60%,#c5ddf7 100%);
-  overflow:hidden
-}
-
-.auth-screen::before,
-.auth-screen::after{
-  content:"";
-  position:absolute;
-  border-radius:50%;
-  pointer-events:none
-}
-
-.auth-screen::before{
-  width:500px;height:500px;
-  background:radial-gradient(circle,rgba(255,255,255,.7) 0%,rgba(180,218,255,.4) 50%,transparent 70%);
-  top:-180px;left:-120px
-}
-
-.auth-screen::after{
-  width:400px;height:400px;
-  background:radial-gradient(circle,rgba(160,205,245,.5) 0%,transparent 65%);
-  bottom:-120px;right:-80px
-}
-
-.auth-box{
-  width:min(380px,100%);
-  padding:36px 28px 30px;
-  border-radius:32px;
-  background:rgba(255,255,255,0.75);
-  backdrop-filter:blur(28px);
-  -webkit-backdrop-filter:blur(28px);
-  border:1.5px solid rgba(255,255,255,0.9);
-  box-shadow:0 24px 80px rgba(60,110,180,.16),0 2px 10px rgba(255,255,255,.8) inset;
-  text-align:center;
-  position:relative;
-  z-index:1
-}
-
-.auth-app-icon{
-  width:76px;
-  height:76px;
-  border-radius:20px;
-  background:linear-gradient(145deg,#5ab5ff,#1a7de8);
-  margin:0 auto 16px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 10px 28px rgba(26,125,232,.38)
-}
-
-.auth-app-icon svg{
-  width:42px;height:42px;fill:#fff
-}
-
-.auth-logo{
-  font-size:34px;
-  font-weight:900;
-  letter-spacing:-1.2px;
-  background:linear-gradient(135deg,#1a2a4a 40%,#2a7fff 100%);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  background-clip:text;
-  margin-bottom:16px
-}
-
-.auth-box h2{
-  font-size:26px;
-  font-weight:900;
-  color:#1a2a45;
-  margin-bottom:8px
-}
-
-.auth-box p{
-  color:#6a85a8;
-  line-height:1.55;
-  font-size:15px
-}
-
-.auth-buttons{
-  margin-top:28px
-}
-
-.auth-google{
-  width:100%;
-  background:#fff;
-  color:#1a2a45;
-  padding:15px 20px;
-  border-radius:50px;
-  font-weight:800;
-  font-size:16px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  box-shadow:0 4px 18px rgba(0,0,0,.11);
-  border:1.5px solid rgba(210,225,245,.9);
-  transition:.15s
-}
-
-.auth-google:hover{
-  box-shadow:0 6px 24px rgba(0,0,0,.16)
-}
-
-.auth-status{
-  min-height:18px;
-  margin-top:16px;
-  color:#7a95b8;
-  font-size:13px
-}
-
-.auth-terms{
-  margin-top:14px;
-  font-size:12px;
-  color:#8aa4c2;
-  line-height:1.6
-}
-
-.auth-terms a{
-  color:#2a7fff;
-  text-decoration:underline
-}
-
-/* ================= SYNC LOCK SCREEN ================= */
-
-.sync-screen{
-  position:fixed;
-  inset:0;
-  z-index:300;
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  background:
-    radial-gradient(ellipse at 30% 0%,#ffffff 0%,#cde5ff 30%,#a8cdf0 60%,#c5ddf7 100%);
-  overflow:hidden;
-  user-select:none;
-  -webkit-user-select:none
-}
-
-.sync-screen.visible{
-  display:flex
-}
-
-.sync-screen::before{
-  content:"";
-  position:absolute;
-  width:600px;height:600px;
-  border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,.6) 0%,rgba(180,218,255,.3) 50%,transparent 70%);
-  top:-200px;left:-150px;
-  pointer-events:none
-}
-
-.sync-screen::after{
-  content:"";
-  position:absolute;
-  width:400px;height:400px;
-  border-radius:50%;
-  background:radial-gradient(circle,rgba(160,205,245,.4) 0%,transparent 65%);
-  bottom:-120px;right:-80px;
-  pointer-events:none
-}
-
-.sync-lock{
-  position:relative;
-  z-index:1;
-  text-align:center;
-  margin-bottom:48px
-}
-
-.lock-icon{
-  width:72px;
-  height:72px;
-  margin:0 auto 24px;
-  position:relative
-}
-
-.lock-icon svg{
-  width:72px;
-  height:72px;
-  filter:drop-shadow(0 8px 20px rgba(26,125,232,.3))
-}
-
-.lock-ring{
-  position:absolute;
-  inset:-12px;
-  border-radius:50%;
-  border:2px solid rgba(42,127,255,.3);
-  animation:ringPulse 2s ease-in-out infinite
-}
-
-.lock-ring:nth-child(2){
-  inset:-24px;
-  border-color:rgba(42,127,255,.15);
-  animation-delay:.4s
-}
-
-@keyframes ringPulse{
-  0%,100%{opacity:0;transform:scale(.85)}
-  50%{opacity:1;transform:scale(1)}
-}
-
-.sync-time{
-  font-size:72px;
-  font-weight:200;
-  letter-spacing:-2px;
-  color:#1a2a45;
-  line-height:1;
-  margin-bottom:8px
-}
-
-.sync-date{
-  font-size:17px;
-  color:#4a6080;
-  font-weight:500;
-  margin-bottom:0
-}
-
-.sync-card{
-  position:relative;
-  z-index:1;
-  width:min(340px,90vw);
-  padding:20px 22px;
-  border-radius:22px;
-  background:rgba(255,255,255,.72);
-  backdrop-filter:blur(24px);
-  -webkit-backdrop-filter:blur(24px);
-  border:1.5px solid rgba(255,255,255,.9);
-  box-shadow:0 16px 48px rgba(60,110,180,.14),0 2px 8px rgba(255,255,255,.7) inset;
-  margin-bottom:20px
-}
-
-.sync-card-header{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin-bottom:14px
-}
-
-.sync-card-icon{
-  width:38px;height:38px;
-  border-radius:10px;
-  background:linear-gradient(145deg,#5ab5ff,#1a7de8);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
-  box-shadow:0 4px 12px rgba(26,125,232,.3)
-}
-
-.sync-card-icon svg{
-  width:20px;height:20px;fill:#fff
-}
-
-.sync-card-title{
-  font-size:15px;
-  font-weight:700;
-  color:#1a2a45
-}
-
-.sync-card-sub{
-  font-size:12px;
-  color:#6a85a8;
-  margin-top:2px
-}
-
-.sync-bar-bg{
-  height:6px;
-  border-radius:99px;
-  background:rgba(42,127,255,.12);
-  overflow:hidden
-}
-
-.sync-bar-fill{
-  height:100%;
-  border-radius:99px;
-  background:linear-gradient(90deg,#5ab5ff,#1a7de8);
-  width:0%;
-  transition:width .4s ease;
-  position:relative;
-  overflow:hidden
-}
-
-.sync-bar-fill::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.4) 50%,transparent 100%);
-  animation:shimmer 1.4s ease-in-out infinite
-}
-
-@keyframes shimmer{
-  0%{transform:translateX(-100%)}
-  100%{transform:translateX(100%)}
-}
-
-.sync-bar-label{
-  display:flex;
-  justify-content:space-between;
-  margin-top:8px;
-  font-size:12px;
-  color:#6a85a8
-}
-
-.sync-swipe-hint{
-  position:relative;
-  z-index:1;
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  gap:8px;
-  color:#4a6080;
-  font-size:14px;
-  font-weight:500;
-  animation:fadeIn .6s ease
-}
-
-.sync-swipe-hint.visible{
-  display:flex
-}
-
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(8px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-.swipe-arrow{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  animation:bounce 1.4s ease-in-out infinite
-}
-
-.swipe-arrow span{
-  display:block;
-  width:24px;height:3px;
-  border-radius:99px;
-  background:rgba(42,127,255,.5)
-}
-
-.swipe-arrow span:nth-child(1){opacity:.4}
-.swipe-arrow span:nth-child(2){opacity:.7}
-.swipe-arrow span:nth-child(3){opacity:1}
-
-@keyframes bounce{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-6px)}
-}
-
-/* ================= MAIN SCREEN ================= */
-
-.main-screen{
-  position:fixed;
-  inset:0;
-  z-index:400;
-  display:none;
-  flex-direction:column;
-  background:
-    radial-gradient(ellipse at 30% 0%,#ffffff 0%,#cde5ff 30%,#a8cdf0 60%,#c5ddf7 100%);
-  overflow:hidden;
-  user-select:none;
-  -webkit-user-select:none
-}
-
-.main-screen.visible{
-  display:flex;
-  animation:slideUp .5s cubic-bezier(.22,.8,.35,1) both
-}
-
-@keyframes slideUp{
-  from{opacity:0;transform:translateY(40px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-.main-screen::before,
-.main-screen::after{
-  content:"";
-  position:absolute;
-  border-radius:50%;
-  pointer-events:none
-}
-
-.main-screen::before{
-  width:600px;height:600px;
-  background:radial-gradient(circle,rgba(255,255,255,.5) 0%,rgba(180,218,255,.25) 50%,transparent 70%);
-  top:-220px;left:-160px
-}
-
-.main-screen::after{
-  width:420px;height:420px;
-  background:radial-gradient(circle,rgba(160,205,245,.4) 0%,transparent 65%);
-  bottom:-130px;right:-80px
-}
-
-/* STATUS BAR */
-
-.hs-status{
-  position:relative;z-index:2;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 20px 4px;
-  font-size:13px;font-weight:700;color:#1a2a45
-}
-
-.hs-status-time{
-  font-size:14px;
-  font-weight:800
-}
-
-.hs-status-icons{
-  display:flex;
-  align-items:center;
-  gap:6px
-}
-
-.hs-status-icons svg{
-  width:16px;
-  height:16px;
-  fill:#1a2a45
-}
-
-.hs-status-batt{
-  display:flex;
-  align-items:center;
-  gap:3px;
-  font-size:12px;
-  font-weight:700;
-  color:#1a2a45
-}
-
-/* TOP TIME CARD */
-
-.hs-top{
-  position:relative;z-index:2;
-  text-align:center;
-  padding:16px 20px 8px
-}
-
-.hs-clock-big{
-  font-size:66px;
-  font-weight:200;
-  letter-spacing:-2.5px;
-  color:#1a2a45;
-  line-height:1
-}
-
-.hs-date-str{
-  font-size:16px;
-  font-weight:600;
-  color:#4a6080;
-  margin-top:4px
-}
-
-.hs-msk-badge{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  margin-top:6px;
-  padding:4px 12px;
-  border-radius:99px;
-  background:rgba(42,127,255,.1);
-  color:#1a7de8;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.4px
-}
-
-.hs-msk-dot{
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:#1a7de8;
-  animation:blink 1.4s ease-in-out infinite
-}
-
-@keyframes blink{
-  0%,100%{opacity:.3}
-  50%{opacity:1}
-}
-
-/* APP GRID */
-
-.hs-grid-wrap{
-  position:relative;z-index:2;
-  flex:1;
-  padding:12px 20px 0;
-  overflow:hidden
-}
-
-.hs-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:18px 10px
-}
-
-.hs-app{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:6px;
-  cursor:pointer
-}
-
-.hs-app:active .hs-app-icon{
-  transform:scale(.9)
-}
-
-.hs-app-icon{
-  width:60px;
-  height:60px;
-  border-radius:16px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:transform .12s;
-  position:relative;
-  overflow:hidden
-}
-
-.hs-app-icon::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(145deg,rgba(255,255,255,.28) 0%,transparent 55%);
-  pointer-events:none
-}
-
-.hs-app-icon svg{
-  width:32px;
-  height:32px
-}
-
-/* Картинки-иконки */
-.hs-app-icon img{
-  width:100%;
-  height:100%;
-  display:block;
-  object-fit:cover;
-  position:relative;
-  z-index:0
-}
-
-.hs-app-label{
-  font-size:10.5px;
-  font-weight:600;
-  color:#1a2a45;
-  text-align:center;
-  line-height:1.2;
-  max-width:64px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap
-}
-
-/* PAGE DOTS */
-
-.hs-dots{
-  position:relative;z-index:2;
-  display:flex;
-  justify-content:center;
-  gap:6px;
-  padding:10px 0
-}
-
-.hs-dot{
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:rgba(26,42,69,.2)
-}
-
-.hs-dot.active{
-  background:#1a7de8;
-  width:18px;
-  border-radius:99px
-}
-
-/* DOCK */
-
-.hs-dock{
-  position:relative;z-index:2;
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  padding:6px 20px 6px;
-  margin:0 16px 8px;
-  background:rgba(255,255,255,.55);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  border:1.5px solid rgba(255,255,255,.9);
-  border-radius:22px;
-  box-shadow:0 8px 28px rgba(60,110,180,.13)
-}
-
-.hs-dock .hs-app-icon{
-  width:44px;
-  height:44px;
-  border-radius:12px
-}
-
-.hs-dock .hs-app-icon svg{
-  width:24px;
-  height:24px
-}
-
-.hs-dock .hs-app-label{
-  font-size:9.5px
-}
-
-/* NAV BAR */
-
-.hs-navbar{
-  position:relative;z-index:2;
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-  padding:2px 0 8px
-}
-
-.hs-nav-btn{
-  background:none;
-  padding:3px 16px;
-  opacity:.55
-}
-
-.hs-nav-btn svg{
-  width:18px;
-  height:18px;
-  fill:#1a2a45
-}
+.auth-screen{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 30% 0%,#ffffff 0%,#cde5ff 30%,#a8cdf0 60%,#c5ddf7 100%);overflow:hidden}
+.auth-screen::before,.auth-screen::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.auth-screen::before{width:500px;height:500px;background:radial-gradient(circle,rgba(255,255,255,.7) 0%,rgba(180,218,255,.4) 50%,transparent 70%);top:-180px;left:-120px}
+.auth-screen::after{width:400px;height:400px;background:radial-gradient(circle,rgba(160,205,245,.5) 0%,transparent 65%);bottom:-120px;right:-80px}
+.auth-box{width:min(380px,100%);padding:36px 28px 30px;border-radius:32px;background:rgba(255,255,255,0.75);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 24px 80px rgba(60,110,180,.16),0 2px 10px rgba(255,255,255,.8) inset;text-align:center;position:relative;z-index:1}
+.auth-app-icon{width:76px;height:76px;border-radius:20px;background:linear-gradient(145deg,#5ab5ff,#1a7de8);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(26,125,232,.38)}
+.auth-app-icon svg{width:42px;height:42px;fill:#fff}
+.auth-logo{font-size:34px;font-weight:900;letter-spacing:-1.2px;background:linear-gradient(135deg,#1a2a4a 40%,#2a7fff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+.auth-box h2{font-size:26px;font-weight:900;color:#1a2a45;margin-bottom:8px}
+.auth-box p{color:#6a85a8;line-height:1.55;font-size:15px}
+.auth-buttons{margin-top:28px}
+.auth-google{width:100%;background:#fff;color:#1a2a45;padding:15px 20px;border-radius:50px;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 4px 18px rgba(0,0,0,.11);border:1.5px solid rgba(210,225,245,.9);transition:.15s}
+.auth-google:hover{box-shadow:0 6px 24px rgba(0,0,0,.16)}
+.auth-status{min-height:18px;margin-top:16px;color:#7a95b8;font-size:13px}
+.auth-terms{margin-top:14px;font-size:12px;color:#8aa4c2;line-height:1.6}
+.auth-terms a{color:#2a7fff;text-decoration:underline}
+
+.sync-screen{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 0%,#ffffff 0%,#cde5ff 30%,#a8cdf0 60%,#c5ddf7 100%);overflow:hidden;user-select:none;-webkit-user-select:none}
+.sync-screen.visible{display:flex}
+.sync-screen::before{content:"";position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.6) 0%,rgba(180,218,255,.3) 50%,transparent 70%);top:-200px;left:-150px;pointer-events:none}
+.sync-screen::after{content:"";position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(160,205,245,.4) 0%,transparent 65%);bottom:-120px;right:-80px;pointer-events:none}
+.sync-lock{position:relative;z-index:1;text-align:center;margin-bottom:48px}
+.lock-icon{width:72px;height:72px;margin:0 auto 24px;position:relative}
+.lock-icon svg{width:72px;height:72px;filter:drop-shadow(0 8px 20px rgba(26,125,232,.3))}
+.lock-ring{position:absolute;inset:-12px;border-radius:50%;border:2px solid rgba(42,127,255,.3);animation:ringPulse 2s ease-in-out infinite}
+.lock-ring:nth-child(2){inset:-24px;border-color:rgba(42,127,255,.15);animation-delay:.4s}
+@keyframes ringPulse{0%,100%{opacity:0;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+.sync-time{font-size:72px;font-weight:200;letter-spacing:-2px;color:#1a2a45;line-height:1;margin-bottom:8px}
+.sync-date{font-size:17px;color:#4a6080;font-weight:500;margin-bottom:0}
+.sync-card{position:relative;z-index:1;width:min(340px,90vw);padding:20px 22px;border-radius:22px;background:rgba(255,255,255,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid rgba(255,255,255,.9);box-shadow:0 16px 48px rgba(60,110,180,.14),0 2px 8px rgba(255,255,255,.7) inset;margin-bottom:20px}
+.sync-card-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sync-card-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(145deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(26,125,232,.3)}
+.sync-card-icon svg{width:20px;height:20px;fill:#fff}
+.sync-card-title{font-size:15px;font-weight:700;color:#1a2a45}
+.sync-card-sub{font-size:12px;color:#6a85a8;margin-top:2px}
+.sync-bar-bg{height:6px;border-radius:99px;background:rgba(42,127,255,.12);overflow:hidden}
+.sync-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#5ab5ff,#1a7de8);width:0%;transition:width .4s ease;position:relative;overflow:hidden}
+.sync-bar-fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.4) 50%,transparent 100%);animation:shimmer 1.4s ease-in-out infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.sync-bar-label{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#6a85a8}
+.sync-swipe-hint{position:relative;z-index:1;display:none;flex-direction:column;align-items:center;gap:8px;color:#4a6080;font-size:14px;font-weight:500;animation:fadeIn .6s ease}
+.sync-swipe-hint.visible{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.swipe-arrow{display:flex;flex-direction:column;gap:4px;animation:bounce 1.4s ease-in-out infinite}
+.swipe-arrow span{display:block;width:24px;height:3px;border-radius:99px;background:rgba(42,127,255,.5)}
+.swipe-arrow span:nth-child(1){opacity:.4}.swipe-arrow span:nth-child(2){opacity:.7}.swipe-arrow span:nth-child(3){opacity:1}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+.main-screen{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;background:radial-gradient(ellipse at 30% 0%,#ffffff 0%,#cde5ff 30%,#a8cdf0 60%,#c5ddf7 100%);overflow:hidden;user-select:none;-webkit-user-select:none}
+.main-screen.visible{display:flex;animation:slideUp .5s cubic-bezier(.22,.8,.35,1) both}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.main-screen::before,.main-screen::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.main-screen::before{width:600px;height:600px;background:radial-gradient(circle,rgba(255,255,255,.5) 0%,rgba(180,218,255,.25) 50%,transparent 70%);top:-220px;left:-160px}
+.main-screen::after{width:420px;height:420px;background:radial-gradient(circle,rgba(160,205,245,.4) 0%,transparent 65%);bottom:-130px;right:-80px}
+
+.hs-status{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 20px 4px;font-size:13px;font-weight:700;color:#1a2a45}
+.hs-status-time{font-size:14px;font-weight:800}
+.hs-status-icons{display:flex;align-items:center;gap:6px}
+.hs-status-icons svg{width:16px;height:16px;fill:#1a2a45}
+.hs-status-batt{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:700;color:#1a2a45}
+
+.hs-top{position:relative;z-index:2;text-align:center;padding:16px 20px 8px}
+.hs-clock-big{font-size:66px;font-weight:200;letter-spacing:-2.5px;color:#1a2a45;line-height:1}
+.hs-date-str{font-size:16px;font-weight:600;color:#4a6080;margin-top:4px}
+.hs-msk-badge{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 12px;border-radius:99px;background:rgba(42,127,255,.1);color:#1a7de8;font-size:11px;font-weight:700;letter-spacing:.4px}
+.hs-msk-dot{width:6px;height:6px;border-radius:50%;background:#1a7de8;animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+
+.hs-grid-wrap{position:relative;z-index:2;flex:1;padding:12px 20px 0;overflow:hidden}
+.hs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px}
+.hs-app{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.hs-app:active .hs-app-icon{transform:scale(.9)}
+.hs-app-icon{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;transition:transform .12s;position:relative;overflow:hidden}
+.hs-app-icon::after{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.28) 0%,transparent 55%);pointer-events:none}
+.hs-app-icon svg{width:32px;height:32px}
+.hs-app-icon img{width:100%;height:100%;display:block;object-fit:cover;position:relative;z-index:0}
+.hs-app-label{font-size:10.5px;font-weight:600;color:#1a2a45;text-align:center;line-height:1.2;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.hs-dots{position:relative;z-index:2;display:flex;justify-content:center;gap:6px;padding:10px 0}
+.hs-dot{width:7px;height:7px;border-radius:50%;background:rgba(26,42,69,.2)}
+.hs-dot.active{background:#1a7de8;width:18px;border-radius:99px}
+.hs-dock{position:relative;z-index:2;display:flex;justify-content:center;gap:20px;padding:6px 20px 6px;margin:0 16px 8px;background:rgba(255,255,255,.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1.5px solid rgba(255,255,255,.9);border-radius:22px;box-shadow:0 8px 28px rgba(60,110,180,.13)}
+.hs-dock .hs-app-icon{width:44px;height:44px;border-radius:12px}
+.hs-dock .hs-app-icon svg{width:24px;height:24px}
+.hs-dock .hs-app-label{font-size:9.5px}
+.hs-navbar{position:relative;z-index:2;display:flex;justify-content:space-around;align-items:center;padding:2px 0 8px}
+.hs-nav-btn{background:none;padding:3px 16px;opacity:.55}
+.hs-nav-btn svg{width:18px;height:18px;fill:#1a2a45}
 </style>
 </head>
 
 <body>
 
-<!-- AUTH SCREEN -->
-
 <div class="auth-screen" id="authScreen">
   <div class="auth-box">
-
     <div class="auth-app-icon">
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 28l5-14h34l5 14"
-              stroke="#fff"
-              stroke-width="2"
-              fill="none"
-              stroke-linecap="round"/>
-        <rect x="6" y="28" width="52" height="18" rx="6"
-              fill="#fff"
-              opacity=".95"/>
-        <circle cx="18" cy="46" r="6" fill="#1a7de8"/>
-        <circle cx="18" cy="46" r="3" fill="#fff"/>
-        <circle cx="46" cy="46" r="6" fill="#1a7de8"/>
-        <circle cx="46" cy="46" r="3" fill="#fff"/>
+        <path d="M10 28l5-14h34l5 14" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <rect x="6" y="28" width="52" height="18" rx="6" fill="#fff" opacity=".95"/>
+        <circle cx="18" cy="46" r="6" fill="#1a7de8"/><circle cx="18" cy="46" r="3" fill="#fff"/>
+        <circle cx="46" cy="46" r="6" fill="#1a7de8"/><circle cx="46" cy="46" r="3" fill="#fff"/>
         <rect x="12" y="32" width="12" height="8" rx="2" fill="#5ab5ff"/>
         <rect x="40" y="32" width="12" height="8" rx="2" fill="#5ab5ff"/>
         <rect x="26" y="32" width="12" height="8" rx="2" fill="#5ab5ff"/>
       </svg>
     </div>
-
     <div class="auth-logo">CarProg</div>
-
     <h2>Добро пожаловать 👋</h2>
-
-    <p>
-      Для доступа к CarProg<br>
-      необходимо войти через Google.
-    </p>
-
+    <p>Для доступа к CarProg<br>необходимо войти через Google.</p>
     <div class="auth-buttons">
-
       <button class="auth-google" id="authGoogleBtn">
-
-        <svg width="22" height="22"
-             viewBox="0 0 24 24"
-             xmlns="http://www.w3.org/2000/svg">
-
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                fill="#4285F4"/>
-
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#34A853"/>
-
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-                fill="#FBBC05"/>
-
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                fill="#EA4335"/>
-
+        <svg width="22" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
         </svg>
-
         Продолжить с Google
-
       </button>
-
     </div>
-
     <div class="auth-status" id="authStatus"></div>
-
-    <div class="auth-terms">
-      Продолжая, вы соглашаетесь с
-      <a href="#">Условиями использования</a><br>
-      и <a href="#">политикой конфиденциальности</a>.
-    </div>
-
+    <div class="auth-terms">Продолжая, вы соглашаетесь с <a href="#">Условиями использования</a><br>и <a href="#">политикой конфиденциальности</a>.</div>
   </div>
 </div>
-
-
-<!-- SYNC LOCK SCREEN -->
 
 <div class="sync-screen" id="syncScreen">
-
   <div class="sync-lock">
-
     <div class="lock-icon">
-
-      <div class="lock-ring"></div>
-      <div class="lock-ring"></div>
-
+      <div class="lock-ring"></div><div class="lock-ring"></div>
       <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
-
-        <rect x="14" y="32"
-              width="44"
-              height="30"
-              rx="8"
-              fill="#1a7de8"
-              opacity=".15"/>
-
-        <rect x="14" y="32"
-              width="44"
-              height="30"
-              rx="8"
-              fill="none"
-              stroke="#1a7de8"
-              stroke-width="2.5"/>
-
-        <path d="M24 32v-8a12 12 0 0124 0v8"
-              fill="none"
-              stroke="#1a7de8"
-              stroke-width="2.5"
-              stroke-linecap="round"/>
-
+        <rect x="14" y="32" width="44" height="30" rx="8" fill="#1a7de8" opacity=".15"/>
+        <rect x="14" y="32" width="44" height="30" rx="8" fill="none" stroke="#1a7de8" stroke-width="2.5"/>
+        <path d="M24 32v-8a12 12 0 0124 0v8" fill="none" stroke="#1a7de8" stroke-width="2.5" stroke-linecap="round"/>
         <circle cx="36" cy="48" r="4" fill="#1a7de8"/>
-
-        <rect x="34.5" y="48"
-              width="3"
-              height="6"
-              rx="1.5"
-              fill="#1a7de8"/>
-
+        <rect x="34.5" y="48" width="3" height="6" rx="1.5" fill="#1a7de8"/>
       </svg>
-
     </div>
-
     <div class="sync-time" id="syncTime">--:--</div>
     <div class="sync-date" id="syncDate"></div>
-
   </div>
-
-
   <div class="sync-card">
-
     <div class="sync-card-header">
-
       <div class="sync-card-icon">
-
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-
           <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
-
         </svg>
-
       </div>
-
-      <div>
-
-        <div class="sync-card-title">
-          Синхронизация данных
-        </div>
-
-        <div class="sync-card-sub" id="syncCardSub">
-          Подключение к CarProg…
-        </div>
-
-      </div>
-
+      <div><div class="sync-card-title">Синхронизация данных</div><div class="sync-card-sub" id="syncCardSub">Подключение к CarProg…</div></div>
     </div>
-
-
-    <div class="sync-bar-bg">
-
-      <div class="sync-bar-fill" id="syncBarFill"></div>
-
-    </div>
-
-
-    <div class="sync-bar-label">
-
-      <span id="syncBarText">Загрузка…</span>
-
-      <span id="syncBarPct">0%</span>
-
-    </div>
-
+    <div class="sync-bar-bg"><div class="sync-bar-fill" id="syncBarFill"></div></div>
+    <div class="sync-bar-label"><span id="syncBarText">Загрузка…</span><span id="syncBarPct">0%</span></div>
   </div>
-
-
   <div class="sync-swipe-hint" id="syncSwipeHint">
-
-    <div class="swipe-arrow">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-
+    <div class="swipe-arrow"><span></span><span></span><span></span></div>
     Смахните вверх, чтобы войти
-
   </div>
-
 </div>
-
-
-<!-- MAIN SCREEN -->
 
 <div class="main-screen" id="mainScreen">
 
-
-  <!-- STATUS BAR -->
-
   <div class="hs-status">
-
-    <span class="hs-status-time" id="hsStatusTime">
-      --:--
-    </span>
-
+    <span class="hs-status-time" id="hsStatusTime">--:--</span>
     <div class="hs-status-icons">
-
-      <!-- signal -->
-
       <svg viewBox="0 0 24 24">
-
-        <rect x="1" y="14"
-              width="3"
-              height="6"
-              rx="1"/>
-
-        <rect x="6" y="10"
-              width="3"
-              height="10"
-              rx="1"/>
-
-        <rect x="11" y="6"
-              width="3"
-              height="14"
-              rx="1"/>
-
-        <rect x="16" y="2"
-              width="3"
-              height="18"
-              rx="1"
-              opacity=".35"/>
-
+        <rect x="1" y="14" width="3" height="6" rx="1"/><rect x="6" y="10" width="3" height="10" rx="1"/>
+        <rect x="11" y="6" width="3" height="14" rx="1"/><rect x="16" y="2" width="3" height="18" rx="1" opacity=".35"/>
       </svg>
-
-
-      <!-- wifi -->
-
       <svg viewBox="0 0 24 24">
-
-        <path d="M1.5 8.5C5 5 9.3 3 12 3s7 2 10.5 5.5"
-              fill="none"
-              stroke="#1a2a45"
-              stroke-width="2"
-              stroke-linecap="round"/>
-
-        <path d="M5 12.5C7.2 10.3 9.5 9 12 9s4.8 1.3 7 3.5"
-              fill="none"
-              stroke="#1a2a45"
-              stroke-width="2"
-              stroke-linecap="round"/>
-
-        <path d="M8.5 16.5C9.8 15.2 10.9 14.5 12 14.5s2.2.7 3.5 2"
-              fill="none"
-              stroke="#1a2a45"
-              stroke-width="2"
-              stroke-linecap="round"/>
-
+        <path d="M1.5 8.5C5 5 9.3 3 12 3s7 2 10.5 5.5" fill="none" stroke="#1a2a45" stroke-width="2" stroke-linecap="round"/>
+        <path d="M5 12.5C7.2 10.3 9.5 9 12 9s4.8 1.3 7 3.5" fill="none" stroke="#1a2a45" stroke-width="2" stroke-linecap="round"/>
+        <path d="M8.5 16.5C9.8 15.2 10.9 14.5 12 14.5s2.2.7 3.5 2" fill="none" stroke="#1a2a45" stroke-width="2" stroke-linecap="round"/>
         <circle cx="12" cy="20" r="1.2"/>
-
       </svg>
-
-
-      <!-- battery -->
-
       <div class="hs-status-batt">
-
-        <svg viewBox="0 0 24 14"
-             width="24"
-             height="14">
-
-          <rect x="1" y="1"
-                width="19"
-                height="12"
-                rx="3"
-                fill="none"
-                stroke="#1a2a45"
-                stroke-width="1.5"/>
-
-          <rect x="20" y="4"
-                width="3"
-                height="6"
-                rx="1.5"
-                fill="#1a2a45"
-                opacity=".5"/>
-
-          <rect x="2.5" y="2.5"
-                width="13"
-                height="9"
-                rx="2"
-                fill="#1a2a45"
-                opacity=".8"/>
-
+        <svg viewBox="0 0 24 14" width="24" height="14">
+          <rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/>
+          <rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/>
+          <rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/>
         </svg>
-
         78%
-
       </div>
-
     </div>
-
   </div>
-
-
-  <!-- BIG CLOCK -->
 
   <div class="hs-top">
-
-    <div class="hs-clock-big" id="hsClockBig">
-      --:--
-    </div>
-
+    <div class="hs-clock-big" id="hsClockBig">--:--</div>
     <div class="hs-date-str" id="hsDateStr"></div>
-
   </div>
-
-
-  <!-- APP GRID -->
 
   <div class="hs-grid-wrap">
-
     <div class="hs-grid" id="hsGrid">
 
-
       <!-- Браузер -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:linear-gradient(145deg,#5ab5ff,#1a7de8)">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <circle cx="16" cy="16" r="12"
-                    stroke="#fff"
-                    stroke-width="2"/>
-
-            <path d="M4 16h24M16 4C13 8 11 12 11 16s2 8 5 12M16 4c3 4 5 8 5 12s-2 8-5 12"
-                  stroke="#fff"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:linear-gradient(145deg,#5ab5ff,#1a7de8)">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548224028274335775/file_00000000b89081f4b265fbe4015366b8.png?ex=6aa6477c&is=6aa4f5fc&hm=afbbca63285871c70db393fb601fce46abbe9615b59d8a12d633e98995dcf0c6&" alt="Браузер">
         </div>
-
         <span class="hs-app-label">Браузер</span>
-
       </div>
-
 
       <!-- Моя Недвижимость -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:linear-gradient(145deg,#6b63ff,#4f46e5)">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <path d="M6 14L16 6L26 14"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-
-            <rect x="9" y="14"
-                  width="14"
-                  height="12"
-                  rx="2"
-                  stroke="#fff"
-                  stroke-width="2"/>
-
-            <rect x="14" y="18"
-                  width="4"
-                  height="8"
-                  fill="#fff"/>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548227860081283113/file_000000001a748210b3b4700305b7a1a9.png?ex=6aa64b0e&is=6aa4f98e&hm=6beebdf7595a794a863d837d3e56358b4bb9f4d6e4392bb5fcb25a4bd39859cf&" alt="Моя Недвижимость">
         </div>
-
         <span class="hs-app-label">Моя Недвижимость</span>
-
       </div>
-
 
       <!-- BeamRoom Bank -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:#1c1c1e">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <rect x="6" y="14"
-                  width="20"
-                  height="13"
-                  rx="3"
-                  fill="none"
-                  stroke="#f5b300"
-                  stroke-width="2"/>
-
-            <path d="M10 14v-3a6 6 0 0112 0v3"
-                  stroke="#f5b300"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-
-            <rect x="13" y="19"
-                  width="6"
-                  height="4"
-                  rx="1.5"
-                  fill="#f5b300"/>
-
-            <text x="16"
-                  y="11"
-                  text-anchor="middle"
-                  fill="#f5b300"
-                  font-size="8"
-                  font-weight="900"
-                  font-family="Arial">B</text>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548218696168640552/file_0000000002f081f4bd9d183e377e2bf7.png?ex=6aa64285&is=6aa4f105&hm=f9dd021752e649c722ab2bf236f8efd2f81302dba7fdfca546beaf4f055bee12&" alt="BeamRoom Bank">
         </div>
-
         <span class="hs-app-label">BeamRoom Bank</span>
-
       </div>
-
 
       <!-- BeamGo -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:#1c1c1e">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <path d="M6 20l3-8h14l3 8"
-                  stroke="#f5b300"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-
-            <rect x="4" y="20"
-                  width="24"
-                  height="6"
-                  rx="2.5"
-                  fill="#f5b300"
-                  opacity=".15"/>
-
-            <rect x="4" y="20"
-                  width="24"
-                  height="6"
-                  rx="2.5"
-                  fill="none"
-                  stroke="#f5b300"
-                  stroke-width="1.5"/>
-
-            <circle cx="10" cy="26" r="2.5"
-                    fill="#f5b300"/>
-
-            <circle cx="22" cy="26" r="2.5"
-                    fill="#f5b300"/>
-
-            <text x="16"
-                  y="10"
-                  text-anchor="middle"
-                  fill="#f5b300"
-                  font-size="7"
-                  font-weight="900"
-                  font-family="Arial">B</text>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548218992240500746/file_00000000ecc48210ae75f4338ec08b76.png?ex=6aa642cc&is=6aa4f14c&hm=1e09b759c234352ad3571b414d22a5d614009b8cb238949594613e4155f26de4&" alt="BeamGo">
         </div>
-
         <span class="hs-app-label">BeamGo</span>
-
       </div>
-
 
       <!-- BeamRoom JOB -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:#1c1c1e">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <rect x="7" y="13"
-                  width="18"
-                  height="13"
-                  rx="2.5"
-                  fill="none"
-                  stroke="#f5b300"
-                  stroke-width="2"/>
-
-            <path d="M12 13v-2a4 4 0 018 0v2"
-                  stroke="#f5b300"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
-
-            <rect x="10" y="18"
-                  width="12"
-                  height="2"
-                  rx="1"
-                  fill="#f5b300"/>
-
-            <rect x="10" y="22"
-                  width="7"
-                  height="2"
-                  rx="1"
-                  fill="#f5b300"/>
-
-            <text x="16"
-                  y="11"
-                  text-anchor="middle"
-                  fill="#f5b300"
-                  font-size="7"
-                  font-weight="900"
-                  font-family="Arial">B</text>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548219282830135427/file_0000000093ac82108732060fd2931fa2.png?ex=6aa64311&is=6aa4f191&hm=e5d5c4e98a3167096fe9cd034d311c8652dc367621d7bf84d3fbcf6dca5a224f&" alt="BeamRoom JOB">
         </div>
-
         <span class="hs-app-label">BeamRoom JOB</span>
-
       </div>
-
 
       <!-- Автосалон BeamRoom -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:#1c1c1e">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <path d="M5 19l4-9h14l4 9"
-                  stroke="#f5b300"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-
-            <rect x="3" y="19"
-                  width="26"
-                  height="7"
-                  rx="3"
-                  fill="none"
-                  stroke="#f5b300"
-                  stroke-width="1.8"/>
-
-            <circle cx="9" cy="26" r="2.5"
-                    fill="#f5b300"/>
-
-            <circle cx="23" cy="26" r="2.5"
-                    fill="#f5b300"/>
-
-            <rect x="8" y="21"
-                  width="5"
-                  height="3.5"
-                  rx="1"
-                  fill="#f5b300"
-                  opacity=".7"/>
-
-            <rect x="19" y="21"
-                  width="5"
-                  height="3.5"
-                  rx="1"
-                  fill="#f5b300"
-                  opacity=".7"/>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548219502888755200/file_000000009e8882108fe3556a67b7e5fd.png?ex=6aa64346&is=6aa4f1c6&hm=9c6af0809c4e42ddbc9f0ff39ad062a85baffec950d156d8d442cfcef32469ab&" alt="Автосалон BeamRoom">
         </div>
-
         <span class="hs-app-label">Автосалон BeamRoom</span>
-
       </div>
 
-
-      <!-- CarVito — НОВАЯ ИКОНКА -->
-
+      <!-- CarVito -->
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:#fff;border:1.5px solid #e8f0fa">
-
-          <img
-            src="https://cdn.discordapp.com/attachments/1494406726911262822/1548212415458451566/file_000000008a4c8246bbebc3149f812d83.png?ex=6aa63cac&is=6aa4eb2c&hm=8d30eee90e747bc9c26ab797cfc65ab937ea654080922c77e806c509a9393593&"
-            alt="CarVito"
-          >
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548217533944037447/file_0000000008e48210a75b97b2f64f36f5.png?ex=6aa64170&is=6aa4eff0&hm=17126711a2fc088b51bbb5f40f5bb2467a37ad0fc17bf59befbb3bc93a2be86b&" alt="CarVito">
         </div>
-
         <span class="hs-app-label">CarVito</span>
-
       </div>
 
-
-      <!-- Календарь -->
-
+      <!-- Календарь — оставлен SVG -->
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:linear-gradient(145deg,#4c9fff,#1a7de8)">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <rect x="4" y="7"
-                  width="24"
-                  height="21"
-                  rx="4"
-                  fill="rgba(255,255,255,.15)"
-                  stroke="#fff"
-                  stroke-width="1.8"/>
-
-            <path d="M4 13h24"
-                  stroke="#fff"
-                  stroke-width="1.5"/>
-
-            <path d="M10 4v6M22 4v6"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-
-            <text x="16"
-                  y="23"
-                  text-anchor="middle"
-                  fill="#fff"
-                  font-size="11"
-                  font-weight="900"
-                  font-family="Arial">31</text>
-
+        <div class="hs-app-icon" style="background:linear-gradient(145deg,#4c9fff,#1a7de8)">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="7" width="24" height="21" rx="4" fill="rgba(255,255,255,.15)" stroke="#fff" stroke-width="1.8"/>
+            <path d="M4 13h24" stroke="#fff" stroke-width="1.5"/>
+            <path d="M10 4v6M22 4v6" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            <text x="16" y="23" text-anchor="middle" fill="#fff" font-size="11" font-weight="900" font-family="Arial">31</text>
           </svg>
-
         </div>
-
         <span class="hs-app-label">Календарь</span>
-
       </div>
 
-
-      <!-- Блокнот -->
-
+      <!-- Блокнот — оставлен SVG -->
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:linear-gradient(145deg,#c8924a,#a0692c)">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <rect x="6" y="4"
-                  width="20"
-                  height="24"
-                  rx="3"
-                  fill="rgba(255,255,255,.15)"
-                  stroke="#fff"
-                  stroke-width="1.8"/>
-
-            <path d="M10 11h12M10 16h12M10 21h8"
-                  stroke="#fff"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
-
+        <div class="hs-app-icon" style="background:linear-gradient(145deg,#c8924a,#a0692c)">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="6" y="4" width="20" height="24" rx="3" fill="rgba(255,255,255,.15)" stroke="#fff" stroke-width="1.8"/>
+            <path d="M10 11h12M10 16h12M10 21h8" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
-
         </div>
-
         <span class="hs-app-label">Блокнот</span>
-
       </div>
-
 
       <!-- Будильник -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:linear-gradient(145deg,#6b5ce7,#4a3fb5)">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <circle cx="16" cy="18" r="10"
-                    fill="rgba(255,255,255,.15)"
-                    stroke="#fff"
-                    stroke-width="1.8"/>
-
-            <path d="M16 12v6l4 2"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-
-            <path d="M6 10l-2-3M26 10l2-3"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548226322369744968/file_00000000a8188210ab2ea67f9082a157.png?ex=6aa6499f&is=6aa4f81f&hm=b35e84450cb949c8373dd0416e3a426467f1a533b6ccb90247e8b52c4e854b4c&" alt="Будильник">
         </div>
-
         <span class="hs-app-label">Будильник</span>
-
       </div>
-
 
       <!-- СТО Михалыч -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:linear-gradient(145deg,#6e7a8a,#4a5568)">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <circle cx="16" cy="11" r="5"
-                    fill="rgba(255,255,255,.2)"
-                    stroke="#fff"
-                    stroke-width="1.8"/>
-
-            <path d="M8 28c0-4.4 3.6-8 8-8s8 3.6 8 8"
-                  stroke="#fff"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
-
-            <path d="M20 21l2-3 2 1-1 3"
-                  stroke="#ffca28"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-
-            <circle cx="22" cy="22" r="1.5"
-                    fill="#ffca28"/>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548222468886503454/file_00000000e61c820abcfe1c9840325cfe.png?ex=6aa64609&is=6aa4f489&hm=54590c2310c6053af9ad5de5bd202ec6c376a567eb4b8fafd0a9bc69251bae4d&" alt="СТО Михалыч">
         </div>
-
         <span class="hs-app-label">СТО Михалыч</span>
-
       </div>
-
 
       <!-- Путешествие -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:linear-gradient(145deg,#42a5f5,#1565c0)">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <path d="M16 4L20 12H28L22 17L24 25L16 20L8 25L10 17L4 12H12L16 4Z"
-                  fill="rgba(255,255,255,.2)"
-                  stroke="#fff"
-                  stroke-width="1.5"
-                  stroke-linejoin="round"/>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548222783396515840/file_00000000860081f494b25b0fa230f3c9.png?ex=6aa64654&is=6aa4f4d4&hm=753a859174d958e4ca869af6d00bd84ff03dceb1de3280b8dfce57f01ada7e4b&" alt="Путешествие">
         </div>
-
         <span class="hs-app-label">Путешествие</span>
-
       </div>
-
 
       <!-- Настройки -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:linear-gradient(145deg,#78909c,#546e7a)">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <circle cx="16" cy="16" r="4"
-                    stroke="#fff"
-                    stroke-width="1.8"/>
-
-            <path d="M16 4v3M16 25v3M4 16h3M25 16h3M7.1 7.1l2.1 2.1M22.8 22.8l2.1 2.1M7.1 24.9l2.1-2.1M22.8 9.2l2.1-2.1"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548225021896302662/file_00000000c2088210a7a6cfc21ad09f6e.png?ex=6aa64869&is=6aa4f6e9&hm=799a40948971e841d61e3cbf7191423f9eb59d56e98690ac27aed23caa72b428&" alt="Настройки">
         </div>
-
         <span class="hs-app-label">Настройки</span>
-
       </div>
-
 
       <!-- Сообщения -->
-
       <div class="hs-app">
-
-        <div class="hs-app-icon"
-             style="background:linear-gradient(145deg,#43d16e,#1ea84a)">
-
-          <svg viewBox="0 0 32 32"
-               fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-
-            <rect x="4" y="6"
-                  width="24"
-                  height="17"
-                  rx="5"
-                  fill="rgba(255,255,255,.2)"
-                  stroke="#fff"
-                  stroke-width="1.8"/>
-
-            <path d="M8 28l4-5h10"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-
-            <path d="M9 13h14M9 18h8"
-                  stroke="#fff"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
-
-          </svg>
-
+        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548225687565901834/file_0000000029e8820a82762b288760779e.png?ex=6aa64908&is=6aa4f788&hm=6ceb64abcd62bd5786ab18cf0551007226b42ba13086bf6b931c8e844c8d2fb9&" alt="Сообщения">
         </div>
-
         <span class="hs-app-label">Сообщения</span>
-
       </div>
 
+      <!-- Календарь/остальные не названные — без изменений -->
+      <!-- В исходнике эти элементы отсутствуют сверх перечисленных -->
+
     </div>
-
   </div>
-
-
-  <!-- PAGE DOTS -->
 
   <div class="hs-dots">
-
-    <div class="hs-dot active"></div>
-    <div class="hs-dot"></div>
-
+    <div class="hs-dot active"></div><div class="hs-dot"></div>
   </div>
-
-
-  <!-- DOCK -->
 
   <div class="hs-dock">
-
-
-    <!-- Телефон -->
-
+    <!-- Телефон — оставлен SVG -->
     <div class="hs-app">
-
-      <div class="hs-app-icon"
-           style="background:linear-gradient(145deg,#43d16e,#1ea84a)">
-
-        <svg viewBox="0 0 32 32"
-             fill="none"
-             xmlns="http://www.w3.org/2000/svg">
-
-          <path d="M8 5h5l2.5 6-3 2c1.5 3 4.5 6 7.5 7.5l2-3 6 2.5V25c0 1.5-1.5 3-3 3C12 27 5 15 5 8c0-1.5 1.5-3 3-3z"
-                fill="#fff"
-                opacity=".9"/>
-
+      <div class="hs-app-icon" style="background:linear-gradient(145deg,#43d16e,#1ea84a)">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 5h5l2.5 6-3 2c1.5 3 4.5 6 7.5 7.5l2-3 6 2.5V25c0 1.5-1.5 3-3 3C12 27 5 15 5 8c0-1.5 1.5-3 3-3z" fill="#fff" opacity=".9"/>
         </svg>
-
       </div>
-
       <span class="hs-app-label">Телефон</span>
-
     </div>
 
-
-    <!-- Сообщения -->
-
+    <!-- Сообщения — оставлено SVG, так как отдельная иконка для Dock не указана -->
     <div class="hs-app">
-
-      <div class="hs-app-icon"
-           style="background:linear-gradient(145deg,#42a5f5,#1a7de8)">
-
-        <svg viewBox="0 0 32 32"
-             fill="none"
-             xmlns="http://www.w3.org/2000/svg">
-
-          <rect x="4" y="5"
-                width="24"
-                height="18"
-                rx="5"
-                fill="rgba(255,255,255,.2)"
-                stroke="#fff"
-                stroke-width="1.8"/>
-
-          <circle cx="10" cy="14" r="2"
-                  fill="#fff"/>
-
-          <circle cx="16" cy="14" r="2"
-                  fill="#fff"/>
-
-          <circle cx="22" cy="14" r="2"
-                  fill="#fff"/>
-
+      <div class="hs-app-icon" style="background:linear-gradient(145deg,#42a5f5,#1a7de8)">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="5" width="24" height="18" rx="5" fill="rgba(255,255,255,.2)" stroke="#fff" stroke-width="1.8"/>
+          <circle cx="10" cy="14" r="2" fill="#fff"/><circle cx="16" cy="14" r="2" fill="#fff"/><circle cx="22" cy="14" r="2" fill="#fff"/>
         </svg>
-
       </div>
-
       <span class="hs-app-label">Сообщения</span>
-
     </div>
-
   </div>
-
-
-  <!-- NAVBAR -->
 
   <div class="hs-navbar">
-
-    <button class="hs-nav-btn">
-
-      <svg viewBox="0 0 24 24">
-
-        <path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"/>
-
-      </svg>
-
-    </button>
-
-
-    <button class="hs-nav-btn">
-
-      <svg viewBox="0 0 24 24">
-
-        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-
-      </svg>
-
-    </button>
-
-
-    <button class="hs-nav-btn">
-
-      <svg viewBox="0 0 24 24">
-
-        <rect x="3" y="3"
-              width="7"
-              height="7"
-              rx="1.5"/>
-
-        <rect x="14" y="3"
-              width="7"
-              height="7"
-              rx="1.5"/>
-
-        <rect x="3" y="14"
-              width="7"
-              height="7"
-              rx="1.5"/>
-
-        <rect x="14" y="14"
-              width="7"
-              height="7"
-              rx="1.5"/>
-
-      </svg>
-
-    </button>
-
+    <button class="hs-nav-btn"><svg viewBox="0 0 24 24"><path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 0-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"/></svg></button>
+    <button class="hs-nav-btn"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+    <button class="hs-nav-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
   </div>
-
 </div>
-
-
-<!-- FIREBASE -->
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
-
 <script>
-
 const FIREBASE_CONFIG={
   apiKey:"AIzaSyAhKt3V04BH3PkSC4_mAdcJPghOstOd-7A",
   authDomain:"drivezone-ae945.firebaseapp.com",
@@ -1680,385 +379,133 @@ const FIREBASE_CONFIG={
 };
 
 firebase.initializeApp(FIREBASE_CONFIG);
+const auth=firebase.auth();
+const db=firebase.database();
 
-const auth = firebase.auth();
-const db = firebase.database();
+let serverBaseTime=0;
+let perfBaseTime=0;
 
-let serverBaseTime = 0;
-let perfBaseTime = 0;
-
-
-db.ref(".info/serverTimeOffset")
-  .once("value")
-  .then(snap => {
-
-    const offset = snap.val() || 0;
-
-    serverBaseTime = Date.now() + offset;
-    perfBaseTime = performance.now();
-
-    console.log("Server offset:", offset);
-
-  });
-
+db.ref(".info/serverTimeOffset").once("value").then(snap=>{
+  const offset=snap.val()||0;
+  serverBaseTime=Date.now()+offset;
+  perfBaseTime=performance.now();
+  console.log("Server offset:",offset);
+});
 
 function getServerTime(){
-
-  if(!serverBaseTime)
-    return Date.now();
-
-  return serverBaseTime +
-         (performance.now() - perfBaseTime);
-
+  if(!serverBaseTime)return Date.now();
+  return serverBaseTime+(performance.now()-perfBaseTime);
 }
 
-
-/* ---- СЕРВЕРНОЕ ВРЕМЯ FIREBASE ---- */
-
-const DAYS=[
-  'вс',
-  'пн',
-  'вт',
-  'ср',
-  'чт',
-  'пт',
-  'сб'
-];
-
-const MONTHS=[
-  'января',
-  'февраля',
-  'марта',
-  'апреля',
-  'мая',
-  'июня',
-  'июля',
-  'августа',
-  'сентября',
-  'октября',
-  'ноября',
-  'декабря'
-];
-
+const DAYS=['вс','пн','вт','ср','чт','пт','сб'];
+const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 
 function getMskNow(){
-
   const serverTime=getServerTime();
-
-  const mskString=new Date(serverTime)
-    .toLocaleString('en-US',{
-      timeZone:'Europe/Moscow'
-    });
-
+  const mskString=new Date(serverTime).toLocaleString('en-US',{timeZone:'Europe/Moscow'});
   return new Date(mskString);
-
 }
 
-
-function fmt2(n){
-  return String(n).padStart(2,'0');
-}
-
+function fmt2(n){return String(n).padStart(2,'0')}
 
 function updateClock(){
-
   const msk=getMskNow();
-
   const hh=fmt2(msk.getHours());
   const mm=fmt2(msk.getMinutes());
-
   const timeStr=hh+':'+mm;
+  const dateStr=DAYS[msk.getDay()]+', '+msk.getDate()+' '+MONTHS[msk.getMonth()];
 
-  const dateStr=
-    DAYS[msk.getDay()] +
-    ', ' +
-    msk.getDate() +
-    ' ' +
-    MONTHS[msk.getMonth()];
-
-
-  const st=document.getElementById('syncTime');
-
-  if(st)
-    st.textContent=timeStr;
-
-
-  const sd=document.getElementById('syncDate');
-
-  if(sd)
-    sd.textContent=dateStr;
-
-
-  const hs=document.getElementById('hsStatusTime');
-
-  if(hs)
-    hs.textContent=timeStr;
-
-
-  const hb=document.getElementById('hsClockBig');
-
-  if(hb)
-    hb.textContent=timeStr;
-
-
-  const hd=document.getElementById('hsDateStr');
-
-  if(hd)
-    hd.textContent=dateStr;
-
+  const st=document.getElementById('syncTime');if(st)st.textContent=timeStr;
+  const sd=document.getElementById('syncDate');if(sd)sd.textContent=dateStr;
+  const hs=document.getElementById('hsStatusTime');if(hs)hs.textContent=timeStr;
+  const hb=document.getElementById('hsClockBig');if(hb)hb.textContent=timeStr;
+  const hd=document.getElementById('hsDateStr');if(hd)hd.textContent=dateStr;
 }
-
 
 updateClock();
-
 setInterval(updateClock,1000);
 
-
-/* ---- SCREENS ---- */
-
-function showSync(){
-  document.getElementById('syncScreen')
-    .classList.add('visible');
-}
-
-function hideSync(){
-  document.getElementById('syncScreen')
-    .classList.remove('visible');
-}
-
-function hideAuth(){
-  document.getElementById('authScreen')
-    .style.display='none';
-}
-
-function showMain(){
-  document.getElementById('mainScreen')
-    .classList.add('visible');
-}
-
-
-/* ---- FAKE SYNC PROGRESS ---- */
+function showSync(){document.getElementById('syncScreen').classList.add('visible')}
+function hideSync(){document.getElementById('syncScreen').classList.remove('visible')}
+function hideAuth(){document.getElementById('authScreen').style.display='none'}
+function showMain(){document.getElementById('mainScreen').classList.add('visible')}
 
 const steps=[
-
-  {
-    pct:15,
-    sub:'Проверка аккаунта…',
-    bar:'Авторизация'
-  },
-
-  {
-    pct:35,
-    sub:'Загрузка профиля…',
-    bar:'Профиль'
-  },
-
-  {
-    pct:60,
-    sub:'Синхронизация данных…',
-    bar:'Данные'
-  },
-
-  {
-    pct:80,
-    sub:'Подготовка интерфейса…',
-    bar:'Интерфейс'
-  },
-
-  {
-    pct:100,
-    sub:'Готово!',
-    bar:'Завершено'
-  }
-
+  {pct:15,sub:'Проверка аккаунта…',bar:'Авторизация'},
+  {pct:35,sub:'Загрузка профиля…',bar:'Профиль'},
+  {pct:60,sub:'Синхронизация данных…',bar:'Данные'},
+  {pct:80,sub:'Подготовка интерфейса…',bar:'Интерфейс'},
+  {pct:100,sub:'Готово!',bar:'Завершено'}
 ];
 
-
 function runSyncAnimation(onDone){
-
   const fill=document.getElementById('syncBarFill');
   const pct=document.getElementById('syncBarPct');
   const sub=document.getElementById('syncCardSub');
   const bar=document.getElementById('syncBarText');
-
   let i=0;
-
-
   function tick(){
-
-    if(i>=steps.length){
-
-      onDone();
-
-      return;
-    }
-
-
+    if(i>=steps.length){onDone();return}
     const s=steps[i++];
-
     fill.style.width=s.pct+'%';
     pct.textContent=s.pct+'%';
     sub.textContent=s.sub;
     bar.textContent=s.bar;
-
-
-    setTimeout(
-      tick,
-      i===steps.length ? 600 : 900
-    );
-
+    setTimeout(tick,i===steps.length?600:900);
   }
-
-
   tick();
-
 }
-
-
-/* ---- SWIPE TO UNLOCK ---- */
 
 let syncDone=false;
 let touchStartY=0;
 
+document.getElementById('syncScreen').addEventListener('touchstart',e=>{
+  touchStartY=e.touches[0].clientY;
+},{passive:true});
 
-document
-  .getElementById('syncScreen')
-  .addEventListener(
-    'touchstart',
-    e=>{
-      touchStartY=e.touches[0].clientY;
-    },
-    {passive:true}
-  );
+document.getElementById('syncScreen').addEventListener('touchend',e=>{
+  if(!syncDone)return;
+  const dy=touchStartY-e.changedTouches[0].clientY;
+  if(dy>60)unlock();
+},{passive:true});
 
-
-document
-  .getElementById('syncScreen')
-  .addEventListener(
-    'touchend',
-    e=>{
-
-      if(!syncDone)
-        return;
-
-      const dy=
-        touchStartY -
-        e.changedTouches[0].clientY;
-
-      if(dy>60)
-        unlock();
-
-    },
-    {passive:true}
-  );
-
-
-document
-  .getElementById('syncScreen')
-  .addEventListener(
-    'click',
-    ()=>{
-      if(syncDone)
-        unlock();
-    }
-  );
-
-
-function unlock(){
-
-  hideSync();
-  showMain();
-
-}
-
-
-function setStatus(msg){
-
-  document.getElementById("authStatus")
-    .textContent=msg;
-
-}
-
-
-async function continueGoogle(){
-
-  setStatus("⏳ Открываем Google…");
-
-
-  try{
-
-    const provider=
-      new firebase.auth.GoogleAuthProvider();
-
-    provider.setCustomParameters({
-      prompt:"select_account"
-    });
-
-
-    const result=
-      await auth.signInWithPopup(provider);
-
-
-    if(result && result.user){
-
-      setStatus(
-        "✅ Вход выполнен: " +
-        result.user.displayName
-      );
-
-    }
-
-  }catch(e){
-
-    setStatus(
-      "❌ " +
-      (e.message || "Ошибка входа")
-    );
-
-  }
-
-}
-
-
-auth.onAuthStateChanged(user=>{
-
-  if(user && !user.isAnonymous){
-
-    setStatus(
-      "✅ Вы вошли как " +
-      user.displayName
-    );
-
-
-    hideAuth();
-    showSync();
-
-
-    runSyncAnimation(()=>{
-
-      syncDone=true;
-
-      document
-        .getElementById('syncSwipeHint')
-        .classList
-        .add('visible');
-
-    });
-
-  }else{
-
-    setStatus("");
-
-  }
-
+document.getElementById('syncScreen').addEventListener('click',()=>{
+  if(syncDone)unlock();
 });
 
+function unlock(){hideSync();showMain()}
 
-document
-  .getElementById("authGoogleBtn")
-  .onclick=continueGoogle;
+function setStatus(msg){document.getElementById("authStatus").textContent=msg}
 
+async function continueGoogle(){
+  setStatus("⏳ Открываем Google…");
+  try{
+    const provider=new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({prompt:"select_account"});
+    const result=await auth.signInWithPopup(provider);
+    if(result&&result.user){
+      setStatus("✅ Вход выполнен: "+result.user.displayName);
+    }
+  }catch(e){
+    setStatus("❌ "+(e.message||"Ошибка входа"));
+  }
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user&&!user.isAnonymous){
+    setStatus("✅ Вы вошли как "+user.displayName);
+    hideAuth();
+    showSync();
+    runSyncAnimation(()=>{
+      syncDone=true;
+      document.getElementById('syncSwipeHint').classList.add('visible');
+    });
+  }else{
+    setStatus("");
+  }
+});
+
+document.getElementById("authGoogleBtn").onclick=continueGoogle;
 </script>
-
 </body>
-  </html>
+</html>
