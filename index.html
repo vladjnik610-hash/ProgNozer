@@ -66,6 +66,14 @@ button:active{transform:scale(.97)}
 .main-screen::before{width:600px;height:600px;background:radial-gradient(circle,rgba(255,255,255,.5) 0%,rgba(180,218,255,.25) 50%,transparent 70%);top:-220px;left:-160px}
 .main-screen::after{width:420px;height:420px;background:radial-gradient(circle,rgba(160,205,245,.4) 0%,transparent 65%);bottom:-130px;right:-80px}
 
+
+.onboard-screen{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;padding:22px;background:radial-gradient(ellipse at 30% 0%,#ffffff 0%,#cde5ff 30%,#a8cdf0 60%,#c5ddf7 100%);overflow:auto}
+.onboard-screen.visible{display:flex}
+.onboard-box{width:min(420px,100%);max-height:calc(100vh - 44px);overflow:auto;padding:28px 22px 22px;border-radius:30px;background:rgba(255,255,255,.78);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1.5px solid rgba(255,255,255,.9);box-shadow:0 24px 80px rgba(60,110,180,.18);text-align:center}
+.onboard-icon{width:64px;height:64px;margin:0 auto 14px;border-radius:18px;background:linear-gradient(145deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 10px 28px rgba(26,125,232,.28)}
+.onboard-box h2{font-size:24px;font-weight:900;color:#1a2a45;margin-bottom:7px}.onboard-box p{font-size:14px;line-height:1.45;color:#6a85a8;margin-bottom:18px}
+.city-groups{display:flex;flex-direction:column;gap:14px;text-align:left}.city-group-title{font-size:12px;font-weight:900;color:#6a85a8;margin:0 4px 7px}.city-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.city-btn{padding:12px 8px;border-radius:14px;background:rgba(255,255,255,.78);border:1.5px solid #e2edf9;color:#1a2a45;font-weight:800;font-size:13px}.city-btn:active{background:#eaf5ff}.signature-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}.signature-canvas{width:100%;height:180px;background:#fff;border:2px dashed #b8d2ef;border-radius:18px;touch-action:none;display:block}.signature-actions{display:flex;gap:8px;width:100%}.onboard-secondary,.onboard-primary{flex:1;padding:13px;border-radius:14px;font-weight:800}.onboard-secondary{background:#edf5fd;color:#527093}.onboard-primary{background:linear-gradient(145deg,#4c9fff,#1a7de8);color:#fff;box-shadow:0 8px 20px rgba(26,125,232,.22)}.signature-status{min-height:20px;font-size:12px;color:#6a85a8}.signature-preview{width:100%;height:100px;object-fit:contain;background:#fff;border-radius:14px;border:1px solid #e2edf9;margin:5px 0 10px}.city-selected{margin-top:8px;font-size:12px;color:#1a7de8;font-weight:800}
+.signature-profile{position:relative;display:inline-block;margin-top:4px}.signature-profile img{width:130px;height:58px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid #dbe9f7}
 .hs-status{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 20px 4px;font-size:13px;font-weight:700;color:#1a2a45}
 .hs-status-time{font-size:14px;font-weight:800}
 .hs-status-icons{display:flex;align-items:center;gap:6px}
@@ -169,6 +177,30 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
+<div class="onboard-screen" id="onboardScreen">
+  <div class="onboard-box" id="cityOnboard">
+    <div class="onboard-icon">📍</div>
+    <h2>Выберите город</h2>
+    <p>Это нужно сделать один раз для настройки вашего телефона.</p>
+    <div class="city-groups">
+      <div><div class="city-group-title">🇷🇺 Россия</div><div class="city-grid">
+        <button class="city-btn" data-city="Москва">Москва</button><button class="city-btn" data-city="Санкт-Петербург">Санкт-Петербург</button><button class="city-btn" data-city="Уфа">Уфа</button><button class="city-btn" data-city="Казань">Казань</button><button class="city-btn" data-city="Челябинск">Челябинск</button><button class="city-btn" data-city="Екатеринбург">Екатеринбург</button><button class="city-btn" data-city="Нижний Новгород">Нижний Новгород</button><button class="city-btn" data-city="Владивосток">Владивосток</button>
+      </div></div>
+      <div><div class="city-group-title">🇰🇿 Казахстан</div><div class="city-grid"><button class="city-btn" data-city="Астана">Астана</button><button class="city-btn" data-city="Костанай">Костанай</button></div></div>
+    </div>
+  </div>
+  <div class="onboard-box" id="signatureOnboard" style="display:none">
+    <div class="onboard-icon">✍️</div>
+    <h2 id="signatureTitle">Создайте подпись</h2>
+    <p id="signatureDescription">Распишитесь пальцем или стилусом. Затем повторите подпись для подтверждения.</p>
+    <div class="signature-wrap">
+      <canvas class="signature-canvas" id="signatureCanvas" width="760" height="360"></canvas>
+      <div class="signature-status" id="signatureStatus">Нарисуйте подпись в поле выше.</div>
+      <div class="signature-actions"><button class="onboard-secondary" id="signatureClear">Очистить</button><button class="onboard-primary" id="signatureNext">Подтвердить</button></div>
+    </div>
+  </div>
+</div>
+
 <div class="main-screen" id="mainScreen">
 
   <div class="hs-status">
@@ -206,7 +238,7 @@ button:active{transform:scale(.97)}
       <!-- Браузер -->
       <div class="hs-app">
         <div class="hs-app-icon" style="background:linear-gradient(145deg,#5ab5ff,#1a7de8)">
-          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548224028274335775/file_00000000b89081f4b265fbe4015366b8.png?ex=6aa6477c&is=6aa4f5fc&hm=afbbca63285871c70db393fb601fce46abbe9615b59d8a12d633e98995dcf0c6&" alt="Браузер">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548246679310958672/file_0000000050d881f495e1f30668870821.png?ex=6aa65c95&is=6aa50b15&hm=dcd9003ee0d99c9c958f25de8c596abaa6356d51468c82e76e5f5ebafdbfc29f&" alt="Браузер">
         </div>
         <span class="hs-app-label">Браузер</span>
       </div>
@@ -222,7 +254,7 @@ button:active{transform:scale(.97)}
       <!-- BeamRoom Bank -->
       <div class="hs-app">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
-          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548218696168640552/file_0000000002f081f4bd9d183e377e2bf7.png?ex=6aa64285&is=6aa4f105&hm=f9dd021752e649c722ab2bf236f8efd2f81302dba7fdfca546beaf4f055bee12&" alt="BeamRoom Bank">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548246658033254410/file_00000000a7d481f4a988389cdf1ceace.png?ex=6aa65c90&is=6aa50b10&hm=967cd0c0af9e339b83c2f265593e49c0f48c964bac45e4a18ab81d2468ea9c8b&" alt="BeamRoom Bank">
         </div>
         <span class="hs-app-label">BeamRoom Bank</span>
       </div>
@@ -230,7 +262,7 @@ button:active{transform:scale(.97)}
       <!-- BeamGo -->
       <div class="hs-app">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
-          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548218992240500746/file_00000000ecc48210ae75f4338ec08b76.png?ex=6aa642cc&is=6aa4f14c&hm=1e09b759c234352ad3571b414d22a5d614009b8cb238949594613e4155f26de4&" alt="BeamGo">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548246667139219506/file_0000000093a48246ade109fe5f8677dc.png?ex=6aa65c92&is=6aa50b12&hm=1422dc62a3017cf4577de4175d3baad9d0303e3adbb73097c349c68c6ab9de0b&" alt="BeamGo">
         </div>
         <span class="hs-app-label">BeamGo</span>
       </div>
@@ -238,7 +270,7 @@ button:active{transform:scale(.97)}
       <!-- BeamRoom JOB -->
       <div class="hs-app">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
-          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548219282830135427/file_0000000093ac82108732060fd2931fa2.png?ex=6aa64311&is=6aa4f191&hm=e5d5c4e98a3167096fe9cd034d311c8652dc367621d7bf84d3fbcf6dca5a224f&" alt="BeamRoom JOB">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548246648583622698/file_0000000073108243acf684730ceb25dc.png?ex=6aa65c8e&is=6aa50b0e&hm=555a869ed420590c3d5a729c1438d3f717c7c44e090e79c899e69e4575b63222&" alt="BeamRoom JOB">
         </div>
         <span class="hs-app-label">BeamRoom JOB</span>
       </div>
@@ -246,7 +278,7 @@ button:active{transform:scale(.97)}
       <!-- Автосалон BeamRoom -->
       <div class="hs-app">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
-          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548219502888755200/file_000000009e8882108fe3556a67b7e5fd.png?ex=6aa64346&is=6aa4f1c6&hm=9c6af0809c4e42ddbc9f0ff39ad062a85baffec950d156d8d442cfcef32469ab&" alt="Автосалон BeamRoom">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548246640324771840/file_0000000074f48210b1c387d39a77ef0e.png?ex=6aa65c8c&is=6aa50b0c&hm=c3e11af51f4857c3e5979d8e9ee0ae8b9592a2b91987ef5032dde4fd135a54e4&" alt="Автосалон BeamRoom">
         </div>
         <span class="hs-app-label">Автосалон BeamRoom</span>
       </div>
@@ -294,7 +326,7 @@ button:active{transform:scale(.97)}
       <!-- СТО Михалыч -->
       <div class="hs-app">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
-          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548222468886503454/file_00000000e61c820abcfe1c9840325cfe.png?ex=6aa64609&is=6aa4f489&hm=54590c2310c6053af9ad5de5bd202ec6c376a567eb4b8fafd0a9bc69251bae4d&" alt="СТО Михалыч">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548246618732761170/file_00000000ce7881f49d4bf842d3720b09.png?ex=6aa65c86&is=6aa50b06&hm=9c44749f4527d9523ee8864c4a0ef8f12ac337cb6e47a7ddf5965e14efe7c5cc&" alt="СТО Михалыч">
         </div>
         <span class="hs-app-label">СТО Михалыч</span>
       </div>
@@ -302,7 +334,7 @@ button:active{transform:scale(.97)}
       <!-- Путешествие -->
       <div class="hs-app">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
-          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548222783396515840/file_00000000860081f494b25b0fa230f3c9.png?ex=6aa64654&is=6aa4f4d4&hm=753a859174d958e4ca869af6d00bd84ff03dceb1de3280b8dfce57f01ada7e4b&" alt="Путешествие">
+          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548246610444681288/file_000000008d408210a508601d776e5a74.png?ex=6aa65c84&is=6aa4f504&hm=f63677007c6a790fabec900a878afe429ae2f80fac31a6a2e00bae0e49756dd1&" alt="Путешествие">
         </div>
         <span class="hs-app-label">Путешествие</span>
       </div>
@@ -313,14 +345,6 @@ button:active{transform:scale(.97)}
           <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548225021896302662/file_00000000c2088210a7a6cfc21ad09f6e.png?ex=6aa64869&is=6aa4f6e9&hm=799a40948971e841d61e3cbf7191423f9eb59d56e98690ac27aed23caa72b428&" alt="Настройки">
         </div>
         <span class="hs-app-label">Настройки</span>
-      </div>
-
-      <!-- Сообщения -->
-      <div class="hs-app">
-        <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
-          <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548225687565901834/file_0000000029e8820a82762b288760779e.png?ex=6aa64908&is=6aa4f788&hm=6ceb64abcd62bd5786ab18cf0551007226b42ba13086bf6b931c8e844c8d2fb9&" alt="Сообщения">
-        </div>
-        <span class="hs-app-label">Сообщения</span>
       </div>
 
       <!-- Календарь/остальные не названные — без изменений -->
@@ -344,13 +368,10 @@ button:active{transform:scale(.97)}
       <span class="hs-app-label">Телефон</span>
     </div>
 
-    <!-- Сообщения — оставлено SVG, так как отдельная иконка для Dock не указана -->
+    <!-- Сообщения — теперь только в Dock рядом с Телефоном -->
     <div class="hs-app">
-      <div class="hs-app-icon" style="background:linear-gradient(145deg,#42a5f5,#1a7de8)">
-        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="4" y="5" width="24" height="18" rx="5" fill="rgba(255,255,255,.2)" stroke="#fff" stroke-width="1.8"/>
-          <circle cx="10" cy="14" r="2" fill="#fff"/><circle cx="16" cy="14" r="2" fill="#fff"/><circle cx="22" cy="14" r="2" fill="#fff"/>
-        </svg>
+      <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
+        <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548246670783815750/file_00000000511081f48bef22bd5f5bf9d8.png?ex=6aa65c93&is=6aa50b13&hm=43088830a5c329cbdfd840b3e276bb3f63d5564ecb33c24d7c88ef09f90e8326&" alt="Сообщения">
       </div>
       <span class="hs-app-label">Сообщения</span>
     </div>
@@ -473,7 +494,74 @@ document.getElementById('syncScreen').addEventListener('click',()=>{
   if(syncDone)unlock();
 });
 
-function unlock(){hideSync();showMain()}
+let pendingNewUser=false;
+let onboardCity='';
+let firstSignatureData='';
+let drawing=false;
+let hasSignatureInk=false;
+
+function showOnboard(){document.getElementById('onboardScreen').classList.add('visible')}
+function hideOnboard(){document.getElementById('onboardScreen').classList.remove('visible')}
+function showCityStep(){document.getElementById('cityOnboard').style.display='block';document.getElementById('signatureOnboard').style.display='none';showOnboard()}
+function showSignatureStep(confirming=false){
+  document.getElementById('cityOnboard').style.display='none';
+  document.getElementById('signatureOnboard').style.display='block';
+  document.getElementById('signatureTitle').textContent=confirming?'Подтвердите подпись':'Создайте подпись';
+  document.getElementById('signatureDescription').textContent=confirming?'Повторите свою подпись. Она должна быть похожа на первую минимум на 40%.':'Распишитесь пальцем или стилусом. Затем повторите подпись для подтверждения.';
+  document.getElementById('signatureStatus').textContent=confirming?'Повторите подпись в поле выше.':'Нарисуйте подпись в поле выше.';
+  clearSignature(); showOnboard();
+}
+function unlock(){
+  hideSync();
+  if(pendingNewUser){showCityStep();}else{showMain();}
+}
+
+async function prepareUserProfile(user){
+  try{
+    const snap=await db.ref('users/'+user.uid).once('value');
+    pendingNewUser=!snap.exists() || !snap.val() || !snap.val().city || !snap.val().signature;
+  }catch(e){
+    const local=localStorage.getItem('carprog_profile_'+user.uid);
+    pendingNewUser=!local;
+  }
+}
+
+function canvasPoint(e){
+  const c=document.getElementById('signatureCanvas'),r=c.getBoundingClientRect();
+  const src=e.touches?e.touches[0]:e;
+  return {x:(src.clientX-r.left)*(c.width/r.width),y:(src.clientY-r.top)*(c.height/r.height)};
+}
+function clearSignature(){const c=document.getElementById('signatureCanvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle='#1a2a45';ctx.lineWidth=6;ctx.lineCap='round';ctx.lineJoin='round';hasSignatureInk=false}
+function startDraw(e){e.preventDefault();drawing=true;hasSignatureInk=true;const p=canvasPoint(e),ctx=document.getElementById('signatureCanvas').getContext('2d');ctx.beginPath();ctx.moveTo(p.x,p.y)}
+function moveDraw(e){if(!drawing)return;e.preventDefault();const p=canvasPoint(e),ctx=document.getElementById('signatureCanvas').getContext('2d');ctx.lineTo(p.x,p.y);ctx.stroke()}
+function endDraw(){drawing=false}
+function normalizeSignature(dataUrl,size=96){return new Promise(resolve=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=size;c.height=size;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,size,size);const scale=Math.min(size/im.width,size/im.height);const w=im.width*scale,h=im.height*scale;x.drawImage(im,(size-w)/2,(size-h)/2,w,h);resolve(x.getImageData(0,0,size,size).data)};im.src=dataUrl})}
+async function signatureSimilarity(a,b){
+  const A=await normalizeSignature(a),B=await normalizeSignature(b);let diff=0,total=0;
+  for(let i=0;i<A.length;i+=4){const av=(A[i]+A[i+1]+A[i+2])/3,bv=(B[i]+B[i+1]+B[i+2])/3;diff+=Math.abs(av-bv);total+=255}
+  return Math.max(0,Math.min(100,100-(diff/total)*100));
+}
+async function saveNewProfile(){
+  const user=auth.currentUser;if(!user)return;
+  const profile={city:onboardCity,signature:firstSignatureData,createdAt:firebase.database.ServerValue.TIMESTAMP};
+  try{await db.ref('users/'+user.uid).set(profile);}catch(e){localStorage.setItem('carprog_profile_'+user.uid,JSON.stringify({city:onboardCity,signature:firstSignatureData}));}
+  hideOnboard();showMain();pendingNewUser=false;
+}
+
+document.querySelectorAll('.city-btn').forEach(btn=>btn.addEventListener('click',()=>{onboardCity=btn.dataset.city;showSignatureStep(false)}));
+document.getElementById('signatureClear').onclick=clearSignature;
+document.getElementById('signatureNext').onclick=async()=>{
+  if(!hasSignatureInk){document.getElementById('signatureStatus').textContent='Сначала поставьте подпись.';return}
+  const data=document.getElementById('signatureCanvas').toDataURL('image/png');
+  if(!firstSignatureData){firstSignatureData=data;showSignatureStep(true);return}
+  const similarity=await signatureSimilarity(firstSignatureData,data);
+  if(similarity<40){document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Нужно минимум 40%. Повторите подпись.';clearSignature();return}
+  document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Подпись подтверждена!';
+  setTimeout(saveNewProfile,450);
+};
+const sigCanvas=document.getElementById('signatureCanvas');
+sigCanvas.addEventListener('pointerdown',startDraw);sigCanvas.addEventListener('pointermove',moveDraw);window.addEventListener('pointerup',endDraw);
+
 
 function setStatus(msg){document.getElementById("authStatus").textContent=msg}
 
@@ -495,10 +583,12 @@ auth.onAuthStateChanged(user=>{
   if(user&&!user.isAnonymous){
     setStatus("✅ Вы вошли как "+user.displayName);
     hideAuth();
-    showSync();
-    runSyncAnimation(()=>{
-      syncDone=true;
-      document.getElementById('syncSwipeHint').classList.add('visible');
+    prepareUserProfile(user).finally(()=>{
+      showSync();
+      runSyncAnimation(()=>{
+        syncDone=true;
+        document.getElementById('syncSwipeHint').classList.add('visible');
+      });
     });
   }else{
     setStatus("");
