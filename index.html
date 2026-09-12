@@ -451,11 +451,11 @@ button:active{transform:scale(.97)}
       </div>
 
       <!-- Моя Недвижимость -->
-      <div class="hs-app">
+      <div class="hs-app" onclick="openMyRealty()">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
           <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548227860081283113/file_000000001a748210b3b4700305b7a1a9.png?ex=6aa64b0e&is=6aa4f98e&hm=6beebdf7595a794a863d837d3e56358b4bb9f4d6e4392bb5fcb25a4bd39859cf&" alt="Моя Недвижимость">
         </div>
-        <span class="hs-app-label">Моя Недвижимость</span>
+        <span class="hs-app-label">Моя недвижимость</span>
       </div>
 
       <!-- BeamRoom Bank -->
@@ -546,17 +546,7 @@ button:active{transform:scale(.97)}
         <span class="hs-app-label">Путешествие</span>
       </div>
 
-      <!-- Моя недвижимость -->
-      <div class="hs-app" onclick="openMyRealty()">
-        <div class="hs-app-icon" style="background:linear-gradient(145deg,#ff9500,#ff6b00)">
-          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 16L16 6l11 10" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="9" y="16" width="14" height="10" rx="1.5" fill="rgba(255,255,255,.2)" stroke="#fff" stroke-width="1.8"/>
-            <rect x="13" y="21" width="6" height="5" rx="1" fill="#fff" opacity=".7"/>
-          </svg>
-        </div>
-        <span class="hs-app-label">Недвижимость</span>
-      </div>
+
 
       <!-- Настройки -->
       <div class="hs-app" onclick="openSettings()">
@@ -1067,7 +1057,7 @@ async function checkAdminPassword(){
 // ===== ADD CAR ADMIN =====
 function openAddCarAdmin(){
   // Clear form
-  ['acName','acPhoto1','acPhoto2','acPhoto3','acMileage','acYear','acPrice','acEngine','acStock','acDesc','acFeatures'].forEach(id=>{
+  ['acName','acPhoto1','acPhoto2','acPhoto3','acMileage','acYear','acPrice','acMarketPrice','acEngine','acStock','acDesc','acFeatures'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   document.getElementById('acClass').value='';
@@ -1104,6 +1094,7 @@ async function saveCarToFirebase(){
     fuel,
     year: Number(year),
     price: Number(price),
+    marketPrice: document.getElementById('acMarketPrice').value ? Number(document.getElementById('acMarketPrice').value) : Number(price),
     stock: Number(stock),
     photos,
     cities,
@@ -1426,8 +1417,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     <input class="add-car-input" id="acYear" type="number" placeholder="Например: 2020">
 
     <!-- Price -->
-    <label class="add-car-label">Цена новой (₽) *</label>
+    <label class="add-car-label">Цена в автосалоне (₽) *</label>
     <input class="add-car-input" id="acPrice" type="number" placeholder="Например: 2500000">
+
+    <!-- Market price -->
+    <label class="add-car-label">Рыночная цена БУ (₽) <span style="font-size:10px;color:#b0bdd0">— ср. цена на вторичном рынке</span></label>
+    <input class="add-car-input" id="acMarketPrice" type="number" placeholder="Например: 1800000">
 
     <!-- Engine -->
     <label class="add-car-label">Объём двигателя (л)</label>
@@ -2008,19 +2003,137 @@ function dealerGoBack() {
   if(document.getElementById('dealerListScreen').classList.contains('visible')){ closeDealerList(); return; }
   closeDealer();
 }
-function dealerOrderClick(){
-  // Show "В разработке" toast
-  let t = document.getElementById('dealerOrderToast');
-  if(!t){
-    t = document.createElement('div');
-    t.id = 'dealerOrderToast';
-    t.style.cssText='position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#1a2a45;color:#fff;font-size:15px;font-weight:700;padding:12px 24px;border-radius:16px;z-index:9999;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25)';
-    document.body.appendChild(t);
+async function dealerOrderClick(){
+  const user = auth.currentUser;
+  if(!user){ bankToast('Войдите в аккаунт'); return; }
+  if(!currentDetailCar){ bankToast('Выберите автомобиль'); return; }
+
+  const car = currentDetailCar;
+  const price = Number(car.price)||0;
+
+  // Load bank balance
+  const bSnap = await db.ref('bankData/'+user.uid+'/balance').once('value');
+  const balance = bSnap.val()||0;
+  if(balance < price){
+    bankToast('❌ Недостаточно средств! Нужно '+price.toLocaleString('ru-RU')+' ₽');
+    return;
   }
-  t.textContent = '🚧 В разработке!';
-  t.style.display='block';
-  clearTimeout(t._to);
-  t._to = setTimeout(()=>t.style.display='none', 2200);
+  if((car.stock||0) <= 0){
+    bankToast('❌ Автомобиль отсутствует в наличии');
+    return;
+  }
+
+  // Load user garages
+  const gSnap = await db.ref('userProperty/'+user.uid+'/garages').once('value');
+  const garagesRaw = gSnap.val()||{};
+  if(!Object.keys(garagesRaw).length){
+    bankToast('❌ У вас нет гаражей! Сначала приобретите недвижимость.');
+    return;
+  }
+
+  // Load templates to get garage names
+  const tplSnap = await db.ref('garageTemplates').once('value');
+  const tpls = tplSnap.val()||{};
+
+  // Filter garages with free spots
+  const freeGarages = Object.entries(garagesRaw).map(([key,g])=>{
+    const tpl = tpls[g.templateId]||{};
+    const maxG = tpl.maxGarageSpots||50;
+    const curG = g.garageSpots||0;
+    const maxY = tpl.maxYardSpots||50;
+    const curY = g.yardSpots||0;
+    return {key, name: tpl.name||'Гараж', freeGarage: maxG-curG, freeYard: maxY-curY};
+  }).filter(g=>g.freeGarage>0||g.freeYard>0);
+
+  if(!freeGarages.length){
+    bankToast('❌ Нет свободных мест ни в одном гараже!');
+    return;
+  }
+
+  // Show garage selector modal
+  showGarageSelectModal(freeGarages, car, price, user.uid);
+}
+
+function showGarageSelectModal(garages, car, price, uid){
+  let overlay = document.getElementById('garageSelectOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'garageSelectOverlay';
+    overlay.style.cssText='position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:460px;background:#fff;border-radius:22px 22px 0 0;padding:24px 20px 36px;max-height:70vh;overflow-y:auto">
+      <div style="font-size:17px;font-weight:800;color:#1a2a45;margin-bottom:4px;text-align:center">🚗 Выберите гараж</div>
+      <div style="font-size:13px;color:#8a9ab8;text-align:center;margin-bottom:16px">${car.name} · ${price.toLocaleString('ru-RU')} ₽</div>
+      ${garages.map(g=>`
+        <button onclick="confirmCarPurchase('${g.key}','${uid}','${car.id}',${price})" style="width:100%;background:#f5f7fa;border:1.5px solid #e8eef6;border-radius:14px;padding:14px 16px;margin-bottom:10px;text-align:left;cursor:pointer;display:block">
+          <div style="font-size:15px;font-weight:800;color:#1a2a45">${g.name}</div>
+          <div style="font-size:12px;color:#8a9ab8;margin-top:3px">🚗 Свободно в гараже: ${g.freeGarage} · 🌿 Во дворе: ${g.freeYard}</div>
+        </button>
+      `).join('')}
+      <button onclick="document.getElementById('garageSelectOverlay').style.display='none'" style="width:100%;background:#f0f4f9;color:#8a9ab8;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">Отмена</button>
+    </div>`;
+  overlay.style.display='flex';
+}
+
+async function confirmCarPurchase(garageKey, uid, carId, price){
+  document.getElementById('garageSelectOverlay').style.display='none';
+
+  // Show animation overlay
+  let anim = document.getElementById('buyCarAnim');
+  if(!anim){
+    anim = document.createElement('div');
+    anim.id='buyCarAnim';
+    anim.style.cssText='position:fixed;inset:0;z-index:9995;background:rgba(26,125,232,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:48px';
+    document.body.appendChild(anim);
+  }
+  anim.innerHTML='<div style="animation:carDrive 1s linear infinite">🚗</div><div style="font-size:18px;font-weight:800;margin-top:24px">Оформляем покупку…</div>';
+  anim.style.display='flex';
+
+  try {
+    // Deduct money
+    const bSnap = await db.ref('bankData/'+uid+'/balance').once('value');
+    const balance = bSnap.val()||0;
+    if(balance < price){ bankToast('❌ Недостаточно средств'); anim.style.display='none'; return; }
+
+    // Decrease stock
+    const carSnap = await db.ref('dealerCars/'+carId).once('value');
+    const carData = carSnap.val()||{};
+    if((carData.stock||0)<=0){ bankToast('❌ Авто нет в наличии'); anim.style.display='none'; return; }
+
+    await db.ref('dealerCars/'+carId+'/stock').set((carData.stock||1)-1);
+    await db.ref('bankData/'+uid+'/balance').set(balance-price);
+
+    // Save car to user
+    await db.ref('userCars/'+uid).push({
+      name: carData.name||'Автомобиль',
+      year: carData.year||0,
+      fuel: carData.fuel||'',
+      mileage: carData.mileage||0,
+      engine: carData.engine||'',
+      drive: carData.drive||'',
+      damage: '',
+      buyPrice: price,
+      marketPrice: carData.marketPrice||price,
+      dealerPrice: price,
+      garageKey: garageKey,
+      boughtAt: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    // Update local balance
+    bankBalance = balance - price;
+
+    await new Promise(r=>setTimeout(r,1200));
+    anim.innerHTML='<div style="font-size:64px">✅</div><div style="font-size:18px;font-weight:800;margin-top:16px">Автомобиль куплен!</div><div style="font-size:14px;opacity:.8;margin-top:8px">Проверьте «Мою недвижимость»</div>';
+    setTimeout(()=>{ anim.style.display='none'; loadDealerCars(); }, 2200);
+
+    // Reload bank data in background
+    if(auth.currentUser) loadBankData(auth.currentUser.uid);
+  } catch(e){
+    anim.style.display='none';
+    bankToast('❌ Ошибка: '+e.message);
+  }
 }
 </script>
 
@@ -2121,6 +2234,7 @@ function dealerOrderClick(){
 /* Admin bank sub */
 .admin-tax-input{width:100%;background:#fff;border:1.5px solid #e2edf9;border-radius:10px;padding:10px 12px;font-size:15px;color:#1a2a45;outline:none;margin-top:4px;font-family:inherit}
 .admin-tax-label{font-size:12px;font-weight:700;color:#6a85a8;margin-top:10px;display:block}
+@keyframes carDrive{0%{transform:translateX(-30px)}50%{transform:translateX(30px)}100%{transform:translateX(-30px)}}
 </style>
 
 <!-- ===== BEAMROOM BANK SCREEN ===== -->
@@ -2214,28 +2328,28 @@ function dealerOrderClick(){
       </div>
       <button class="bank-btn-primary" onclick="startCreditSign()">✍️ Подписать и взять кредит</button>
     </div>
-    <!-- Sign modal for credit (двухэтапная как при регистрации) -->
+    <!-- Sign modal for credit (сравнение с подписью при регистрации) -->
     <div id="bankCreditSignWrap" style="display:none">
       <div class="bank-form-card">
-        <div style="font-size:14px;font-weight:800;color:#1a2a45;margin-bottom:2px" id="bankCreditSignTitle">Создайте подпись</div>
-        <div style="font-size:12px;color:#8a9ab8;margin-bottom:10px" id="bankCreditSignDesc">Распишитесь пальцем. Затем повторите подпись для подтверждения.</div>
+        <div style="font-size:14px;font-weight:800;color:#1a2a45;margin-bottom:2px">✍️ Подтверждение подписью</div>
+        <div style="font-size:12px;color:#8a9ab8;margin-bottom:10px">Поставьте подпись поверх серого контура — как при регистрации.</div>
         <canvas class="bank-sign-canvas" id="bankCreditCanvas" style="cursor:crosshair"></canvas>
         <div class="bank-sign-actions">
-          <button class="bank-sign-clear" onclick="clearBankSignCanvas('bankCreditCanvas','credit')">Очистить</button>
-          <button class="bank-sign-confirm" onclick="confirmBankSign('credit')">Далее</button>
+          <button class="bank-sign-clear" onclick="clearBankSignCanvas('bankCreditCanvas')">Очистить</button>
+          <button class="bank-sign-confirm" onclick="confirmBankSign('credit')">✅ Получить кредит</button>
         </div>
         <div id="bankCreditSignStatus" style="min-height:18px;font-size:12px;color:#8a9ab8;margin-top:6px;text-align:center"></div>
       </div>
     </div>
-    <!-- Sign modal for early payoff (двухэтапная как при регистрации) -->
+    <!-- Sign modal for early payoff (сравнение с подписью при регистрации) -->
     <div id="bankEarlySignWrap" style="display:none">
       <div class="bank-form-card">
-        <div style="font-size:14px;font-weight:800;color:#1a2a45;margin-bottom:2px" id="bankEarlySignTitle">Создайте подпись</div>
-        <div style="font-size:12px;color:#8a9ab8;margin-bottom:10px" id="bankEarlySignDesc">Распишитесь пальцем. Затем повторите подпись для подтверждения.</div>
+        <div style="font-size:14px;font-weight:800;color:#1a2a45;margin-bottom:2px">✍️ Подтверждение подписью</div>
+        <div style="font-size:12px;color:#8a9ab8;margin-bottom:10px">Поставьте подпись поверх серого контура — как при регистрации.</div>
         <canvas class="bank-sign-canvas" id="bankEarlyCanvas" style="cursor:crosshair"></canvas>
         <div class="bank-sign-actions">
-          <button class="bank-sign-clear" onclick="clearBankSignCanvas('bankEarlyCanvas','early')">Очистить</button>
-          <button class="bank-sign-confirm" onclick="confirmBankSign('early')">Далее</button>
+          <button class="bank-sign-clear" onclick="clearBankSignCanvas('bankEarlyCanvas')">Очистить</button>
+          <button class="bank-sign-confirm" onclick="confirmBankSign('early')">⚡ Погасить досрочно</button>
         </div>
         <div id="bankEarlySignStatus" style="min-height:18px;font-size:12px;color:#8a9ab8;margin-top:6px;text-align:center"></div>
       </div>
@@ -2366,12 +2480,20 @@ function dealerOrderClick(){
     <input type="hidden" id="editCarKey">
     <label class="add-car-label">Название</label>
     <input class="add-car-input" id="editCarName" placeholder="Название">
-    <label class="add-car-label">Цена (₽)</label>
+    <label class="add-car-label">Цена в автосалоне (₽)</label>
     <input class="add-car-input" type="number" id="editCarPrice" placeholder="Цена">
+    <label class="add-car-label">Рыночная цена БУ (₽) <span style="font-size:10px;color:#8a9ab8">— показывается покупателю</span></label>
+    <input class="add-car-input" type="number" id="editCarMarketPrice" placeholder="Средняя рыночная цена">
     <label class="add-car-label">Год</label>
     <input class="add-car-input" type="number" id="editCarYear" placeholder="Год">
     <label class="add-car-label">Наличие (шт.)</label>
     <input class="add-car-input" type="number" id="editCarStock" placeholder="Кол-во">
+    <label class="add-car-label">Фото 1 (Discord ссылка)</label>
+    <input class="add-car-input" id="editCarPhoto1" placeholder="https://cdn.discordapp.com/...">
+    <label class="add-car-label">Фото 2</label>
+    <input class="add-car-input" id="editCarPhoto2" placeholder="https://cdn.discordapp.com/...">
+    <label class="add-car-label">Фото 3</label>
+    <input class="add-car-input" id="editCarPhoto3" placeholder="https://cdn.discordapp.com/...">
     <button onclick="saveEditCar()" style="margin-top:16px;width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:14px;font-size:16px;font-weight:800;cursor:pointer">💾 Сохранить изменения</button>
     <button onclick="deleteEditCar()" style="margin-top:8px;width:100%;background:#fff0f0;color:#ff3b30;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">🗑 Удалить авто</button>
     <div id="editCarStatus" style="min-height:20px;text-align:center;font-size:14px;margin-top:8px;font-weight:700"></div>
@@ -2420,17 +2542,18 @@ async function openBank(){
   const user = auth.currentUser;
   if(!user){ bankToast('Войдите в аккаунт'); return; }
 
+  // Show bank immediately, load data in background
+  document.getElementById('bankScreen').classList.add('visible');
+  updateBankClock();
+
+  // Load signature for bank (parallel with bank data)
+  loadUserSignatureForBank(user.uid);
+
   // load or init bank data
   await loadBankData(user.uid);
 
-  updateBankClock();
-  document.getElementById('bankScreen').classList.add('visible');
-
   // Check tax reminder (2+ real days)
   checkTaxReminder();
-
-  // Start hourly tickers
-  startBankTimers();
 }
 
 function closeBank(){
@@ -2455,18 +2578,26 @@ function updateBankClock(){
 
 // ─── FIREBASE DATA ────────────────────────────────────────────
 async function loadBankData(uid){
-  bankUserId = await getOrCreateUserId(uid);
-  document.getElementById('bankIdDisplay').textContent = bankUserId;
+  // Fast: render immediately with cached/empty state, then fill from Firebase
+  renderBankHome();
 
   try {
-    const snap = await db.ref('bankData/'+uid).once('value');
-    const d = snap.val() || {};
+    // Load all in parallel for speed
+    const [idVal, snapVal, taxSnapVal] = await Promise.all([
+      getOrCreateUserId(uid),
+      db.ref('bankData/'+uid).once('value'),
+      db.ref('adminSettings/taxRates').once('value')
+    ]);
+
+    bankUserId = idVal;
+    document.getElementById('bankIdDisplay').textContent = bankUserId;
+
+    const d = snapVal.val() || {};
 
     if(d.balance !== undefined){ bankBalance = d.balance; }
     else {
-      // New user — assign random balance
       bankBalance = randomStartBalance();
-      await db.ref('bankData/'+uid+'/balance').set(bankBalance);
+      db.ref('bankData/'+uid+'/balance').set(bankBalance); // non-blocking
       addTx('Начальный баланс', bankBalance);
     }
 
@@ -2477,12 +2608,16 @@ async function loadBankData(uid){
     bankLastTaxTs = d.lastTaxTs || null;
     bankTaxAccumulated = d.taxAccumulated || 0;
 
-    // Load admin tax rates
-    const taxSnap = await db.ref('adminSettings/taxRates').once('value');
-    if(taxSnap.val()) Object.assign(taxRates, taxSnap.val());
+    if(taxSnapVal.val()) Object.assign(taxRates, taxSnapVal.val());
 
-    // Load property from real estate data (автоматически из Firebase)
-    await recalcPropertyFromFirebase(uid);
+    // Update auto pay toggle
+    document.getElementById('bankAutoPayToggle').classList.toggle('on', bankAutoPay);
+
+    // Render first — then load property (non-blocking for UX)
+    renderBankHome();
+
+    // Load property in background
+    recalcPropertyFromFirebase(uid).then(()=>renderBankHome());
 
   } catch(e) {
     console.error('Bank load error:', e);
@@ -2492,12 +2627,10 @@ async function loadBankData(uid){
     bankLastTaxPaid = null;
     bankLastTaxTs = null;
     bankTaxAccumulated = 0;
+    renderBankHome();
   }
 
-  // Update auto pay toggle
-  document.getElementById('bankAutoPayToggle').classList.toggle('on', bankAutoPay);
-
-  renderBankHome();
+  startBankTimers();
 }
 
 async function saveBankData(){
@@ -2613,47 +2746,36 @@ function updateCreditCalc(){
   document.getElementById('creditPayPerHour').textContent = perHour.toLocaleString('ru-RU')+' ₽';
 }
 
-// ─── BANK SIGNATURE (2-step like registration) ────────────────
-let bankSignState = {}; // {credit: {firstData, confirming}, early: {firstData, confirming}}
+// ─── BANK SIGNATURE (сравнение с подписью при регистрации) ───
+// Загружаем подпись пользователя из Firebase при открытии банка
+let _bankUserSignature = null; // dataUrl подписи из регистрации
 
-function initBankSignState(type){
-  bankSignState[type] = {firstData: null, confirming: false};
+async function loadUserSignatureForBank(uid){
+  try {
+    const snap = await db.ref('users/'+uid+'/signature').once('value');
+    _bankUserSignature = snap.val() || null;
+  } catch(e){ _bankUserSignature = null; }
 }
 
-function startCreditSign(){
-  initBankSignState('credit');
-  document.getElementById('bankCreditSignWrap').style.display='block';
-  setBankSignStep('credit', false);
-  initBankCanvas('bankCreditCanvas', 'credit');
-  document.getElementById('bankCreditSignStatus').textContent='';
-  document.getElementById('bankCreditSignWrap').scrollIntoView({behavior:'smooth'});
-}
-
-function setBankSignStep(type, confirming){
-  const isCredit = type==='credit';
-  const titleEl = document.getElementById(isCredit?'bankCreditSignTitle':'bankEarlySignTitle');
-  const descEl  = document.getElementById(isCredit?'bankCreditSignDesc':'bankEarlySignDesc');
-  const btnEl   = document.querySelector(isCredit?'#bankCreditSignWrap .bank-sign-confirm':'#bankEarlySignWrap .bank-sign-confirm');
-  if(confirming){
-    titleEl.textContent = 'Подтвердите подпись';
-    descEl.textContent  = 'Проведите по серому контуру своей подписи — повторите её поверх.';
-    if(btnEl) btnEl.textContent = isCredit ? 'Получить кредит' : 'Погасить досрочно';
-  } else {
-    titleEl.textContent = 'Создайте подпись';
-    descEl.textContent  = 'Распишитесь пальцем. Затем повторите подпись для подтверждения.';
-    if(btnEl) btnEl.textContent = 'Далее';
-  }
-  if(bankSignState[type]) bankSignState[type].confirming = confirming;
-}
-
-function initBankCanvas(id, type){
+function initBankCanvas(id){
   const c = document.getElementById(id);
+  if(!c) return;
   const ctx = c.getContext('2d');
   c.width = c.offsetWidth || 300;
   c.height = 150;
   ctx.clearRect(0,0,c.width,c.height);
   ctx.strokeStyle='#1a2a45'; ctx.lineWidth=4; ctx.lineCap='round'; ctx.lineJoin='round';
-
+  // Draw ghost of registration signature
+  if(_bankUserSignature){
+    const im = new Image();
+    im.onload = ()=>{
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.drawImage(im, 0, 0, c.width, c.height);
+      ctx.restore();
+    };
+    im.src = _bankUserSignature;
+  }
   function pt(e){ const r=c.getBoundingClientRect(); const s=e.touches?e.touches[0]:e; return {x:(s.clientX-r.left)*(c.width/r.width),y:(s.clientY-r.top)*(c.height/r.height)}; }
   c._drawing=false; c._ink=false;
   c.ontouchstart = c.onmousedown = e=>{e.preventDefault();c._drawing=true;c._ink=true;const p=pt(e);ctx.beginPath();ctx.moveTo(p.x,p.y)};
@@ -2661,27 +2783,32 @@ function initBankCanvas(id, type){
   c.ontouchend = c.onmouseup = ()=>{c._drawing=false};
 }
 
-function clearBankSignCanvas(id, type){
+function clearBankSignCanvas(id){
   const c = document.getElementById(id);
+  if(!c) return;
   const ctx = c.getContext('2d');
   ctx.clearRect(0,0,c.width,c.height);
   c._ink=false;
-  // If in confirming step — redraw ghost
-  if(bankSignState[type] && bankSignState[type].confirming && bankSignState[type].firstData){
-    drawBankGhost(c, bankSignState[type].firstData);
+  // Redraw ghost
+  if(_bankUserSignature){
+    const im = new Image();
+    im.onload = ()=>{
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.drawImage(im, 0, 0, c.width, c.height);
+      ctx.restore();
+    };
+    im.src = _bankUserSignature;
   }
 }
 
-function drawBankGhost(canvas, dataUrl){
-  const ctx = canvas.getContext('2d');
-  const im = new Image();
-  im.onload = ()=>{
-    ctx.save();
-    ctx.globalAlpha = 0.18;
-    ctx.drawImage(im, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
-  };
-  im.src = dataUrl;
+function startCreditSign(){
+  document.getElementById('bankCreditSignWrap').style.display='block';
+  document.getElementById('bankCreditSignStatus').textContent = _bankUserSignature
+    ? 'Поставьте подпись поверх серого контура.'
+    : 'Нарисуйте свою подпись.';
+  setTimeout(()=>initBankCanvas('bankCreditCanvas'), 50);
+  document.getElementById('bankCreditSignWrap').scrollIntoView({behavior:'smooth'});
 }
 
 async function confirmBankSign(type){
@@ -2693,35 +2820,19 @@ async function confirmBankSign(type){
 
   if(!c._ink){ st.textContent='⚠️ Нарисуйте подпись'; return; }
 
-  const state = bankSignState[type] || {firstData:null, confirming:false};
-
-  if(!state.firstData){
-    // Step 1 — save first signature, go to confirmation
-    state.firstData = c.toDataURL('image/png');
-    bankSignState[type] = state;
-    st.textContent = 'Обведите серую подпись в поле выше.';
-    setBankSignStep(type, true);
-    // Clear canvas then draw ghost
-    const ctx = c.getContext('2d');
-    ctx.clearRect(0,0,c.width,c.height);
-    c._ink = false;
-    drawBankGhost(c, state.firstData);
-    return;
+  // If we have a saved registration signature — compare with it
+  if(_bankUserSignature){
+    st.textContent = 'Проверка подписи…';
+    const sim = await signatureSimilarity(_bankUserSignature, c.toDataURL('image/png'));
+    if(sim < 25){
+      st.textContent = '❌ Совпадение '+sim.toFixed(0)+'%. Нужно минимум 25%. Повторите.';
+      clearBankSignCanvas(canvasId);
+      return;
+    }
+    st.textContent = '✅ Совпадение '+sim.toFixed(0)+'%. Подпись подтверждена!';
+  } else {
+    st.textContent = '✅ Подпись принята!';
   }
-
-  // Step 2 — compare signatures
-  st.textContent = 'Проверка подписи…';
-  const sim = await signatureSimilarity(state.firstData, c.toDataURL('image/png'));
-  if(sim < 25){
-    st.textContent = 'Совпадение '+sim.toFixed(0)+'%. Нужно минимум 25%. Повторите.';
-    const ctx = c.getContext('2d');
-    ctx.clearRect(0,0,c.width,c.height);
-    c._ink = false;
-    drawBankGhost(c, state.firstData);
-    return;
-  }
-
-  st.textContent = 'Совпадение '+sim.toFixed(0)+'%. Подпись подтверждена!';
 
   if(isCredit){
     setTimeout(()=>doIssueCreditAfterSign(), 400);
@@ -2830,11 +2941,11 @@ function updateBankTimersDisplay(){
 
 function startEarlyPayoff(creditId){
   bankEarlyPayTarget = creditId;
-  initBankSignState('early');
   document.getElementById('bankEarlySignWrap').style.display='block';
-  setBankSignStep('early', false);
-  initBankCanvas('bankEarlyCanvas', 'early');
-  document.getElementById('bankEarlySignStatus').textContent='';
+  document.getElementById('bankEarlySignStatus').textContent = _bankUserSignature
+    ? 'Поставьте подпись поверх серого контура.'
+    : 'Нарисуйте свою подпись.';
+  setTimeout(()=>initBankCanvas('bankEarlyCanvas'), 50);
   document.getElementById('bankEarlySignWrap').scrollIntoView({behavior:'smooth'});
 }
 
@@ -2945,7 +3056,7 @@ function payTaxNow(){
   const paid = bankTaxAccumulated;
   bankBalance -= paid;
   bankTaxAccumulated = 0;
-  bankLastTaxPaid = Date.now();
+  bankLastTaxPaid = getServerTime();
   bankPenaltyDays = 0;
   addTx('Оплата налогов', -paid);
   bankToast('✅ Налоги оплачены: '+fmtRub(paid));
@@ -3107,8 +3218,13 @@ function openEditOneCar(key){
   document.getElementById('editCarKey').value = key;
   document.getElementById('editCarName').value = c.name||'';
   document.getElementById('editCarPrice').value = c.price||'';
+  document.getElementById('editCarMarketPrice').value = c.marketPrice||'';
   document.getElementById('editCarYear').value = c.year||'';
   document.getElementById('editCarStock').value = c.stock||'';
+  const photos = c.photos||[];
+  document.getElementById('editCarPhoto1').value = photos[0]||'';
+  document.getElementById('editCarPhoto2').value = photos[1]||'';
+  document.getElementById('editCarPhoto3').value = photos[2]||'';
   document.getElementById('editCarStatus').textContent='';
   openSettingsSub('adminEditOneCarSub');
 }
@@ -3117,13 +3233,19 @@ async function saveEditCar(){
   const key = document.getElementById('editCarKey').value;
   const name = document.getElementById('editCarName').value.trim();
   const price = parseFloat(document.getElementById('editCarPrice').value)||0;
+  const marketPrice = parseFloat(document.getElementById('editCarMarketPrice').value)||0;
   const year = parseInt(document.getElementById('editCarYear').value)||0;
   const stock = parseInt(document.getElementById('editCarStock').value)||0;
+  const photos = [
+    document.getElementById('editCarPhoto1').value.trim(),
+    document.getElementById('editCarPhoto2').value.trim(),
+    document.getElementById('editCarPhoto3').value.trim()
+  ].filter(Boolean);
   const st = document.getElementById('editCarStatus');
   if(!name){ st.textContent='❌ Введите название'; st.style.color='#ff3b30'; return; }
   st.textContent='⏳ Сохранение…'; st.style.color='#1a7de8';
   try {
-    await db.ref('dealerCars/'+key).update({name,price,year,stock});
+    await db.ref('dealerCars/'+key).update({name, price, marketPrice, year, stock, photos});
     await loadDealerCars();
     st.textContent='✅ Сохранено!'; st.style.color='#34c759';
   } catch(e){ st.textContent='❌ '+e.message; st.style.color='#ff3b30'; }
