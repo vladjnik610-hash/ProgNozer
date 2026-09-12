@@ -107,6 +107,34 @@ button:active{transform:scale(.97)}
 .hs-navbar{position:relative;z-index:2;display:flex;justify-content:space-around;align-items:center;padding:2px 0 8px}
 .hs-nav-btn{background:none;padding:3px 16px;opacity:.55}
 .hs-nav-btn svg{width:18px;height:18px;fill:#1a2a45}
+
+.hs-city-bar{
+  margin-top:10px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.55);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.8);
+  color:#1a2a45;
+  font-size:13px;
+  font-weight:700;
+  box-shadow:0 4px 12px rgba(60,110,180,.12);
+}
+.hs-city-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#1a7de8;
+  animation:cityBlink 1.2s infinite;
+}
+@keyframes cityBlink{
+  0%,100%{opacity:.3}
+  50%{opacity:1}
+}
+
 </style>
 </head>
 
@@ -230,6 +258,7 @@ button:active{transform:scale(.97)}
   <div class="hs-top">
     <div class="hs-clock-big" id="hsClockBig">--:--</div>
     <div class="hs-date-str" id="hsDateStr"></div>
+    <div class="hs-city-bar"><span class="hs-city-dot"></span><span id="currentCity">Костанай</span></div>
   </div>
 
   <div class="hs-grid-wrap">
@@ -446,6 +475,12 @@ function updateClock(){
 updateClock();
 setInterval(updateClock,1000);
 
+
+function updateCurrentCity(city){
+  const el=document.getElementById('currentCity');
+  if(el && city) el.textContent=city;
+}
+
 function showSync(){document.getElementById('syncScreen').classList.add('visible')}
 function hideSync(){document.getElementById('syncScreen').classList.remove('visible')}
 function hideAuth(){document.getElementById('authScreen').style.display='none'}
@@ -543,7 +578,7 @@ async function signatureSimilarity(a,b){
 }
 async function saveNewProfile(){
   const user=auth.currentUser;if(!user)return;
-  const profile={city:onboardCity,signature:firstSignatureData,createdAt:firebase.database.ServerValue.TIMESTAMP};
+  const profile={city:onboardCity,signature:firstSignatureData,createdAt:firebase.database.ServerValue.TIMESTAMP}; updateCurrentCity(onboardCity);
   try{await db.ref('users/'+user.uid).set(profile);}catch(e){localStorage.setItem('carprog_profile_'+user.uid,JSON.stringify({city:onboardCity,signature:firstSignatureData}));}
   hideOnboard();showMain();pendingNewUser=false;
 }
