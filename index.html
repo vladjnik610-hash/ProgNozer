@@ -654,10 +654,15 @@ function updateClock(){
   const hs=document.getElementById('hsStatusTime');if(hs)hs.textContent=timeStr;
   const hb=document.getElementById('hsClockBig');if(hb)hb.textContent=timeStr;
   const hd=document.getElementById('hsDateStr');if(hd)hd.textContent=dateStr;
+  const ds=document.getElementById('dealerStatusTime');if(ds)ds.textContent=timeStr;
+  const ss=document.getElementById('settingsStatusTime');if(ss)ss.textContent=timeStr;
 }
 
-updateClock();
-setInterval(updateClock,1000);
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',function(){updateClock();setInterval(updateClock,1000);});
+}else{
+  updateClock();setInterval(updateClock,1000);
+}
 
 function showSync(){document.getElementById('syncScreen').classList.add('visible')}
 function hideSync(){document.getElementById('syncScreen').classList.remove('visible')}
@@ -1017,6 +1022,10 @@ async function checkAdminPassword(){
     return;
   }
   closeAdminModal();
+  // Make sure settingsScreen is open (it hosts the sub-screens)
+  if(!document.getElementById('settingsScreen').classList.contains('visible')){
+    await openSettings();
+  }
   // Fill admin panel data
   const user = auth.currentUser;
   if(user){
@@ -1024,9 +1033,15 @@ async function checkAdminPassword(){
     document.getElementById('adminUID').textContent = user.uid;
     document.getElementById('adminName').textContent = user.displayName || '—';
     document.getElementById('adminCity').textContent = document.getElementById('currentCity').textContent || '—';
-    const appId = document.getElementById('idSubValue').textContent;
+    // Get appId fresh from firebase if needed
+    let appId = document.getElementById('idSubValue').textContent;
+    if(!appId || appId==='—'){
+      appId = await getOrCreateUserId(user.uid);
+      document.getElementById('idSubValue').textContent = appId;
+      document.getElementById('settingsIdDisplay').textContent = appId;
+    }
     document.getElementById('adminAppId').textContent = appId;
-    document.getElementById('adminPlatform').textContent = navigator.userAgent.includes('iPhone')||navigator.userAgent.includes('Android') ? '📱 Мобильный' : '💻 Компьютер';
+    document.getElementById('adminPlatform').textContent = (navigator.userAgent.includes('iPhone')||navigator.userAgent.includes('Android')) ? '📱 Мобильный' : '💻 Компьютер';
   }
   openSettingsSub('adminSub');
 }
@@ -1714,4 +1729,283 @@ function syncDealerTime() {
   const s = document.getElementById('settingsStatusTime');
   const src = document.getElementById('hsStatusTime');
   if(t && src) t.textContent = src.textContent;
-  if(s && src) s.textConte
+  if(s && src) s.textContent = src.textContent;
+}
+// Time synced in updateClock() above
+
+// Show all cars on dealer home screen
+function renderDealerAll(query='') {
+  const el = document.getElementById('dealerHomeList');
+  const all = getAllCars();
+  const filtered = query
+    ? all.filter(c=>(c.name||'').toLowerCase().includes(query.toLowerCase()))
+    : all;
+  if(!filtered.length){
+    el.innerHTML = '<div class="dealer-empty"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#b0bdd0"/></svg>В данный момент автомобилей нету</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(c=>carCardHTML(c)).join('');
+}
+function dealerSearchAll(q){ renderDealerAll(q); }
+
+function openDealerList(cls) {
+  // Highlight selected class card
+  document.querySelectorAll('.dealer-class-card').forEach(c=>c.classList.remove('active'));
+  const idx = {low:0,mid:1,high:2}[cls];
+  const cards = document.querySelectorAll('.dealer-class-card');
+  if(cards[idx]) cards[idx].classList.add('active');
+
+  currentDealerClass = cls;
+  const titles = {low:'Низкий класс',mid:'Средний класс',high:'Высокий класс'};
+  document.getElementById('dealerListTitle').textContent = titles[cls];
+  renderDealerList();
+  document.getElementById('dealerListScreen').classList.add('visible');
+}
+function closeDealerList() {
+  document.getElementById('dealerListScreen').classList.remove('visible');
+}
+function renderDealerList(query='') {
+  const el = document.getElementById('dealerCarList');
+  const cars = getCarsByClass(currentDealerClass);
+  const filtered = query ? cars.filter(c=>(c.name||'').toLowerCase().includes(query.toLowerCase())) : cars;
+  if(!filtered.length){
+    el.innerHTML = '<div class="dealer-empty"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#b0bdd0"/></svg>В данный момент автомобилей нету</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(c=>carCardHTML(c)).join('');
+}
+function dealerSearchList(q){ renderDealerList(q); }
+
+function carCardHTML(car) {
+  const isFav = dealerFavorites.has(car.id);
+  const photos = car.photos || [];
+  const firstPhoto = photos[0] || '';
+  const imgHTML = firstPhoto
+    ? `<img src="${firstPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const placeholder = `<div style="display:${firstPhoto?'none':'flex'};width:100%;height:100%;align-items:center;justify-content:center">
+    <svg width="80" height="48" viewBox="0 0 80 48" fill="none">
+      <rect x="5" y="20" width="70" height="20" rx="4" fill="#1a7de8" opacity=".12"/>
+      <path d="M12 20 L20 8 L60 8 L68 20" fill="#1a7de8" opacity=".18"/>
+      <circle cx="22" cy="40" r="7" fill="#b0bdd0"/><circle cx="22" cy="40" r="3.5" fill="#f5f7fa"/>
+      <circle cx="58" cy="40" r="7" fill="#b0bdd0"/><circle cx="58" cy="40" r="3.5" fill="#f5f7fa"/>
+    </svg></div>`;
+  const classLabel = {low:'Низкий',mid:'Средний',high:'Высокий'}[car.carClass]||'';
+  const metaStr = [car.year, car.engine?car.engine+'л':'', car.fuel, car.drive, car.mileage?(car.mileage+' км'):''].filter(Boolean).join(' · ');
+  const price = car.price ? Number(car.price).toLocaleString('ru-RU')+'  ₽' : '—';
+  const stock = car.stock!==undefined ? `<span style="font-size:11px;color:#34c759;font-weight:700">В наличии: ${car.stock}</span>` : '';
+  return `<div class="dealer-car-card" onclick="openDealerDetail('${car.id}')">
+    <div class="dealer-car-img" style="display:flex;align-items:center;justify-content:center;overflow:hidden">
+      ${imgHTML}${placeholder}
+    </div>
+    <div class="dealer-car-info">
+      <div class="dealer-car-name">${car.name||'—'}</div>
+      <div class="dealer-car-meta">${metaStr}</div>
+      <div class="dealer-car-price">${price}</div>
+      ${stock}
+    </div>
+    <button class="dealer-car-heart ${isFav?'active':''}" onclick="event.stopPropagation();toggleFav('${car.id}',this)">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    </button>
+  </div>`;
+}
+
+function toggleFav(id, btn) {
+  if(dealerFavorites.has(id)){ dealerFavorites.delete(id); btn.classList.remove('active'); }
+  else { dealerFavorites.add(id); btn.classList.add('active'); }
+}
+
+let currentDetailCar = null;
+function openDealerDetail(id) {
+  const car = getAllCars().find(c=>c.id===id);
+  if(!car) return;
+  currentDetailCar = car;
+
+  // Photo gallery
+  const photos = car.photos || [];
+  dealerPhotosModal = {car, idx:0};
+  const photoArea = document.getElementById('dealerDetailPhotoArea');
+  if(photos.length>0){
+    photoArea.innerHTML = `
+      <img id="dealerDetailMainPhoto" src="${photos[0]}" style="width:100%;height:220px;object-fit:cover" onerror="this.src=''">
+      ${photos.length>1?`
+      <div style="position:absolute;bottom:10px;right:10px;display:flex;gap:6px">
+        <button onclick="dealerPhotoNav(-1)" style="background:rgba(255,255,255,.85);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">‹</button>
+        <button onclick="dealerPhotoNav(1)" style="background:rgba(255,255,255,.85);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">›</button>
+      </div>
+      <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px">
+        ${photos.map((_,i)=>`<div class="detail-photo-dot ${i===0?'active':''}" data-pi="${i}" style="width:7px;height:7px;border-radius:50%;background:${i===0?'#fff':'rgba(255,255,255,.4)'};cursor:pointer" onclick="dealerPhotoSet(${i})"></div>`).join('')}
+      </div>`:''}
+    `;
+  } else {
+    photoArea.innerHTML = `<div style="width:100%;height:220px;background:#edf2f9;display:flex;align-items:center;justify-content:center">
+      <svg width="100" height="60" viewBox="0 0 120 70" fill="none"><rect x="10" y="30" width="100" height="28" rx="6" fill="#1a7de8" opacity=".15"/><path d="M20 30 L34 12 L86 12 L100 30" fill="#1a7de8" opacity=".2"/><circle cx="32" cy="58" r="10" fill="#b0bdd0"/><circle cx="32" cy="58" r="5" fill="#fff"/><circle cx="88" cy="58" r="10" fill="#b0bdd0"/><circle cx="88" cy="58" r="5" fill="#fff"/></svg>
+    </div>`;
+  }
+
+  const body = document.getElementById('dealerDetailBody');
+  const price = car.price ? Number(car.price).toLocaleString('ru-RU')+' ₽' : '—';
+  const cities = Array.isArray(car.cities) ? car.cities.join(', ') : (car.cities||'');
+  const classLabel = {low:'Низкий класс',mid:'Средний класс',high:'Высокий класс'}[car.carClass]||'';
+  const features = car.features ? car.features.split('\n').filter(Boolean) : [];
+  body.innerHTML = `
+    <div class="dealer-detail-name">${car.name||'—'}</div>
+    <div class="dealer-detail-meta-row">
+      ${car.year?`<div class="dealer-detail-meta"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#b0bdd0" stroke-width="1.8" fill="none"/><path d="M3 9h18M8 2v4M16 2v4" stroke="#b0bdd0" stroke-width="1.8" stroke-linecap="round"/></svg>${car.year} г.</div>`:''}
+      ${car.engine?`<div class="dealer-detail-meta"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#b0bdd0" stroke-width="1.8"/><path d="M12 8v4l3 2" stroke="#b0bdd0" stroke-width="1.8" stroke-linecap="round"/></svg>${car.engine} л · ${car.fuel||''}</div>`:''}
+      ${car.drive?`<div class="dealer-detail-meta"><svg viewBox="0 0 24 24" fill="#b0bdd0"><path d="M12 2a5 5 0 100 10A5 5 0 0012 2zm0 12c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z"/></svg>${car.drive}</div>`:''}
+      ${car.mileage?`<div class="dealer-detail-meta"><svg viewBox="0 0 24 24" fill="#b0bdd0"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm4.24 5.76l-4.95 4.95-2.12-2.12 1.41-1.41 .71.71 3.54-3.54 1.41 1.41z"/></svg>${Number(car.mileage).toLocaleString('ru-RU')} км</div>`:''}
+      ${cities?`<div class="dealer-detail-meta"><svg viewBox="0 0 24 24" fill="#b0bdd0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>${cities}</div>`:''}
+      ${classLabel?`<div class="dealer-detail-meta"><svg viewBox="0 0 24 24" fill="#b0bdd0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>${classLabel}</div>`:''}
+      ${car.stock!==undefined?`<div class="dealer-detail-meta" style="color:#34c759"><svg viewBox="0 0 24 24" fill="#34c759"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>В наличии: ${car.stock} шт.</div>`:''}
+    </div>
+    <div class="dealer-detail-price">${price}</div>
+    ${car.desc?`<div class="dealer-detail-section-title">Описание</div><div class="dealer-detail-text">${car.desc}</div>`:''}
+    ${features.length?`<div class="dealer-detail-section-title">Комплектация</div>${features.map(f=>`<div class="dealer-detail-feature"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="#1a7de8"/></svg>${f}</div>`).join('')}`:''}
+  `;
+  // Heart state
+  const heartSvg = document.getElementById('detailHeartSvg');
+  if(dealerFavorites.has(car.id)){
+    heartSvg.style.fill='#ff3b30'; heartSvg.style.stroke='#ff3b30';
+  } else {
+    heartSvg.style.fill='none'; heartSvg.style.stroke='#7a95b8';
+  }
+  document.getElementById('dealerDetailScreen').classList.add('visible');
+}
+
+function dealerPhotoNav(dir){
+  const photos = dealerPhotosModal.car?.photos||[];
+  if(!photos.length) return;
+  dealerPhotosModal.idx = (dealerPhotosModal.idx + dir + photos.length) % photos.length;
+  dealerPhotoSet(dealerPhotosModal.idx);
+}
+function dealerPhotoSet(idx){
+  dealerPhotosModal.idx = idx;
+  const photos = dealerPhotosModal.car?.photos||[];
+  const img = document.getElementById('dealerDetailMainPhoto');
+  if(img && photos[idx]) img.src = photos[idx];
+  document.querySelectorAll('.detail-photo-dot').forEach((d,i)=>{
+    d.style.background = i===idx?'#fff':'rgba(255,255,255,.4)';
+    d.classList.toggle('active',i===idx);
+  });
+}
+function closeDealerDetail() {
+  document.getElementById('dealerDetailScreen').classList.remove('visible');
+}
+function toggleDetailHeart() {
+  if(!currentDetailCar) return;
+  const svg = document.getElementById('detailHeartSvg');
+  if(dealerFavorites.has(currentDetailCar.id)){
+    dealerFavorites.delete(currentDetailCar.id);
+    svg.style.fill='none'; svg.style.stroke='#7a95b8';
+  } else {
+    dealerFavorites.add(currentDetailCar.id);
+    svg.style.fill='#ff3b30'; svg.style.stroke='#ff3b30';
+  }
+}
+
+function openDealerFilter() {
+  document.getElementById('dealerFilterScreen').classList.add('visible');
+}
+function closeDealerFilter() {
+  document.getElementById('dealerFilterScreen').classList.remove('visible');
+}
+function toggleChip(el) {
+  document.querySelectorAll('#dealerFilterScreen .dealer-chip[data-cls]').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+function toggleFuelChip(el) {
+  document.querySelectorAll('#dealerFilterScreen .dealer-chip[data-fuel]').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+function applyDealerFilter(){
+  const priceFrom = parseFloat(document.getElementById('fPriceFrom').value)||0;
+  const priceTo = parseFloat(document.getElementById('fPriceTo').value)||Infinity;
+  const yearFrom = parseInt(document.getElementById('fYearFrom').value)||0;
+  const yearTo = parseInt(document.getElementById('fYearTo').value)||9999;
+  const cls = document.querySelector('#dealerFilterScreen .dealer-chip[data-cls].active')?.dataset.cls||'';
+  const fuel = document.querySelector('#dealerFilterScreen .dealer-chip[data-fuel].active')?.dataset.fuel||'';
+  const city = document.getElementById('fCity').value||'';
+  closeDealerFilter();
+  const el = document.getElementById('dealerHomeList');
+  const filtered = getAllCars().filter(c=>{
+    const p = Number(c.price)||0;
+    const y = Number(c.year)||0;
+    if(p < priceFrom || p > priceTo) return false;
+    if(y < yearFrom || y > yearTo) return false;
+    if(cls && c.carClass !== cls) return false;
+    if(fuel && (c.fuel||'') !== fuel) return false;
+    if(city && !(Array.isArray(c.cities)?c.cities.includes(city):(c.cities||'').includes(city))) return false;
+    return true;
+  });
+  if(!filtered.length){
+    el.innerHTML='<div class="dealer-empty"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#b0bdd0"/></svg>Нет автомобилей по фильтрам</div>';
+  } else {
+    el.innerHTML = filtered.map(c=>carCardHTML(c)).join('');
+  }
+}
+function resetDealerFilter(){
+  document.getElementById('fPriceFrom').value='';
+  document.getElementById('fPriceTo').value='';
+  document.getElementById('fYearFrom').value='';
+  document.getElementById('fYearTo').value='';
+  document.getElementById('fCity').value='';
+  document.querySelectorAll('#dealerFilterScreen .dealer-chip[data-cls]').forEach((c,i)=>c.classList.toggle('active',i===0));
+  document.querySelectorAll('#dealerFilterScreen .dealer-chip[data-fuel]').forEach((c,i)=>c.classList.toggle('active',i===0));
+  closeDealerFilter();
+  renderDealerAll();
+}
+
+function dealerTabClick(idx, btn) {
+  document.querySelectorAll('.dealer-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  closeDealerDetail();
+  closeDealerList();
+  if(idx===1){ // Избранное
+    const el = document.getElementById('dealerHomeList');
+    const favCars = getAllCars().filter(c=>dealerFavorites.has(c.id));
+    if(!favCars.length){ el.innerHTML='<div class="dealer-empty"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" fill="#b0bdd0"/></svg>Нет избранных автомобилей</div>'; }
+    else { el.innerHTML = favCars.map(c=>carCardHTML(c)).join(''); }
+  } else {
+    renderDealerAll();
+  }
+}
+
+function dealerGoBack() {
+  if(document.getElementById('dealerDetailScreen').classList.contains('visible')){ closeDealerDetail(); return; }
+  if(document.getElementById('dealerFilterScreen').classList.contains('visible')){ closeDealerFilter(); return; }
+  if(document.getElementById('dealerListScreen').classList.contains('visible')){ closeDealerList(); return; }
+  closeDealer();
+}
+function dealerOrderClick(){
+  // Show "В разработке" toast
+  let t = document.getElementById('dealerOrderToast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'dealerOrderToast';
+    t.style.cssText='position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#1a2a45;color:#fff;font-size:15px;font-weight:700;padding:12px 24px;border-radius:16px;z-index:9999;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.25)';
+    document.body.appendChild(t);
+  }
+  t.textContent = '🚧 В разработке!';
+  t.style.display='block';
+  clearTimeout(t._to);
+  t._to = setTimeout(()=>t.style.display='none', 2200);
+}
+</script>
+
+<!-- ADMIN PASSWORD MODAL -->
+<div class="admin-modal-overlay" id="adminPassOverlay">
+  <div class="admin-modal">
+    <div class="admin-modal-title">🔐 Админ панель</div>
+    <div class="admin-modal-sub">Введите пароль для доступа</div>
+    <input class="admin-modal-input" id="adminPassInput" type="password" placeholder="••••••••••••••••" maxlength="32">
+    <div class="admin-modal-err" id="adminPassErr"></div>
+    <div class="admin-modal-btns">
+      <button class="admin-modal-cancel" onclick="closeAdminModal()">Отмена</button>
+      <button class="admin-modal-confirm" onclick="checkAdminPassword()">Войти</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
