@@ -898,6 +898,7 @@ button:active{transform:scale(.97)}
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
 <script>
 const FIREBASE_CONFIG={
@@ -912,98 +913,62 @@ const FIREBASE_CONFIG={
 
 firebase.initializeApp(FIREBASE_CONFIG);
 const auth = firebase.auth();
+const db = firebase.database();
 
-/* ---- СЕРВЕРНОЕ ВРЕМЯ МСК (никакого локального!) ---- */
+let serverOffset = 0;
+
+db.ref(".info/serverTimeOffset").once("value")
+  .then(snap => {
+    serverOffset = snap.val() || 0;
+    console.log("Server offset:", serverOffset);
+  });
+
+function getServerTime() {
+  return Date.now() + serverOffset;
+}
+
+/* ---- СЕРВЕРНОЕ ВРЕМЯ FIREBASE ---- */
 const DAYS   = ['вс','пн','вт','ср','чт','пт','сб'];
 const MONTHS = ['января','февраля','марта','апреля','мая','июня',
                 'июля','августа','сентября','октября','ноября','декабря'];
 
-// Якорь серверного времени — не зависит от локальных часов устройства
-// Оба поля заполняются только после успешного ответа сервера.
-// До первой синхронизации часы не показываются вовсе (serverReady = false).
-let serverStartMs   = 0;      // UTC-время в момент ответа сервера (мс)
-let clientStartPerf = 0;      // performance.now() в тот же момент
-let serverReady     = false;  // true после первого успешного запроса
-
 function getMskNow(){
-  if(!serverReady) return null;
+  const serverTime = getServerTime();
 
-  const utcMs = serverStartMs + (performance.now() - clientStartPerf);
+  const mskString = new Date(serverTime).toLocaleString('en-US', {
+    timeZone:'Europe/Moscow'
+  });
 
-  const d = new Date(utcMs + 3 * 60 * 60 * 1000);
-
-  return {
-    h:     d.getUTCHours(),
-    m:     d.getUTCMinutes(),
-    s:     d.getUTCSeconds(),
-    day:   d.getUTCDay(),
-    date:  d.getUTCDate(),
-    month: d.getUTCMonth()
-  };
+  return new Date(mskString);
 }
 
 function fmt2(n){ return String(n).padStart(2,'0'); }
 
 function updateClock(){
   const msk = getMskNow();
-  if(!msk) return;  // ещё нет серверного времени — не рисуем ничего
-
-  const hh  = fmt2(msk.h);
-  const mm  = fmt2(msk.m);
+  const hh  = fmt2(msk.getHours());
+  const mm  = fmt2(msk.getMinutes());
   const timeStr = hh+':'+mm;
-  const dateStr = DAYS[msk.day]+', '+msk.date+' '+MONTHS[msk.month];
+  const dateStr = DAYS[msk.getDay()]+', '+msk.getDate()+' '+MONTHS[msk.getMonth()];
 
-  // экран блокировки (sync screen)
   const st = document.getElementById('syncTime');
   if(st) st.textContent = timeStr;
+
   const sd = document.getElementById('syncDate');
   if(sd) sd.textContent = dateStr;
 
-  // главный экран — статус-бар
   const hs = document.getElementById('hsStatusTime');
   if(hs) hs.textContent = timeStr;
 
-  // главный экран — большие часы
   const hb = document.getElementById('hsClockBig');
   if(hb) hb.textContent = timeStr;
+
   const hd = document.getElementById('hsDateStr');
   if(hd) hd.textContent = dateStr;
-
-  // МСК-бейдж (теперь тоже серверное, не дублируем — скрываем или показываем то же)
-  const hm = document.getElementById('hsMskTime');
-  if(hm) hm.textContent = timeStr;
 }
 
-async function fetchServerMskTime(){
-  try{
-    const r = await fetch('https://worldtimeapi.org/api/timezone/Europe/Moscow',
-                          {cache:'no-store'});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const d = await r.json();
-    serverStartMs   = Date.parse(d.utc_datetime);
-    clientStartPerf = performance.now();
-    serverReady     = true;
-    updateClock();
-    return true;
-  }catch(e){
-    return false;
-  }
-}
-
-// Пытаемся получить время, повторяем каждые 3 с пока не получим первый ответ.
-// Только после этого показываем часы — никакого fallback на локальное время.
-(async function initClock(){
-  const ok = await fetchServerMskTime();
-  if(!ok){
-    const retry = setInterval(async ()=>{
-      const success = await fetchServerMskTime();
-      if(success) clearInterval(retry);
-    }, 3000);
-  }
-})();
-
-setInterval(updateClock, 1000);             // обновление каждую секунду
-setInterval(fetchServerMskTime, 5*60*1000); // ресинхронизация каждые 5 минут
+updateClock();
+setInterval(updateClock, 1000);
 
 /* ---- screens ---- */
 function showSync(){ document.getElementById('syncScreen').classList.add('visible'); }
