@@ -517,67 +517,156 @@ function showSignatureStep(confirming=false){
   document.getElementById('cityOnboard').style.display='none';
   document.getElementById('signatureOnboard').style.display='block';
   document.getElementById('signatureTitle').textContent=confirming?'Подтвердите подпись':'Создайте подпись';
-  document.getElementById('signatureDescription').textContent=confirming?'Повторите свою подпись. Она должна быть похожа на первую минимум на 40%.':'Распишитесь пальцем или стилусом. Затем повторите подпись для подтверждения.';
-  document.getElementById('signatureStatus').textContent=confirming?'Повторите подпись в поле выше.':'Нарисуйте подпись в поле выше.';
-  clearSignature(); showOnboard();
+  document.getElementById('signatureDescription').textContent=confirming?'Проведите по серому контуру своей подписи — просто повторите её поверх.':'Распишитесь пальцем или стилусом. Затем повторите подпись для подтверждения.';
+  document.getElementById('signatureStatus').textContent=confirming?'Обведите серую подпись в поле выше.':'Нарисуйте подпись в поле выше.';
+  // Clear canvas fully first, then draw ghost if confirming
+  clearSignature(false);
+  if(confirming && firstSignatureData){
+    setTimeout(()=>drawGhostSignature(firstSignatureData),50);
+  }
+  showOnboard();
 }
 function unlock(){
   hideSync();
   if(pendingNewUser){showCityStep();}else{showMain();}
 }
 
-async function prepareUserProfile(user){
-  try{
-    const snap=await db.ref('users/'+user.uid).once('value');
-    pendingNewUser=!snap.exists() || !snap.val() || !snap.val().city || !snap.val().signature;
-  }catch(e){
-    const local=localStorage.getItem('carprog_profile_'+user.uid);
-    pendingNewUser=!local;
-  }
-}
+
 
 function canvasPoint(e){
   const c=document.getElementById('signatureCanvas'),r=c.getBoundingClientRect();
   const src=e.touches?e.touches[0]:e;
   return {x:(src.clientX-r.left)*(c.width/r.width),y:(src.clientY-r.top)*(c.height/r.height)};
 }
-function clearSignature(){const c=document.getElementById('signatureCanvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle='#1a2a45';ctx.lineWidth=6;ctx.lineCap='round';ctx.lineJoin='round';hasSignatureInk=false}
-function startDraw(e){e.preventDefault();drawing=true;hasSignatureInk=true;const p=canvasPoint(e),ctx=document.getElementById('signatureCanvas').getContext('2d');ctx.beginPath();ctx.moveTo(p.x,p.y)}
-function moveDraw(e){if(!drawing)return;e.preventDefault();const p=canvasPoint(e),ctx=document.getElementById('signatureCanvas').getContext('2d');ctx.lineTo(p.x,p.y);ctx.stroke()}
-function endDraw(){drawing=false}
-function normalizeSignature(dataUrl,size=96){return new Promise(resolve=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=size;c.height=size;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,size,size);const scale=Math.min(size/im.width,size/im.height);const w=im.width*scale,h=im.height*scale;x.drawImage(im,(size-w)/2,(size-h)/2,w,h);resolve(x.getImageData(0,0,size,size).data)};im.src=dataUrl})}
-async function signatureSimilarity(a,b){
-  const A=await normalizeSignature(a),B=await normalizeSignature(b);
-  let same=0,total=0;
-  for(let i=0;i<A.length;i+=4){
-    const av=((A[i]+A[i+1]+A[i+2])/3)<220;
-    const bv=((B[i]+B[i+1]+B[i+2])/3)<220;
-    if(av||bv){
-      total++;
-      if(av===bv) same++;
-    }
-  }
-  if(total===0) return 0;
-  return (same/total)*100;
+
+// Draws ghost of first signature onto canvas (semi-transparent grey)
+function drawGhostSignature(dataUrl){
+  const c=document.getElementById('signatureCanvas');
+  const ctx=c.getContext('2d');
+  const im=new Image();
+  im.onload=()=>{
+    ctx.save();
+    ctx.globalAlpha=0.18;
+    ctx.drawImage(im,0,0,c.width,c.height);
+    ctx.restore();
+  };
+  im.src=dataUrl;
 }
+
+function clearSignature(keepGhost){
+  const c=document.getElementById('signatureCanvas'),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.strokeStyle='#1a2a45';ctx.lineWidth=6;ctx.lineCap='round';ctx.lineJoin='round';
+  hasSignatureInk=false;
+  // If we're on the confirmation step, redraw ghost
+  if(keepGhost && firstSignatureData){
+    drawGhostSignature(firstSignatureData);
+  }
+}
+
+function startDraw(e){
+  e.preventDefault();drawing=true;hasSignatureInk=true;
+  const p=canvasPoint(e),ctx=document.getElementById('signatureCanvas').getContext('2d');
+  ctx.beginPath();ctx.moveTo(p.x,p.y);
+}
+function moveDraw(e){
+  if(!drawing)return;e.preventDefault();
+  const p=canvasPoint(e),ctx=document.getElementById('signatureCanvas').getContext('2d');
+  ctx.lineTo(p.x,p.y);ctx.stroke();
+}
+function endDraw(){drawing=false}
+
+// Improved similarity: uses Dice coefficient on binarized pixels with slight blur tolerance
+function normalizeSignature(dataUrl,size=128){
+  return new Promise(resolve=>{
+    const im=new Image();
+    im.onload=()=>{
+      const c=document.createElement('canvas');c.width=size;c.height=size;
+      const x=c.getContext('2d');
+      x.fillStyle='#fff';x.fillRect(0,0,size,size);
+      const scale=Math.min(size/im.width,size/im.height);
+      const w=im.width*scale,h=im.height*scale;
+      x.drawImage(im,(size-w)/2,(size-h)/2,w,h);
+      resolve(x.getImageData(0,0,size,size).data);
+    };
+    im.src=dataUrl;
+  });
+}
+
+async function signatureSimilarity(a,b){
+  const SIZE=128;
+  const A=await normalizeSignature(a,SIZE),B=await normalizeSignature(b,SIZE);
+  // Binarize: pixel is "ink" if luminance < 200
+  function binarize(data,size){
+    const arr=new Uint8Array(size*size);
+    for(let i=0;i<data.length;i+=4){
+      arr[i/4]=((data[i]+data[i+1]+data[i+2])/3)<200?1:0;
+    }
+    return arr;
+  }
+  // Dilate 1px to be tolerant of slight shifts
+  function dilate(arr,size){
+    const out=new Uint8Array(size*size);
+    for(let y=0;y<size;y++){
+      for(let x=0;x<size;x++){
+        const idx=y*size+x;
+        if(arr[idx]||
+          (x>0&&arr[idx-1])||(x<size-1&&arr[idx+1])||
+          (y>0&&arr[idx-size])||(y<size-1&&arr[idx+size])){
+          out[idx]=1;
+        }
+      }
+    }
+    return out;
+  }
+  const binA=binarize(A,SIZE), binB=binarize(B,SIZE);
+  const dilA=dilate(binA,SIZE), dilB=dilate(binB,SIZE);
+  // Dice: 2*|A∩B| / (|A|+|B|)
+  let inter=0,sumA=0,sumB=0;
+  for(let i=0;i<SIZE*SIZE;i++){
+    if(dilA[i]&&dilB[i]) inter++;
+    if(binA[i]) sumA++;
+    if(binB[i]) sumB++;
+  }
+  if(sumA+sumB===0) return 0;
+  return (2*inter/(sumA+sumB))*100;
+}
+
 async function saveNewProfile(){
   const user=auth.currentUser;if(!user)return;
   const profile={city:onboardCity,signature:firstSignatureData,createdAt:firebase.database.ServerValue.TIMESTAMP};
   try{await db.ref('users/'+user.uid).set(profile);}catch(e){localStorage.setItem('carprog_profile_'+user.uid,JSON.stringify({city:onboardCity,signature:firstSignatureData}));}
   hideOnboard();showMain();pendingNewUser=false;
+  // Load city immediately after profile saved
+  updateCurrentCity(onboardCity);
 }
 
 document.querySelectorAll('.city-btn').forEach(btn=>btn.addEventListener('click',()=>{onboardCity=btn.dataset.city;showSignatureStep(false)}));
-document.getElementById('signatureClear').onclick=clearSignature;
+
+// Clear button: if confirming, keep ghost; if first step, full clear
+document.getElementById('signatureClear').onclick=()=>{
+  clearSignature(!!firstSignatureData);
+};
+
 document.getElementById('signatureNext').onclick=async()=>{
   if(!hasSignatureInk){document.getElementById('signatureStatus').textContent='Сначала поставьте подпись.';return}
   const data=document.getElementById('signatureCanvas').toDataURL('image/png');
-  if(!firstSignatureData){firstSignatureData=data;showSignatureStep(true);return}
+  if(!firstSignatureData){
+    firstSignatureData=data;
+    showSignatureStep(true);
+    return;
+  }
+  document.getElementById('signatureStatus').textContent='Проверка подписи…';
   const similarity=await signatureSimilarity(firstSignatureData,data);
-  if(similarity<2){document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Нужно минимум 2%. Повторите подпись.';clearSignature();return}
+  if(similarity<25){
+    document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Нужно минимум 25%. Повторите подпись.';
+    clearSignature(true);
+    return;
+  }
   document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Подпись подтверждена!';
   setTimeout(saveNewProfile,450);
 };
+
 const sigCanvas=document.getElementById('signatureCanvas');
 sigCanvas.addEventListener('pointerdown',startDraw);sigCanvas.addEventListener('pointermove',moveDraw);window.addEventListener('pointerup',endDraw);
 
@@ -598,32 +687,42 @@ async function continueGoogle(){
   }
 }
 
-auth.onAuthStateChanged(user=>{
+document.getElementById("authGoogleBtn").onclick=continueGoogle;
+
+// Single auth listener — loads profile, syncs, then shows correct screen
+auth.onAuthStateChanged(async user=>{
   if(user&&!user.isAnonymous){
     setStatus("✅ Вы вошли как "+user.displayName);
     hideAuth();
-    prepareUserProfile(user).finally(()=>{
-      showSync();
-      runSyncAnimation(()=>{
-        syncDone=true;
-        document.getElementById('syncSwipeHint').classList.add('visible');
-      });
+
+    // Load city from DB or localStorage early so it's ready when main screen opens
+    let cachedCity='';
+    try{
+      const snap=await db.ref('users/'+user.uid).once('value');
+      const data=snap.val()||{};
+      if(data.city){ cachedCity=data.city; updateCurrentCity(data.city); }
+      else{
+        const local=JSON.parse(localStorage.getItem('carprog_profile_'+user.uid)||'{}');
+        if(local.city){ cachedCity=local.city; updateCurrentCity(local.city); }
+      }
+      pendingNewUser=!data.city||!data.signature;
+    }catch(e){
+      try{
+        const local=JSON.parse(localStorage.getItem('carprog_profile_'+user.uid)||'{}');
+        if(local.city){ cachedCity=local.city; updateCurrentCity(local.city); }
+        pendingNewUser=!local.city;
+      }catch(e2){ pendingNewUser=true; }
+    }
+
+    showSync();
+    runSyncAnimation(()=>{
+      syncDone=true;
+      document.getElementById('syncSwipeHint').classList.add('visible');
     });
+
   }else{
     setStatus("");
   }
-});
-
-document.getElementById("authGoogleBtn").onclick=continueGoogle;
-
-auth.onAuthStateChanged(async user=>{
- if(user){
-  try{
-   const snap=await db.ref('users/'+user.uid).once('value');
-   const data=snap.val()||JSON.parse(localStorage.getItem('carprog_profile_'+user.uid)||'{}');
-   if(data&&data.city){ updateCurrentCity(data.city); }
-  }catch(e){}
- }
 });
 
 </script>
