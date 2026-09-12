@@ -112,6 +112,83 @@ button:active{transform:scale(.97)}
 .hs-city-dot{width:8px;height:8px;border-radius:50%;background:#1a7de8;animation:cityBlink 1.2s infinite}
 @keyframes cityBlink{0%,100%{opacity:.3}50%{opacity:1}}
 
+
+/* ===== SETTINGS SCREEN ===== */
+.settings-screen{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;background:#000;color:#fff;overflow:hidden}
+.settings-screen.visible{display:flex;animation:slideInRight .3s cubic-bezier(.22,.8,.35,1) both}
+@keyframes slideInRight{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+
+.settings-nav{display:flex;align-items:center;padding:14px 16px 10px;position:relative;border-bottom:1px solid rgba(255,255,255,.08)}
+.settings-nav-back{background:none;color:#0a84ff;font-size:17px;font-weight:400;display:flex;align-items:center;gap:4px;padding:0}
+.settings-nav-back svg{width:11px;height:18px;fill:#0a84ff}
+.settings-nav-title{position:absolute;left:50%;transform:translateX(-50%);font-size:17px;font-weight:700;color:#fff;white-space:nowrap}
+
+.settings-body{flex:1;overflow-y:auto;padding:28px 16px 40px}
+.settings-section{margin-bottom:12px}
+.settings-group{background:#1c1c1e;border-radius:12px;overflow:hidden}
+.settings-row{display:flex;align-items:center;gap:14px;padding:13px 16px;min-height:52px;position:relative;cursor:pointer}
+.settings-row+.settings-row::before{content:'';position:absolute;top:0;left:58px;right:0;height:1px;background:rgba(255,255,255,.08)}
+.settings-row-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.settings-row-icon svg{width:18px;height:18px;fill:#fff}
+.settings-row-text{flex:1;min-width:0}
+.settings-row-label{font-size:17px;color:#fff;font-weight:400}
+.settings-row-sub{font-size:13px;color:#8e8e93;margin-top:1px}
+.settings-row-value{font-size:17px;color:#8e8e93;margin-right:6px}
+.settings-row-arrow{width:8px;height:14px;fill:#8e8e93;flex-shrink:0}
+.settings-toggle{width:51px;height:31px;background:#1c1c1e;border-radius:999px;position:relative;cursor:pointer;border:none;flex-shrink:0;transition:background .2s}
+.settings-toggle.on{background:#34c759}
+.settings-toggle-knob{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);transition:transform .2s}
+.settings-toggle.on .settings-toggle-knob{transform:translateX(20px)}
+.settings-version{text-align:center;color:#636366;font-size:14px;margin-top:20px;padding:10px}
+
+
+/* ===== ADMIN PASSWORD MODAL ===== */
+.admin-modal-overlay{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.admin-modal-overlay.visible{display:flex;animation:fadeIn .2s ease}
+.admin-modal{width:100%;max-width:420px;background:#1c1c1e;border-radius:22px 22px 0 0;padding:24px 20px 36px;text-align:center}
+.admin-modal-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:6px}
+.admin-modal-sub{font-size:14px;color:#8e8e93;margin-bottom:20px}
+.admin-modal-input{width:100%;background:#2c2c2e;border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;font-size:17px;color:#fff;font-family:monospace;letter-spacing:2px;text-align:center;outline:none;-webkit-appearance:none}
+.admin-modal-input:focus{border-color:#0a84ff}
+.admin-modal-input.error{border-color:#ff3b30;animation:shake .35s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.admin-modal-btns{display:flex;gap:10px;margin-top:16px}
+.admin-modal-cancel{flex:1;padding:14px;border-radius:12px;background:#2c2c2e;color:#8e8e93;font-size:17px;font-weight:600;border:none;cursor:pointer}
+.admin-modal-confirm{flex:1;padding:14px;border-radius:12px;background:#0a84ff;color:#fff;font-size:17px;font-weight:700;border:none;cursor:pointer}
+.admin-modal-err{min-height:18px;font-size:13px;color:#ff3b30;margin-top:10px}
+
+/* ===== SETTINGS SUB SCREENS ===== */
+.settings-sub{position:fixed;inset:0;z-index:700;display:none;flex-direction:column;background:#000;color:#fff;overflow:hidden}
+.settings-sub.visible{display:flex;animation:slideInRight .25s cubic-bezier(.22,.8,.35,1) both}
+.settings-sub-body{flex:1;overflow-y:auto;padding:24px 16px 40px}
+.settings-sub-header{padding:8px 16px 16px;color:#8e8e93;font-size:13px;font-weight:400}
+
+/* Currency picker */
+.currency-option{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#1c1c1e;cursor:pointer;position:relative}
+.currency-option+.currency-option::before{content:'';position:absolute;top:0;left:16px;right:0;height:1px;background:rgba(255,255,255,.08)}
+.currency-option:first-child{border-radius:12px 12px 0 0}
+.currency-option:last-child{border-radius:0 0 12px 12px}
+.currency-option-name{flex:1;font-size:17px;color:#fff}
+.currency-check{width:22px;height:22px;fill:#0a84ff;display:none}
+.currency-option.selected .currency-check{display:block}
+
+/* Theme picker */
+.theme-option{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#1c1c1e;cursor:pointer;position:relative}
+.theme-option+.theme-option::before{content:'';position:absolute;top:0;left:16px;right:0;height:1px;background:rgba(255,255,255,.08)}
+.theme-option:first-child{border-radius:12px 12px 0 0}
+.theme-option:last-child{border-radius:0 0 12px 12px}
+.theme-option-name{flex:1;font-size:17px;color:#fff}
+.theme-check{width:22px;height:22px;fill:#0a84ff;display:none}
+.theme-option.selected .theme-check{display:block}
+
+/* Admin panel */
+.admin-row{background:#1c1c1e;border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.admin-row-label{font-size:13px;color:#8e8e93;margin-bottom:4px}
+.admin-row-value{font-size:17px;color:#fff;word-break:break-all}
+.admin-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;margin-top:6px}
+.admin-badge.green{background:rgba(52,199,89,.2);color:#34c759}
+.admin-badge.blue{background:rgba(10,132,255,.2);color:#0a84ff}
+
 </style>
 </head>
 
@@ -345,7 +422,7 @@ button:active{transform:scale(.97)}
       </div>
 
       <!-- Настройки -->
-      <div class="hs-app">
+      <div class="hs-app" onclick="openSettings()">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
           <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548225021896302662/file_00000000c2088210a7a6cfc21ad09f6e.png?ex=6aa64869&is=6aa4f6e9&hm=799a40948971e841d61e3cbf7191423f9eb59d56e98690ac27aed23caa72b428&" alt="Настройки">
         </div>
@@ -726,6 +803,313 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
+
+// ===== SETTINGS LOGIC =====
+let settingsNotif = true;
+let settingsTheme = 'Системная';
+const ADMIN_PASSWORD = '3fd229ca7f48074a';
+
+// Generate unique 9-digit numeric ID for user, stored in Firebase
+async function getOrCreateUserId(uid){
+  try{
+    const snap = await db.ref('users/'+uid+'/appId').once('value');
+    if(snap.val()) return snap.val();
+    // Generate new unique ID — check against all taken IDs
+    const allSnap = await db.ref('allIds').once('value');
+    const taken = allSnap.val() ? Object.values(allSnap.val()) : [];
+    let newId;
+    do {
+      newId = String(Math.floor(100000000 + Math.random() * 900000000));
+    } while(taken.includes(newId));
+    await db.ref('users/'+uid+'/appId').set(newId);
+    await db.ref('allIds/'+uid).set(newId);
+    return newId;
+  }catch(e){
+    // Fallback: localStorage
+    const key = 'carprog_appid_'+uid;
+    let id = localStorage.getItem(key);
+    if(!id){
+      id = String(Math.floor(100000000 + Math.random() * 900000000));
+      localStorage.setItem(key, id);
+    }
+    return id;
+  }
+}
+
+async function openSettings(){
+  const user = auth.currentUser;
+  const uid = user ? user.uid : null;
+  // Fill ID
+  let appId = '—';
+  if(uid){
+    appId = await getOrCreateUserId(uid);
+  }
+  document.getElementById('settingsIdDisplay').textContent = appId;
+  document.getElementById('idSubValue').textContent = appId;
+  document.getElementById('settingsThemeDisplay').textContent = settingsTheme;
+  document.getElementById('settingsVersion').textContent = '2.0.1';
+  document.getElementById('settingsScreen').classList.add('visible');
+}
+
+function closeSettings(){
+  document.getElementById('settingsScreen').classList.remove('visible');
+}
+function openSettingsSub(id){
+  document.getElementById(id).classList.add('visible');
+}
+function closeSettingsSub(id){
+  document.getElementById(id).classList.remove('visible');
+}
+function toggleNotif(){
+  settingsNotif = !settingsNotif;
+  document.getElementById('notifToggle').classList.toggle('on', settingsNotif);
+}
+function selectTheme(el){
+  document.querySelectorAll('.theme-option').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  settingsTheme = el.dataset.theme;
+  document.getElementById('settingsThemeDisplay').textContent = settingsTheme;
+}
+
+// ---- Admin password modal ----
+function openAdminWithPassword(){
+  document.getElementById('adminPassInput').value = '';
+  document.getElementById('adminPassErr').textContent = '';
+  document.getElementById('adminPassInput').classList.remove('error');
+  document.getElementById('adminPassOverlay').classList.add('visible');
+  setTimeout(()=>document.getElementById('adminPassInput').focus(), 300);
+}
+function closeAdminModal(){
+  document.getElementById('adminPassOverlay').classList.remove('visible');
+}
+async function checkAdminPassword(){
+  const val = document.getElementById('adminPassInput').value.trim();
+  if(val !== ADMIN_PASSWORD){
+    document.getElementById('adminPassErr').textContent = '❌ Неверный пароль';
+    const inp = document.getElementById('adminPassInput');
+    inp.classList.add('error');
+    setTimeout(()=>inp.classList.remove('error'), 400);
+    return;
+  }
+  closeAdminModal();
+  // Fill admin panel data
+  const user = auth.currentUser;
+  if(user){
+    document.getElementById('adminEmail').textContent = user.email || '—';
+    document.getElementById('adminUID').textContent = user.uid;
+    document.getElementById('adminName').textContent = user.displayName || '—';
+    document.getElementById('adminCity').textContent = document.getElementById('currentCity').textContent || '—';
+    const appId = document.getElementById('idSubValue').textContent;
+    document.getElementById('adminAppId').textContent = appId;
+    document.getElementById('adminPlatform').textContent = navigator.userAgent.includes('iPhone')||navigator.userAgent.includes('Android') ? '📱 Мобильный' : '💻 Компьютер';
+  }
+  openSettingsSub('adminSub');
+}
+// Allow Enter key in password field
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('adminPassInput').addEventListener('keydown', e=>{
+    if(e.key==='Enter') checkAdminPassword();
+  });
+  // ID copy
+  const idRow = document.querySelector('#idSub .settings-row');
+  if(idRow) idRow.addEventListener('click', ()=>{
+    const val = document.getElementById('idSubValue').textContent;
+    navigator.clipboard && navigator.clipboard.writeText(val);
+    const toast = document.getElementById('idCopyToast');
+    toast.style.display = 'block';
+    setTimeout(()=>toast.style.display='none', 1800);
+  });
+});
+
 </script>
+
+<!-- ===== SETTINGS SCREEN ===== -->
+<div class="settings-screen" id="settingsScreen">
+  <div class="settings-nav">
+    <button class="settings-nav-back" onclick="closeSettings()">
+      <svg viewBox="0 0 11 18"><path d="M9.5 1L1.5 9l8 8" stroke="#0a84ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Назад
+    </button>
+    <span class="settings-nav-title">Настройки</span>
+  </div>
+  <div class="settings-body">
+
+    <!-- Группа 1: ID + Валюта -->
+    <div class="settings-section">
+      <div class="settings-group">
+        <div class="settings-row" onclick="openSettingsSub('idSub')">
+          <div class="settings-row-icon" style="background:#636366">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+          </div>
+          <div class="settings-row-text">
+            <div class="settings-row-label">ID</div>
+            <div class="settings-row-sub" id="settingsIdDisplay">Загрузка…</div>
+          </div>
+          <svg class="settings-row-arrow" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="#8e8e93" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+        </div>
+        <div class="settings-row" style="cursor:default">
+          <div class="settings-row-icon" style="background:#0a84ff">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93V18h-2v1.93A8.001 8.001 0 014.07 13H6v-2H4.07A8.001 8.001 0 0111 4.07V6h2V4.07A8.001 8.001 0 0119.93 11H18v2h1.93A8.001 8.001 0 0113 19.93z"/></svg>
+          </div>
+          <div class="settings-row-text">
+            <div class="settings-row-label">Валюта</div>
+            <div class="settings-row-sub">Рубли ₽</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Группа 2: Уведомления + Тема -->
+    <div class="settings-section">
+      <div class="settings-group">
+        <div class="settings-row">
+          <div class="settings-row-icon" style="background:#30d158">
+            <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          </div>
+          <div class="settings-row-text"><div class="settings-row-label">Уведомления</div></div>
+          <button class="settings-toggle on" id="notifToggle" onclick="toggleNotif()">
+            <div class="settings-toggle-knob"></div>
+          </button>
+        </div>
+        <div class="settings-row" onclick="openSettingsSub('themeSub')">
+          <div class="settings-row-icon" style="background:#5e5ce6">
+            <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18A9 9 0 0012 3zm0 2a7 7 0 010 14V5z"/></svg>
+          </div>
+          <div class="settings-row-text">
+            <div class="settings-row-label">Тема</div>
+            <div class="settings-row-sub" id="settingsThemeDisplay">Системная</div>
+          </div>
+          <svg class="settings-row-arrow" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="#8e8e93" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Группа 3: Админ панель -->
+    <div class="settings-section">
+      <div class="settings-group">
+        <div class="settings-row" onclick="openAdminWithPassword()">
+          <div class="settings-row-icon" style="background:#ff3b30">
+            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+          </div>
+          <div class="settings-row-text"><div class="settings-row-label">Админ панель</div></div>
+          <svg class="settings-row-arrow" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="#8e8e93" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-version">Версия приложения: &nbsp;<span id="settingsVersion">1.0.0</span></div>
+  </div>
+</div>
+
+<!-- SUB: ID -->
+<div class="settings-sub" id="idSub">
+  <div class="settings-nav">
+    <button class="settings-nav-back" onclick="closeSettingsSub('idSub')">
+      <svg viewBox="0 0 11 18"><path d="M9.5 1L1.5 9l8 8" stroke="#0a84ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Настройки
+    </button>
+    <span class="settings-nav-title">ID</span>
+  </div>
+  <div class="settings-sub-body">
+    <div class="settings-sub-header">Ваш уникальный идентификатор в системе CarProg.</div>
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="settings-row-text">
+          <div class="settings-row-label" id="idSubValue" style="font-size:20px;font-weight:600;letter-spacing:1px">—</div>
+          <div class="settings-row-sub">Нажмите для копирования</div>
+        </div>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="#8e8e93"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+      </div>
+    </div>
+    <div id="idCopyToast" style="display:none;text-align:center;color:#34c759;font-size:14px;margin-top:14px">✅ Скопировано!</div>
+  </div>
+</div>
+
+
+<!-- SUB: THEME -->
+<div class="settings-sub" id="themeSub">
+  <div class="settings-nav">
+    <button class="settings-nav-back" onclick="closeSettingsSub('themeSub')">
+      <svg viewBox="0 0 11 18"><path d="M9.5 1L1.5 9l8 8" stroke="#0a84ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Настройки
+    </button>
+    <span class="settings-nav-title">Тема</span>
+  </div>
+  <div class="settings-sub-body">
+    <div class="settings-sub-header">Выберите тему оформления интерфейса.</div>
+    <div class="settings-group" style="border-radius:12px;overflow:hidden">
+      <div class="theme-option" data-theme="Светлая" onclick="selectTheme(this)">
+        <span class="theme-option-name">☀️ Светлая</span>
+        <svg class="theme-check" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      <div class="theme-option" data-theme="Тёмная" onclick="selectTheme(this)">
+        <span class="theme-option-name">🌙 Тёмная</span>
+        <svg class="theme-check" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      <div class="theme-option selected" data-theme="Системная" onclick="selectTheme(this)">
+        <span class="theme-option-name">⚙️ Системная</span>
+        <svg class="theme-check" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUB: ADMIN -->
+<div class="settings-sub" id="adminSub">
+  <div class="settings-nav">
+    <button class="settings-nav-back" onclick="closeSettingsSub('adminSub')">
+      <svg viewBox="0 0 11 18"><path d="M9.5 1L1.5 9l8 8" stroke="#0a84ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Настройки
+    </button>
+    <span class="settings-nav-title">Админ панель</span>
+  </div>
+  <div class="settings-sub-body">
+    <div class="settings-sub-header">Данные текущего аккаунта и системная информация.</div>
+    <div class="admin-row">
+      <div class="admin-row-label">Email</div>
+      <div class="admin-row-value" id="adminEmail">—</div>
+    </div>
+    <div class="admin-row">
+      <div class="admin-row-label">App ID</div>
+      <div class="admin-row-value" id="adminAppId">—</div>
+    </div>
+    <div class="admin-row">
+      <div class="admin-row-label">UID Firebase</div>
+      <div class="admin-row-value" id="adminUID" style="font-size:13px">—</div>
+    </div>
+    <div class="admin-row">
+      <div class="admin-row-label">Имя</div>
+      <div class="admin-row-value" id="adminName">—</div>
+    </div>
+    <div class="admin-row">
+      <div class="admin-row-label">Город</div>
+      <div class="admin-row-value" id="adminCity">—</div>
+    </div>
+    <div class="admin-row">
+      <div class="admin-row-label">Статус</div>
+      <div><span class="admin-badge green">✅ Активен</span></div>
+    </div>
+    <div class="admin-row">
+      <div class="admin-row-label">Платформа</div>
+      <div class="admin-row-value" id="adminPlatform">—</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ADMIN PASSWORD MODAL -->
+<div class="admin-modal-overlay" id="adminPassOverlay">
+  <div class="admin-modal">
+    <div class="admin-modal-title">🔐 Админ панель</div>
+    <div class="admin-modal-sub">Введите пароль для доступа</div>
+    <input class="admin-modal-input" id="adminPassInput" type="password" placeholder="••••••••••••••••" maxlength="32">
+    <div class="admin-modal-err" id="adminPassErr"></div>
+    <div class="admin-modal-btns">
+      <button class="admin-modal-cancel" onclick="closeAdminModal()">Отмена</button>
+      <button class="admin-modal-confirm" onclick="checkAdminPassword()">Войти</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
