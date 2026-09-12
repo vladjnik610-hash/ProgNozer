@@ -91,7 +91,7 @@ button:active{transform:scale(.97)}
 .hs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px}
 .hs-app{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
 .hs-app:active .hs-app-icon{transform:scale(.9)}
-.hs-app-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;transition:transform .12s;position:relative;overflow:hidden}
+.hs-app-icon{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;transition:transform .12s;position:relative;overflow:hidden}
 .hs-app-icon::after{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.28) 0%,transparent 55%);pointer-events:none}
 .hs-app-icon svg{width:32px;height:32px}
 .hs-app-icon img{width:100%;height:100%;display:block;object-fit:cover;position:relative;z-index:0}
@@ -574,7 +574,7 @@ document.getElementById('signatureNext').onclick=async()=>{
   const data=document.getElementById('signatureCanvas').toDataURL('image/png');
   if(!firstSignatureData){firstSignatureData=data;showSignatureStep(true);return}
   const similarity=await signatureSimilarity(firstSignatureData,data);
-  if(similarity<5){document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Нужно минимум 85%. Повторите подпись.';clearSignature();return}
+  if(similarity<2){document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Нужно минимум 2%. Повторите подпись.';clearSignature();return}
   document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Подпись подтверждена!';
   setTimeout(saveNewProfile,450);
 };
@@ -615,6 +615,17 @@ auth.onAuthStateChanged(user=>{
 });
 
 document.getElementById("authGoogleBtn").onclick=continueGoogle;
+
+auth.onAuthStateChanged(async user=>{
+ if(user){
+  try{
+   const snap=await db.ref('users/'+user.uid).once('value');
+   const data=snap.val()||JSON.parse(localStorage.getItem('carprog_profile_'+user.uid)||'{}');
+   if(data&&data.city){ updateCurrentCity(data.city); }
+  }catch(e){}
+ }
+});
+
 </script>
 </body>
 </html>
