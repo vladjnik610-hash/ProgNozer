@@ -1030,6 +1030,70 @@ async function checkAdminPassword(){
   }
   openSettingsSub('adminSub');
 }
+// ===== ADD CAR ADMIN =====
+function openAddCarAdmin(){
+  // Clear form
+  ['acName','acPhoto1','acPhoto2','acPhoto3','acMileage','acYear','acPrice','acEngine','acStock','acDesc','acFeatures'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('acClass').value='';
+  document.getElementById('acFuel').value='';
+  document.getElementById('acDrive').value='';
+  document.querySelectorAll('.add-car-city-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('acStatus').textContent='';
+  openSettingsSub('addCarAdminSub');
+}
+function toggleCityAC(btn){
+  btn.classList.toggle('sel');
+}
+async function saveCarToFirebase(){
+  const name = document.getElementById('acName').value.trim();
+  const carClass = document.getElementById('acClass').value;
+  const fuel = document.getElementById('acFuel').value;
+  const year = document.getElementById('acYear').value;
+  const price = document.getElementById('acPrice').value;
+  const stock = document.getElementById('acStock').value;
+  if(!name||!carClass||!fuel||!year||!price||stock===''){
+    document.getElementById('acStatus').textContent='❌ Заполните все обязательные поля!';
+    document.getElementById('acStatus').style.color='#ff3b30';
+    return;
+  }
+  const photos = [
+    document.getElementById('acPhoto1').value.trim(),
+    document.getElementById('acPhoto2').value.trim(),
+    document.getElementById('acPhoto3').value.trim()
+  ].filter(Boolean);
+  const cities = [...document.querySelectorAll('.add-car-city-btn.sel')].map(b=>b.dataset.c);
+  const carData = {
+    name,
+    carClass,
+    fuel,
+    year: Number(year),
+    price: Number(price),
+    stock: Number(stock),
+    photos,
+    cities,
+    mileage: document.getElementById('acMileage').value ? Number(document.getElementById('acMileage').value) : 0,
+    engine: document.getElementById('acEngine').value || '',
+    drive: document.getElementById('acDrive').value || '',
+    desc: document.getElementById('acDesc').value.trim(),
+    features: document.getElementById('acFeatures').value.trim(),
+    createdAt: firebase.database.ServerValue.TIMESTAMP
+  };
+  document.getElementById('acStatus').textContent='⏳ Сохранение…';
+  document.getElementById('acStatus').style.color='#1a7de8';
+  try {
+    await db.ref('dealerCars').push(carData);
+    document.getElementById('acStatus').textContent='✅ Автомобиль добавлен в автосалон!';
+    document.getElementById('acStatus').style.color='#34c759';
+    // reload cache
+    await loadDealerCars();
+  } catch(e) {
+    document.getElementById('acStatus').textContent='❌ Ошибка: '+e.message;
+    document.getElementById('acStatus').style.color='#ff3b30';
+  }
+}
+
 // Allow Enter key in password field
 document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('adminPassInput').addEventListener('keydown', e=>{
@@ -1242,6 +1306,130 @@ document.addEventListener('DOMContentLoaded', ()=>{
       <div class="admin-row-label">Платформа</div>
       <div class="admin-row-value" id="adminPlatform" style="color:#1a2a45">—</div>
     </div>
+    <div style="margin-top:18px">
+      <button onclick="openAddCarAdmin()" style="width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(26,125,232,.22);display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+        Добавить авто в автосалон
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CAR TO DEALER ADMIN PANEL -->
+<div class="settings-sub" id="addCarAdminSub" style="background:#f5f7fa">
+  <div class="settings-nav" style="background:#fff;border-bottom:1px solid #eaecf0">
+    <button class="settings-nav-back" onclick="closeSettingsSub('addCarAdminSub')" style="color:#1a7de8">
+      <svg viewBox="0 0 11 18"><path d="M9.5 1L1.5 9l8 8" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Назад
+    </button>
+    <span class="settings-nav-title" style="color:#1a2a45">Добавить авто</span>
+  </div>
+  <div class="settings-sub-body" style="background:#f5f7fa;padding-bottom:60px">
+    <div class="settings-sub-header">Заполните все поля. Данные сохранятся в Firebase.</div>
+
+    <style>
+    .add-car-label{font-size:13px;font-weight:700;color:#6a85a8;margin-bottom:5px;margin-top:14px;display:block}
+    .add-car-input{width:100%;background:#fff;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;-webkit-appearance:none;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .add-car-input:focus{border-color:#1a7de8}
+    .add-car-textarea{width:100%;background:#fff;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;resize:vertical;min-height:80px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .add-car-textarea:focus{border-color:#1a7de8}
+    .add-car-city-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+    .add-car-city-btn{padding:10px 8px;border-radius:12px;background:#fff;border:1.5px solid #e2edf9;color:#1a2a45;font-weight:700;font-size:13px;cursor:pointer}
+    .add-car-city-btn.sel{background:#1a7de8;border-color:#1a7de8;color:#fff}
+    .add-car-photo-row{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+    .add-car-photo-box{width:90px;height:70px;border-radius:12px;border:1.5px dashed #b8d2ef;background:#f0f4f9;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;flex-shrink:0}
+    .add-car-photo-box img{width:100%;height:100%;object-fit:cover;border-radius:10px}
+    .add-car-photo-box .ph-plus{font-size:24px;color:#b0bdd0;position:absolute}
+    .add-car-save{width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:16px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;margin-top:20px;box-shadow:0 8px 20px rgba(26,125,232,.22)}
+    .add-car-status{min-height:20px;text-align:center;font-size:14px;color:#34c759;margin-top:10px;font-weight:700}
+    </style>
+
+    <!-- Name -->
+    <label class="add-car-label">Название авто *</label>
+    <input class="add-car-input" id="acName" placeholder="Например: BMW 5 серия">
+
+    <!-- Class -->
+    <label class="add-car-label">Класс *</label>
+    <select class="add-car-input" id="acClass">
+      <option value="">— Выберите класс —</option>
+      <option value="low">Низкий класс</option>
+      <option value="mid">Средний класс</option>
+      <option value="high">Высокий класс</option>
+    </select>
+
+    <!-- Photos -->
+    <label class="add-car-label">Фото (до 3 шт., ссылки Discord)</label>
+    <input class="add-car-input" id="acPhoto1" placeholder="Ссылка на фото 1" style="margin-bottom:6px">
+    <input class="add-car-input" id="acPhoto2" placeholder="Ссылка на фото 2" style="margin-bottom:6px">
+    <input class="add-car-input" id="acPhoto3" placeholder="Ссылка на фото 3">
+
+    <!-- Fuel -->
+    <label class="add-car-label">Топливо *</label>
+    <select class="add-car-input" id="acFuel">
+      <option value="">— Выберите —</option>
+      <option value="Бензин">Бензин</option>
+      <option value="Дизель">Дизель</option>
+    </select>
+
+    <!-- Mileage -->
+    <label class="add-car-label">Пробег (км)</label>
+    <input class="add-car-input" id="acMileage" type="number" placeholder="Например: 85000">
+
+    <!-- Year -->
+    <label class="add-car-label">Год выпуска *</label>
+    <input class="add-car-input" id="acYear" type="number" placeholder="Например: 2020">
+
+    <!-- Price -->
+    <label class="add-car-label">Цена новой (₽) *</label>
+    <input class="add-car-input" id="acPrice" type="number" placeholder="Например: 2500000">
+
+    <!-- Engine -->
+    <label class="add-car-label">Объём двигателя (л)</label>
+    <input class="add-car-input" id="acEngine" type="number" step="0.1" placeholder="Например: 2.0">
+
+    <!-- Drive -->
+    <label class="add-car-label">Привод</label>
+    <select class="add-car-input" id="acDrive">
+      <option value="">— Выберите —</option>
+      <option value="Передний">Передний</option>
+      <option value="Задний">Задний</option>
+      <option value="Полный">Полный</option>
+    </select>
+
+    <!-- Stock -->
+    <label class="add-car-label">Количество в наличии *</label>
+    <input class="add-car-input" id="acStock" type="number" min="0" placeholder="Например: 3">
+
+    <!-- Cities -->
+    <label class="add-car-label">Города продажи (можно несколько)</label>
+    <div class="add-car-city-grid" id="acCityGrid">
+      <button class="add-car-city-btn" data-c="Москва" onclick="toggleCityAC(this)">Москва</button>
+      <button class="add-car-city-btn" data-c="Санкт-Петербург" onclick="toggleCityAC(this)">Санкт-Петербург</button>
+      <button class="add-car-city-btn" data-c="Уфа" onclick="toggleCityAC(this)">Уфа</button>
+      <button class="add-car-city-btn" data-c="Казань" onclick="toggleCityAC(this)">Казань</button>
+      <button class="add-car-city-btn" data-c="Челябинск" onclick="toggleCityAC(this)">Челябинск</button>
+      <button class="add-car-city-btn" data-c="Екатеринбург" onclick="toggleCityAC(this)">Екатеринбург</button>
+      <button class="add-car-city-btn" data-c="Нижний Новгород" onclick="toggleCityAC(this)">Нижний Новгород</button>
+      <button class="add-car-city-btn" data-c="Владивосток" onclick="toggleCityAC(this)">Владивосток</button>
+      <button class="add-car-city-btn" data-c="Самара" onclick="toggleCityAC(this)">Самара</button>
+      <button class="add-car-city-btn" data-c="Ростов-на-Дону" onclick="toggleCityAC(this)">Ростов-на-Дону</button>
+      <button class="add-car-city-btn" data-c="Краснодар" onclick="toggleCityAC(this)">Краснодар</button>
+      <button class="add-car-city-btn" data-c="Новосибирск" onclick="toggleCityAC(this)">Новосибирск</button>
+      <button class="add-car-city-btn" data-c="Омск" onclick="toggleCityAC(this)">Омск</button>
+      <button class="add-car-city-btn" data-c="Воронеж" onclick="toggleCityAC(this)">Воронеж</button>
+      <button class="add-car-city-btn" data-c="Пермь" onclick="toggleCityAC(this)">Пермь</button>
+    </div>
+
+    <!-- Description -->
+    <label class="add-car-label">Описание</label>
+    <textarea class="add-car-textarea" id="acDesc" placeholder="Краткое описание автомобиля…"></textarea>
+
+    <!-- Features -->
+    <label class="add-car-label">Комплектация (каждый пункт с новой строки)</label>
+    <textarea class="add-car-textarea" id="acFeatures" placeholder="Климат-контроль&#10;Камера заднего вида&#10;Кожаный салон"></textarea>
+
+    <button class="add-car-save" onclick="saveCarToFirebase()">💾 Сохранить в Firebase</button>
+    <div class="add-car-status" id="acStatus"></div>
   </div>
 </div>
 
@@ -1280,7 +1468,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       </div>
       <div class="dealer-class-title">Выберите класс автомобиля</div>
       <div class="dealer-class-grid">
-        <div class="dealer-class-card active" onclick="openDealerList('low')">
+        <div class="dealer-class-card" onclick="openDealerList('low')">
           <svg class="dealer-class-card-icon" viewBox="0 0 64 32" fill="none">
             <rect x="6" y="16" width="52" height="12" rx="4" fill="#fff" opacity=".3"/>
             <path d="M12 16 L18 6 L46 6 L52 16" fill="#fff" opacity=".5"/>
@@ -1358,20 +1546,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   <!-- Car detail sub-screen -->
   <div class="dealer-detail" id="dealerDetailScreen">
-    <div style="position:relative;flex-shrink:0">
-      <div style="background:#edf2f9;height:220px;display:flex;align-items:center;justify-content:center">
-        <svg width="120" height="70" viewBox="0 0 120 70" fill="none">
-          <rect x="10" y="30" width="100" height="28" rx="6" fill="#1a7de8" opacity=".15"/>
-          <path d="M20 30 L34 12 L86 12 L100 30" fill="#1a7de8" opacity=".2"/>
-          <circle cx="32" cy="58" r="10" fill="#b0bdd0"/><circle cx="32" cy="58" r="5" fill="#fff"/>
-          <circle cx="88" cy="58" r="10" fill="#b0bdd0"/><circle cx="88" cy="58" r="5" fill="#fff"/>
-          <rect x="40" y="15" width="40" height="14" rx="3" fill="#1a7de8" opacity=".12"/>
-        </svg>
-      </div>
-      <button style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="closeDealerDetail()">
+    <div style="position:relative;flex-shrink:0" id="dealerDetailPhotoArea">
+      <!-- filled by JS -->
+    </div>
+    <!-- Back and heart always on top -->
+    <div style="position:absolute;top:0;left:0;right:0;height:260px;pointer-events:none;z-index:25">
+      <button style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:all" onclick="closeDealerDetail()">
         <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#1a2a45" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
       </button>
-      <button style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer" id="detailHeartBtn" onclick="toggleDetailHeart()">
+      <button style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:all" id="detailHeartBtn" onclick="toggleDetailHeart()">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#7a95b8" stroke-width="2" id="detailHeartSvg"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
       </button>
     </div>
@@ -1379,7 +1562,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       <!-- filled by JS -->
     </div>
     <div class="dealer-detail-btns">
-      <button class="dealer-detail-btn-main">Оставить заявку</button>
+      <button class="dealer-detail-btn-main" onclick="dealerOrderClick()">Оформить заказ</button>
       <button class="dealer-detail-btn-fav" onclick="toggleDetailHeart()">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#7a95b8" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
         В избранное
@@ -1397,36 +1580,59 @@ document.addEventListener('DOMContentLoaded', ()=>{
     </div>
     <div class="dealer-filter-body">
       <div class="dealer-filter-section">
-        <div class="dealer-filter-label">Диапазон цены</div>
+        <div class="dealer-filter-label">Цена (₽)</div>
         <div class="dealer-range-row">
-          <input class="dealer-range-input" type="text" value="От 300 000 ₽" id="fPriceFrom">
-          <input class="dealer-range-input" type="text" value="До 10 000 000 ₽" id="fPriceTo">
+          <input class="dealer-range-input" type="number" placeholder="От" id="fPriceFrom" min="0">
+          <input class="dealer-range-input" type="number" placeholder="До" id="fPriceTo" min="0">
         </div>
-        <input class="dealer-range-slider" type="range" min="300000" max="10000000" value="5000000">
-      </div>
-      <div class="dealer-filter-section">
-        <div class="dealer-filter-label">Класс автомобиля</div>
-        <div class="dealer-chip-row">
-          <div class="dealer-chip active" onclick="toggleChip(this)">Любой</div>
-          <div class="dealer-chip" onclick="toggleChip(this)">Эконом</div>
-          <div class="dealer-chip" onclick="toggleChip(this)">Комфорт</div>
-          <div class="dealer-chip" onclick="toggleChip(this)">Бизнес</div>
-          <div class="dealer-chip" onclick="toggleChip(this)">Премиум</div>
-        </div>
-      </div>
-      <div class="dealer-filter-section">
-        <div class="dealer-filter-label">Филиал автосалона</div>
-        <select class="dealer-select"><option>Все города</option><option>Москва</option><option>Санкт-Петербург</option><option>Казань</option><option>Екатеринбург</option></select>
       </div>
       <div class="dealer-filter-section">
         <div class="dealer-filter-label">Год выпуска</div>
         <div class="dealer-range-row">
-          <select class="dealer-select" style="flex:1"><option>От 2010</option><option>От 2015</option><option>От 2018</option><option>От 2020</option></select>
-          <select class="dealer-select" style="flex:1"><option>До 2025</option><option>До 2023</option><option>До 2022</option></select>
+          <input class="dealer-range-input" type="number" placeholder="От" id="fYearFrom" min="1990" max="2030">
+          <input class="dealer-range-input" type="number" placeholder="До" id="fYearTo" min="1990" max="2030">
         </div>
       </div>
-      <button class="dealer-filter-apply" onclick="closeDealerFilter()">Применить</button>
-      <button class="dealer-filter-reset" onclick="closeDealerFilter()">Сбросить</button>
+      <div class="dealer-filter-section">
+        <div class="dealer-filter-label">Класс автомобиля</div>
+        <div class="dealer-chip-row">
+          <div class="dealer-chip active" onclick="toggleChip(this)" data-cls="">Любой</div>
+          <div class="dealer-chip" onclick="toggleChip(this)" data-cls="low">Низкий</div>
+          <div class="dealer-chip" onclick="toggleChip(this)" data-cls="mid">Средний</div>
+          <div class="dealer-chip" onclick="toggleChip(this)" data-cls="high">Высокий</div>
+        </div>
+      </div>
+      <div class="dealer-filter-section">
+        <div class="dealer-filter-label">Топливо</div>
+        <div class="dealer-chip-row">
+          <div class="dealer-chip active" onclick="toggleFuelChip(this)" data-fuel="">Любое</div>
+          <div class="dealer-chip" onclick="toggleFuelChip(this)" data-fuel="Бензин">Бензин</div>
+          <div class="dealer-chip" onclick="toggleFuelChip(this)" data-fuel="Дизель">Дизель</div>
+        </div>
+      </div>
+      <div class="dealer-filter-section">
+        <div class="dealer-filter-label">Город</div>
+        <select class="dealer-select" id="fCity">
+          <option value="">Все города</option>
+          <option>Москва</option>
+          <option>Санкт-Петербург</option>
+          <option>Уфа</option>
+          <option>Казань</option>
+          <option>Челябинск</option>
+          <option>Екатеринбург</option>
+          <option>Нижний Новгород</option>
+          <option>Владивосток</option>
+          <option>Самара</option>
+          <option>Ростов-на-Дону</option>
+          <option>Краснодар</option>
+          <option>Новосибирск</option>
+          <option>Омск</option>
+          <option>Воронеж</option>
+          <option>Пермь</option>
+        </select>
+      </div>
+      <button class="dealer-filter-apply" onclick="applyDealerFilter()">Применить</button>
+      <button class="dealer-filter-reset" onclick="resetDealerFilter()">Сбросить</button>
     </div>
   </div>
 
@@ -1441,10 +1647,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
       Избранное
     </button>
     <button class="dealer-tab" onclick="dealerTabClick(2,this)">
-      <svg viewBox="0 0 24 24"><path d="M5 13H2l10-10 10 10h-3v7H5v-7z" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M9 22v-5h6v5" stroke="currentColor" stroke-width="1.8"/></svg>
-      Мои авто
-    </button>
-    <button class="dealer-tab" onclick="dealerTabClick(3,this)">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       Профиль
     </button>
@@ -1465,35 +1667,44 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </div>
 
 <script>
-// ===== DEALER DATA =====
-const DEALER_CARS = {
-  low: [
-    {id:'l1',name:'ВАЗ 2114',meta:'1.6 л · МКПП · Бензин · 2012 · 145 000 км',price:'350 000 ₽',features:['Кондиционер','Электростёкла'],desc:'Классический отечественный хэтчбек в хорошем состоянии.'},
-    {id:'l2',name:'Lada Granta',meta:'1.6 л · МКПП · Бензин · 2019 · 87 000 км',price:'520 000 ₽',features:['ABS','Кондиционер','Подушки безопасности'],desc:'Надёжный автомобиль для города и трассы.'},
-    {id:'l3',name:'Hyundai Solaris',meta:'1.4 л · МКПП · Бензин · 2017 · 102 000 км',price:'720 000 ₽',features:['Климат-контроль','Камера заднего вида','Круиз-контроль'],desc:'Популярный корейский седан с богатой комплектацией.'},
-    {id:'l4',name:'Kia Rio',meta:'1.6 л · АКПП · Бензин · 2018 · 95 000 км',price:'760 000 ₽',features:['Обогрев сидений','Камера заднего вида','Bluetooth'],desc:'Комфортный и экономичный городской автомобиль.'},
-  ],
-  mid: [
-    {id:'m1',name:'BMW 3 серия',meta:'2.0 л · АКПП · Бензин · 2018 · 90 000 км',price:'1 850 000 ₽',features:['Панорамная крыша','Кожаный салон','Адаптивный круиз'],desc:'Культовый немецкий спортивный седан с превосходной управляемостью.'},
-    {id:'m2',name:'Audi A4',meta:'2.0 л · АКПП · Бензин · 2017 · 105 000 км',price:'1 620 000 ₽',features:['Полный привод','Навигация','Камера 360°'],desc:'Премиальный седан с великолепным интерьером и технологиями.'},
-    {id:'m3',name:'Mercedes-Benz C-Класс',meta:'1.6 л · АКПП · Бензин · 2016 · 130 000 км',price:'1 580 000 ₽',features:['Климат-контроль','Парктроники','LED-фары'],desc:'Элегантный представительский автомобиль бизнес-класса.'},
-    {id:'m4',name:'Mazda 6',meta:'2.5 л · АКПП · Бензин · 2019 · 85 000 км',price:'1 480 000 ₽',features:['Bose аудио','Обогрев руля','Автопарковка'],desc:'Стильный японский седан с динамичным дизайном KODO.'},
-  ],
-  high: [
-    {id:'h1',name:'Mercedes-Benz S-Класс',meta:'3.0 л · АКПП · Бензин · 2019 · 70 000 км',price:'5 200 000 ₽',features:['Массаж сидений','Вентиляция сидений','Ночное виденье','Полный привод 4MATIC'],desc:'Флагманский лимузин с высочайшим уровнем комфорта и технологий.'},
-    {id:'h2',name:'BMW 7 серия',meta:'3.0 л · АКПП · Бензин · 2018 · 90 000 км',price:'4 850 000 ₽',features:['Панорамная крыша','Лазерные фары','Жесты управления'],desc:'Представительский седан с передовыми технологиями и роскошным интерьером.'},
-    {id:'h3',name:'Audi A8',meta:'3.0 л · АКПП · Бензин · 2019 · 80 000 км',price:'4 700 000 ₽',features:['Пневмоподвеска','Матричные фары','Полный привод Quattro'],desc:'Ультра-премиальный автомобиль с алюминиевым кузовом и цифровой кабиной.'},
-    {id:'h4',name:'Lexus LS',meta:'3.5 л · АКПП · Гибрид · 2018 · 75 000 км',price:'4 350 000 ₽',features:['Гибридный двигатель','Массаж 28-точечный','Дисплей 12.3"'],desc:'Японский эталон роскоши с легендарной надёжностью Lexus.'},
-  ]
-};
-
+// ===== DEALER DATA (loaded from Firebase) =====
+let DEALER_CARS_ALL = []; // flat array from Firebase
 let currentDealerClass = null;
 let dealerFavorites = new Set();
+let dealerPhotosModal = {car:null, idx:0};
 
-function openDealer() {
+// Load cars from Firebase
+async function loadDealerCars() {
+  try {
+    const snap = await db.ref('dealerCars').once('value');
+    const val = snap.val();
+    if(val) {
+      DEALER_CARS_ALL = Object.entries(val).map(([id,c])=>({...c, id}));
+    } else {
+      DEALER_CARS_ALL = [];
+    }
+  } catch(e) {
+    DEALER_CARS_ALL = [];
+  }
+}
+
+function getCarsByClass(cls) {
+  return DEALER_CARS_ALL.filter(c => c.carClass === cls);
+}
+function getAllCars() {
+  return DEALER_CARS_ALL;
+}
+
+async function openDealer() {
   document.getElementById('dealerScreen').classList.add('visible');
-  renderDealerHomeList();
   syncDealerTime();
+  // Reset class selection — no card active by default
+  document.querySelectorAll('.dealer-class-card').forEach(c=>c.classList.remove('active'));
+  currentDealerClass = null;
+  const el = document.getElementById('dealerHomeList');
+  el.innerHTML = '<div class="dealer-empty" style="opacity:.5;font-size:14px"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#b0bdd0"/></svg>Загрузка…</div>';
+  await loadDealerCars();
+  renderDealerAll();
 }
 function closeDealer() {
   document.getElementById('dealerScreen').classList.remove('visible');
@@ -1503,173 +1714,4 @@ function syncDealerTime() {
   const s = document.getElementById('settingsStatusTime');
   const src = document.getElementById('hsStatusTime');
   if(t && src) t.textContent = src.textContent;
-  if(s && src) s.textContent = src.textContent;
-}
-// Sync time for dealer/settings status bars every second
-setInterval(()=>{
-  const src = document.getElementById('hsStatusTime');
-  if(!src) return;
-  const t = document.getElementById('dealerStatusTime');
-  const s = document.getElementById('settingsStatusTime');
-  if(t) t.textContent = src.textContent;
-  if(s) s.textContent = src.textContent;
-}, 1000);
-
-function renderDealerHomeList(query='') {
-  const el = document.getElementById('dealerHomeList');
-  const all = [...DEALER_CARS.low,...DEALER_CARS.mid,...DEALER_CARS.high];
-  const filtered = query ? all.filter(c=>c.name.toLowerCase().includes(query.toLowerCase())) : [];
-  if(!query){ el.innerHTML=''; return; }
-  if(!filtered.length){
-    el.innerHTML = '<div class="dealer-empty"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>В данный момент автомобилей нету</div>';
-    return;
-  }
-  el.innerHTML = filtered.map(c=>carCardHTML(c)).join('');
-}
-function dealerSearchAll(q){ renderDealerHomeList(q); }
-
-function openDealerList(cls) {
-  currentDealerClass = cls;
-  const titles = {low:'Низкий класс',mid:'Средний класс',high:'Высокий класс'};
-  document.getElementById('dealerListTitle').textContent = titles[cls];
-  renderDealerList();
-  document.getElementById('dealerListScreen').classList.add('visible');
-}
-function closeDealerList() {
-  document.getElementById('dealerListScreen').classList.remove('visible');
-}
-function renderDealerList(query='') {
-  const el = document.getElementById('dealerCarList');
-  const cars = DEALER_CARS[currentDealerClass] || [];
-  const filtered = query ? cars.filter(c=>c.name.toLowerCase().includes(query.toLowerCase())) : cars;
-  if(!filtered.length){
-    el.innerHTML = '<div class="dealer-empty"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>В данный момент автомобилей нету</div>';
-    return;
-  }
-  el.innerHTML = filtered.map(c=>carCardHTML(c)).join('');
-}
-function dealerSearchList(q){ renderDealerList(q); }
-
-function carCardHTML(car) {
-  const isFav = dealerFavorites.has(car.id);
-  return `<div class="dealer-car-card" onclick="openDealerDetail('${car.id}')">
-    <div class="dealer-car-img" style="display:flex;align-items:center;justify-content:center">
-      <svg width="80" height="48" viewBox="0 0 80 48" fill="none">
-        <rect x="5" y="20" width="70" height="20" rx="4" fill="#1a7de8" opacity=".12"/>
-        <path d="M12 20 L20 8 L60 8 L68 20" fill="#1a7de8" opacity=".18"/>
-        <circle cx="22" cy="40" r="7" fill="#b0bdd0"/><circle cx="22" cy="40" r="3.5" fill="#f5f7fa"/>
-        <circle cx="58" cy="40" r="7" fill="#b0bdd0"/><circle cx="58" cy="40" r="3.5" fill="#f5f7fa"/>
-        <rect x="28" y="10" width="24" height="9" rx="2" fill="#1a7de8" opacity=".1"/>
-      </svg>
-    </div>
-    <div class="dealer-car-info">
-      <div class="dealer-car-name">${car.name}</div>
-      <div class="dealer-car-meta">${car.meta}</div>
-      <div class="dealer-car-price">${car.price}</div>
-    </div>
-    <button class="dealer-car-heart ${isFav?'active':''}" onclick="event.stopPropagation();toggleFav('${car.id}',this)">
-      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-    </button>
-  </div>`;
-}
-
-function toggleFav(id, btn) {
-  if(dealerFavorites.has(id)){ dealerFavorites.delete(id); btn.classList.remove('active'); }
-  else { dealerFavorites.add(id); btn.classList.add('active'); }
-}
-
-let currentDetailCar = null;
-function openDealerDetail(id) {
-  const all = [...DEALER_CARS.low,...DEALER_CARS.mid,...DEALER_CARS.high];
-  const car = all.find(c=>c.id===id);
-  if(!car) return;
-  currentDetailCar = car;
-  const body = document.getElementById('dealerDetailBody');
-  body.innerHTML = `
-    <div class="dealer-detail-name">${car.name}</div>
-    <div class="dealer-detail-meta-row">
-      <div class="dealer-detail-meta"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#b0bdd0" stroke-width="1.8" fill="none"/><path d="M3 9h18M8 2v4M16 2v4" stroke="#b0bdd0" stroke-width="1.8" stroke-linecap="round"/></svg>${car.meta.split('·')[2]?.trim()||''} ${car.meta.split('·')[3]?.trim()||''}</div>
-      <div class="dealer-detail-meta"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-13h2v6l4 2.5-.9 1.5-5.1-3V7z" fill="#b0bdd0"/></svg>${car.meta.split('·')[4]?.trim()||''}</div>
-      <div class="dealer-detail-meta"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#b0bdd0"/></svg>Казань</div>
-    </div>
-    <div class="dealer-detail-price">${car.price}</div>
-    <div class="dealer-detail-section-title">Описание</div>
-    <div class="dealer-detail-text">${car.desc}</div>
-    <div class="dealer-detail-section-title">Комплектация</div>
-    ${car.features.map(f=>`<div class="dealer-detail-feature"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>${f}</div>`).join('')}
-  `;
-  // Heart state
-  const heartSvg = document.getElementById('detailHeartSvg');
-  if(dealerFavorites.has(car.id)){
-    heartSvg.style.fill='#ff3b30'; heartSvg.style.stroke='#ff3b30';
-  } else {
-    heartSvg.style.fill='none'; heartSvg.style.stroke='#7a95b8';
-  }
-  document.getElementById('dealerDetailScreen').classList.add('visible');
-}
-function closeDealerDetail() {
-  document.getElementById('dealerDetailScreen').classList.remove('visible');
-}
-function toggleDetailHeart() {
-  if(!currentDetailCar) return;
-  const svg = document.getElementById('detailHeartSvg');
-  if(dealerFavorites.has(currentDetailCar.id)){
-    dealerFavorites.delete(currentDetailCar.id);
-    svg.style.fill='none'; svg.style.stroke='#7a95b8';
-  } else {
-    dealerFavorites.add(currentDetailCar.id);
-    svg.style.fill='#ff3b30'; svg.style.stroke='#ff3b30';
-  }
-}
-
-function openDealerFilter() {
-  document.getElementById('dealerFilterScreen').classList.add('visible');
-}
-function closeDealerFilter() {
-  document.getElementById('dealerFilterScreen').classList.remove('visible');
-}
-function toggleChip(el) {
-  document.querySelectorAll('#dealerFilterScreen .dealer-chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function dealerTabClick(idx, btn) {
-  document.querySelectorAll('.dealer-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-  // Close any sub-screens and go home
-  closeDealerDetail();
-  closeDealerList();
-  if(idx===1){ // Избранное
-    const el = document.getElementById('dealerHomeList');
-    const favCars = [...DEALER_CARS.low,...DEALER_CARS.mid,...DEALER_CARS.high].filter(c=>dealerFavorites.has(c.id));
-    if(!favCars.length){ el.innerHTML='<div class="dealer-empty"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" fill="currentColor"/></svg>В данный момент автомобилей нету</div>'; }
-    else el.innerHTML = favCars.map(c=>carCardHTML(c)).join('');
-  } else {
-    renderDealerHomeList();
-  }
-}
-
-function dealerGoBack() {
-  if(document.getElementById('dealerDetailScreen').classList.contains('visible')){ closeDealerDetail(); return; }
-  if(document.getElementById('dealerFilterScreen').classList.contains('visible')){ closeDealerFilter(); return; }
-  if(document.getElementById('dealerListScreen').classList.contains('visible')){ closeDealerList(); return; }
-  closeDealer();
-}
-</script>
-
-<!-- ADMIN PASSWORD MODAL -->
-<div class="admin-modal-overlay" id="adminPassOverlay">
-  <div class="admin-modal">
-    <div class="admin-modal-title">🔐 Админ панель</div>
-    <div class="admin-modal-sub">Введите пароль для доступа</div>
-    <input class="admin-modal-input" id="adminPassInput" type="password" placeholder="••••••••••••••••" maxlength="32">
-    <div class="admin-modal-err" id="adminPassErr"></div>
-    <div class="admin-modal-btns">
-      <button class="admin-modal-cancel" onclick="closeAdminModal()">Отмена</button>
-      <button class="admin-modal-confirm" onclick="checkAdminPassword()">Войти</button>
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
+  if(s && src) s.textConte
