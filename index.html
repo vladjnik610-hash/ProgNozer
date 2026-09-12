@@ -531,7 +531,7 @@ button:active{transform:scale(.97)}
       </div>
 
       <!-- СТО Михалыч -->
-      <div class="hs-app">
+      <div class="hs-app" onclick="openMihalych()">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
           <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548246618732761170/file_00000000ce7881f49d4bf842d3720b09.png?ex=6aa65c86&is=6aa50b06&hm=9c44749f4527d9523ee8864c4a0ef8f12ac337cb6e47a7ddf5965e14efe7c5cc&" alt="СТО Михалыч">
         </div>
@@ -2062,19 +2062,21 @@ async function dealerOrderClick(){
   const tplSnap = await db.ref('garageTemplates').once('value');
   const tpls = tplSnap.val()||{};
 
-  // Filter garages with free spots (count actual cars in garage)
+  // Filter garages with free spots (count actual cars in garage and yard)
   const freeGarages = [];
   for(const [key,g] of Object.entries(garagesRaw)){
     const tpl = tpls[g.templateId]||{};
-    const spots = g.garageSpots||0;
-    // Count cars currently in garage (not yard/stolen)
+    const garageSpots = g.garageSpots||0;
+    const yardSpots = g.yardSpots||0;
+    // Count cars currently in this garage by location
     const carsSnap = await db.ref('userCars/'+user.uid).orderByChild('garageKey').equalTo(key).once('value');
-    const carsInGarage = Object.values(carsSnap.val()||{}).filter(c=>c.location!=='yard'&&c.location!=='stolen').length;
-    const freeGarage = spots - carsInGarage;
-    const maxY = tpl.maxYardSpots||50;
-    const curY = g.yardSpots||0;
-    if(freeGarage > 0 || (maxY-curY) > 0){
-      freeGarages.push({key, name: tpl.name||'Гараж', freeGarage: Math.max(0,freeGarage), freeYard: Math.max(0,maxY-curY), spots});
+    const allCarsInGarage = Object.values(carsSnap.val()||{});
+    const carsInGarage = allCarsInGarage.filter(c=>c.location==='garage').length;
+    const carsInYard = allCarsInGarage.filter(c=>c.location==='yard').length;
+    const freeGarage = garageSpots - carsInGarage;
+    const freeYard = yardSpots - carsInYard;
+    if(freeGarage > 0 || freeYard > 0){
+      freeGarages.push({key, name: tpl.name||'Гараж', freeGarage: Math.max(0,freeGarage), freeYard: Math.max(0,freeYard), spots: garageSpots});
     }
   }
 
@@ -2224,6 +2226,8 @@ async function confirmCarPurchase(garageKey, uid, carId, price){
 
     // Update local balance
     bankBalance = balance - price;
+    addTx('Покупка авто: '+carData.name, -price);
+    await saveBankData();
 
     await new Promise(r=>setTimeout(r,1200));
     anim.innerHTML='<div style="font-size:64px">✅</div><div style="font-size:18px;font-weight:800;margin-top:16px">Автомобиль куплен!</div><div style="font-size:14px;opacity:.8;margin-top:8px">Проверьте «Мою недвижимость»</div>';
@@ -2334,11 +2338,11 @@ function renderCarDetail(carId, c){
         <span style="font-size:12px;color:#8a9ab8">Стоимость ремонта</span>
         <span style="font-size:13px;font-weight:700;color:#ff3b30">${rustRepairCost.toLocaleString('ru-RU')} ₽</span>
       </div>
-      <button class="car-action-btn" style="background:#fff0f0;color:#ff3b30;border:1.5px solid #ffe0dd;margin-top:8px" onclick="repairCarRust('${carId}')">🔧 Устранить ржавость (${rustRepairCost.toLocaleString('ru-RU')} ₽)</button>` : rust<=0?'<div style="font-size:12px;color:#34c759;margin-top:5px">✅ Кузов в отличном состоянии</div>':''}
+      <div style="background:#fff3e0;border-radius:8px;padding:6px 10px;margin-top:6px;font-size:12px;color:#e65100">🔧 Для ремонта обратитесь в <b>СТО Михалыч</b></div>` : rust<=0?'<div style="font-size:12px;color:#34c759;margin-top:5px">✅ Кузов в отличном состоянии</div>':''}
     </div>
     ${oilKmSince>=50000 ? `<div style="background:#fff3e0;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:13px;color:#e65100;font-weight:700">⚠️ Нужна замена масла!</span>
-      <button style="background:#ff9500;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer" onclick="doOilChange('${carId}')">Заменить (${oilCost.toLocaleString('ru-RU')} ₽)</button>
+      <span style="font-size:12px;color:#e65100">Обратитесь в СТО Михалыч</span>
     </div>` : oilCost>0?`<div style="background:#f0fff4;border-radius:12px;padding:8px 12px;margin-bottom:8px">
       <span style="font-size:12px;color:#34c759;font-weight:600">✅ Масло: ${(50000-oilKmSince).toLocaleString('ru-RU')} км до замены</span>
     </div>`:''}
@@ -3071,7 +3075,7 @@ async function loadBankData(uid){
     }
 
     bankCredits = d.credits ? Object.values(d.credits) : [];
-    bankTxLog = d.txLog ? Object.values(d.txLog).slice(-20) : [];
+    bankTxLog = d.txLog ? Object.values(d.txLog).slice(-BANK_TX_LIMIT) : [];
     bankAutoPay = d.autoPay || false;
     bankLastTaxPaid = d.lastTaxPaid || null;
     bankLastTaxTs = d.lastTaxTs || null;
@@ -3112,7 +3116,7 @@ async function saveBankData(){
     lastTaxPaid: bankLastTaxPaid,
     lastTaxTs: bankLastTaxTs,
     taxAccumulated: bankTaxAccumulated,
-    txLog: bankTxLog.slice(-50),
+    txLog: bankTxLog.slice(-BANK_TX_LIMIT),
     credits: bankCredits
   };
   try {
@@ -3196,11 +3200,13 @@ function fmtRub(n){
   return Math.round(n).toLocaleString('ru-RU')+(n<0?'':'')+' ₽';
 }
 
+const BANK_TX_LIMIT = 20;
 function addTx(label, amt){
   const now = getMskNow ? getMskNow() : new Date();
   const time = fmt2(now.getHours())+':'+fmt2(now.getMinutes())+' '+now.getDate()+'.'+(now.getMonth()+1);
   bankTxLog.push({label, amt, time});
-  if(bankTxLog.length>100) bankTxLog.shift();
+  // Keep only last 20 records — older ones are deleted when limit exceeded
+  while(bankTxLog.length > BANK_TX_LIMIT) bankTxLog.shift();
 }
 
 // ─── CREDITS ──────────────────────────────────────────────────
@@ -3310,7 +3316,7 @@ async function confirmBankSign(type){
   }
 }
 
-function doIssueCreditAfterSign(){
+async function doIssueCreditAfterSign(){
   const amt = parseInt(document.getElementById('creditAmountRange').value);
   const hrs = parseInt(document.getElementById('creditHoursRange').value);
   const total = Math.round(amt * 1.1);
@@ -3330,13 +3336,13 @@ function doIssueCreditAfterSign(){
 
   bankCredits.push(credit);
   bankBalance += amt;
-  addTx('Кредит получен', amt);
-  bankToast('✅ Кредит '+fmtRub(amt)+' получен!');
+  addTx('Кредит получен: '+fmtRub(amt), amt);
   document.getElementById('bankCreditSignWrap').style.display='none';
-  bankSignState['credit'] = {firstData:null, confirming:false};
-  saveBankData();
+  // Save to Firebase first, then render so UI shows the real state
+  await saveBankData();
   renderBankHome();
   renderCredits();
+  bankToast('✅ Кредит '+fmtRub(amt)+' получен!');
 }
 
 function fmtCountdown(msLeft){
@@ -3429,7 +3435,6 @@ function doEarlyPayoffAfterSign(){
   bankToast('✅ Кредит погашен досрочно!');
 
   document.getElementById('bankEarlySignWrap').style.display='none';
-  bankSignState['early'] = {firstData:null, confirming:false};
   bankEarlyPayTarget = null;
   saveBankData();
   renderBankHome();
@@ -4838,6 +4843,339 @@ async function doOilChange(carId){
     const freshSnap = await db.ref('userCars/'+uid+'/'+carId).once('value');
     renderCarDetail(carId, freshSnap.val()||{});
   }
+}
+</script>
+
+<!-- ===== СТО МИХАЛЫЧ SCREEN ===== -->
+<style>
+.mihalych-screen{position:fixed;inset:0;z-index:670;display:none;flex-direction:column;background:#f5f7fa;overflow:hidden}
+.mihalych-screen.visible{display:flex;animation:slideInRight .3s cubic-bezier(.22,.8,.35,1) both}
+.mihalych-nav{display:flex;align-items:center;padding:10px 16px 8px;background:#1a2a45;flex-shrink:0}
+.mihalych-nav-back{background:none;color:#ff9500;font-size:15px;font-weight:600;display:flex;align-items:center;gap:4px;padding:0;border:none;cursor:pointer}
+.mihalych-nav-back svg{width:10px;height:16px;fill:#ff9500}
+.mihalych-nav-title{flex:1;text-align:center;font-size:17px;font-weight:900;color:#fff}
+.mihalych-hero{background:linear-gradient(135deg,#1a2a45 0%,#2d4a7a 100%);padding:20px 20px 24px;flex-shrink:0}
+.mihalych-hero-sub{font-size:13px;color:#8aabcc;margin-top:4px}
+.mihalych-body{flex:1;overflow-y:auto;padding:16px}
+.mihalych-car-card{background:#fff;border-radius:16px;border:1.5px solid #e8eef6;padding:14px 16px;margin-bottom:12px;cursor:pointer;transition:.15s}
+.mihalych-car-card:active{transform:scale(.98)}
+.mihalych-car-name{font-size:15px;font-weight:800;color:#1a2a45}
+.mihalych-car-meta{font-size:12px;color:#8a9ab8;margin-top:3px}
+.mihalych-issue{background:#fff0f0;border-radius:12px;padding:10px 14px;margin-bottom:8px;border-left:3px solid #ff3b30}
+.mihalych-issue-label{font-size:13px;font-weight:700;color:#ff3b30}
+.mihalych-issue-sub{font-size:12px;color:#8a9ab8;margin-top:2px}
+.mihalych-issue.warn{background:#fff8e1;border-left-color:#ff9500}
+.mihalych-issue.warn .mihalych-issue-label{color:#e65100}
+.mihalych-issue.ok{background:#f0fff4;border-left-color:#34c759}
+.mihalych-issue.ok .mihalych-issue-label{color:#1ea84a}
+.mihalych-repair-btn{width:100%;background:linear-gradient(135deg,#ff9500,#e65100);color:#fff;border:none;border-radius:14px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px;box-shadow:0 6px 16px rgba(230,81,0,.25)}
+.mihalych-repair-btn:active{transform:scale(.97)}
+.mihalych-inspect-btn{width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(26,125,232,.25);margin-bottom:14px}
+.mihalych-inspect-btn:active{transform:scale(.97)}
+.mihalych-section-title{font-size:12px;font-weight:800;color:#8a9ab8;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px}
+.mihalych-empty{text-align:center;padding:40px 20px;color:#b0bdd0;font-size:15px}
+</style>
+<div class="mihalych-screen" id="mihalychScreen">
+  <div class="mobile-status-bar" style="background:#1a2a45;color:#fff;flex-shrink:0">
+    <span class="msb-time" id="mihalychStatusTime">--:--</span>
+    <div class="msb-icons">
+      <div class="msb-batt" style="color:#fff"><svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#fff" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#fff" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#fff" opacity=".8"/></svg>78%</div>
+    </div>
+  </div>
+  <div class="mihalych-nav">
+    <button class="mihalych-nav-back" onclick="closeMihalych()">
+      <svg viewBox="0 0 11 18"><path d="M9.5 1L1.5 9l8 8" stroke="#ff9500" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Назад
+    </button>
+    <div class="mihalych-nav-title">🔧 СТО Михалыч</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="mihalych-hero">
+    <div style="font-size:22px;font-weight:900;color:#fff">Добро пожаловать!</div>
+    <div class="mihalych-hero-sub">Выберите автомобиль и проведите ТО или ремонт</div>
+  </div>
+  <div class="mihalych-body" id="mihalychBody">
+    <div class="mihalych-empty">🔧 Загрузка автомобилей…</div>
+  </div>
+  <div class="android-nav" style="background:#1a2a45;border-top:1px solid #2d4a7a;flex-shrink:0">
+    <button class="android-nav-btn" onclick="closeMihalych()" style="opacity:.6">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"/></svg>
+    </button>
+    <button class="android-nav-btn" onclick="closeMihalych()" style="opacity:.6">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </button>
+    <button class="android-nav-btn" style="opacity:.6">
+      <svg viewBox="0 0 24 24" fill="#fff"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ─── СТО МИХАЛЫЧ ─────────────────────────────────────────────
+
+// SERVICE_SCHEDULE is already defined above. We use it here.
+// Each service item can be "fixed" by paying the cost at Mihalych.
+// We track which services have been done in car.serviceDone = {key: true}
+// Issues persist until fixed at СТО!
+
+function openMihalych(){
+  const user = auth.currentUser;
+  if(!user){ bankToast('Войдите в аккаунт'); return; }
+  document.getElementById('mihalychScreen').classList.add('visible');
+  loadMihalychCars(user.uid);
+}
+
+function closeMihalych(){
+  document.getElementById('mihalychScreen').classList.remove('visible');
+}
+
+// Update clock in mihalych
+const _origUpdateClock = updateClock;
+// We already have updateClock patching mihalychStatusTime via id lookup in main clock loop
+// Add mihalychStatusTime to updateClock
+(function patchMihalychClock(){
+  const orig = window.updateClock;
+  window.updateClock = function(){
+    orig && orig();
+    const msk = getMskNow();
+    const hh = fmt2(msk.getHours()), mm = fmt2(msk.getMinutes());
+    const el = document.getElementById('mihalychStatusTime');
+    if(el) el.textContent = hh+':'+mm;
+  };
+})();
+
+async function loadMihalychCars(uid){
+  const body = document.getElementById('mihalychBody');
+  body.innerHTML = '<div class="mihalych-empty">🔧 Загрузка…</div>';
+  try {
+    const snap = await db.ref('userCars/'+uid).once('value');
+    const cars = snap.val() || {};
+    if(!Object.keys(cars).length){
+      body.innerHTML = '<div class="mihalych-empty">🚗 У вас пока нет автомобилей</div>';
+      return;
+    }
+    body.innerHTML = Object.entries(cars).filter(([,c])=>c.location!=='stolen').map(([cid,c])=>{
+      const mileage = Math.round(c.mileage||0);
+      const price = c.dealerPrice||c.buyPrice||0;
+      const issues = getMihalychIssues(c, mileage, price, cid);
+      const badCount = issues.filter(i=>i.type!=='ok').length;
+      const badge = badCount>0
+        ? `<span style="background:#fff0f0;color:#ff3b30;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:800">${badCount} проблем</span>`
+        : `<span style="background:#f0fff4;color:#1ea84a;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:800">✅ Ок</span>`;
+      return `<div class="mihalych-car-card" onclick="openMihalychCar('${cid}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="mihalych-car-name">${c.name||'Авто'}</div>
+            <div class="mihalych-car-meta">Пробег: ${mileage.toLocaleString('ru-RU')} км · ${c.year||''}${c.year?' г.':''}</div>
+          </div>
+          ${badge}
+        </div>
+      </div>`;
+    }).join('') || '<div class="mihalych-empty">🚗 Нет доступных автомобилей</div>';
+  } catch(e){
+    body.innerHTML = '<div class="mihalych-empty" style="color:#ff3b30">Ошибка: '+e.message+'</div>';
+  }
+}
+
+// Returns array of issues for a car — issues PERSIST until fixed at СТО
+function getMihalychIssues(car, mileage, price, carId){
+  const issues = [];
+  const done = car.serviceDone || {};
+
+  // Rust
+  const rust = Number(car.rustPct||0);
+  if(rust > 0 && price > 0){
+    const rustCost = Math.round(price * rust / 100);
+    issues.push({key:'rust', type: rust>=5?'bad':'warn', label:'🔴 Ржавость кузова: '+rust.toFixed(2)+'%', sub:'Стоимость ремонта кузова: '+rustCost.toLocaleString('ru-RU')+' ₽', cost: rustCost, action:'repairRust'});
+  }
+
+  // Oil change — tracks by mileage since last change
+  const oilLast = car.lastOilChangeMileage || 0;
+  const oilSince = mileage - oilLast;
+  if(oilSince >= 50000 && price > 0){
+    const oilCost = Math.round(price * 0.5 / 100);
+    issues.push({key:'oil', type:'warn', label:'⚠️ Нужна замена масла! (+'+oilSince.toLocaleString('ru-RU')+' км)', sub:'Стоимость: '+oilCost.toLocaleString('ru-RU')+' ₽', cost: oilCost, action:'oilChange'});
+  }
+
+  // SERVICE_SCHEDULE — items that are DUE (km passed) and NOT yet fixed at СТО
+  // Each schedule item: track done by key = 'svc_'+km+'_'+safeName
+  SERVICE_SCHEDULE.forEach(s=>{
+    const svcKey = 'svc_'+s.km+'_'+s.label.replace(/\s/g,'_');
+    if(mileage >= s.km && !done[svcKey]){
+      const cost = price>0 ? Math.round(price * s.costPct / 100) : 0;
+      issues.push({key: svcKey, type:'bad', label:'🔧 '+s.label+' ('+s.km.toLocaleString('ru-RU')+' км)', sub: (mileage-s.km>0?'Просрочено на '+(mileage-s.km).toLocaleString('ru-RU')+' км · ':'')+'Стоимость: '+cost.toLocaleString('ru-RU')+' ₽', cost, action:'fixService'});
+    }
+  });
+
+  if(issues.length === 0){
+    issues.push({key:'allok', type:'ok', label:'✅ Всё в порядке!', sub:'Автомобиль не требует обслуживания'});
+  }
+  return issues;
+}
+
+async function openMihalychCar(carId){
+  const user = auth.currentUser;
+  if(!user) return;
+  const uid = user.uid;
+  const snap = await db.ref('userCars/'+uid+'/'+carId).once('value');
+  const car = snap.val();
+  if(!car){ bankToast('Авто не найдено'); return; }
+  const mileage = Math.round(car.mileage||0);
+  const price = car.dealerPrice||car.buyPrice||0;
+  const issues = getMihalychIssues(car, mileage, price, carId);
+  const body = document.getElementById('mihalychBody');
+
+  const totalRepairCost = issues.filter(i=>i.type!=='ok').reduce((s,i)=>s+i.cost,0);
+  const hasIssues = issues.some(i=>i.type!=='ok');
+
+  body.innerHTML = `
+    <button onclick="loadMihalychCars('${uid}')" style="background:none;border:none;color:#1a7de8;font-size:14px;font-weight:700;cursor:pointer;padding:0;margin-bottom:14px">← К списку авто</button>
+    <div style="background:#1a2a45;border-radius:16px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:17px;font-weight:900;color:#fff">${car.name||'Авто'}</div>
+      <div style="font-size:12px;color:#8aabcc;margin-top:3px">Пробег: ${mileage.toLocaleString('ru-RU')} км · VIN: ${car.vin||'—'}</div>
+    </div>
+
+    <button class="mihalych-inspect-btn" onclick="runMihalychInspect('${carId}')">🔍 Провести ТО (осмотр)</button>
+
+    <div class="mihalych-section-title">Состояние автомобиля</div>
+    ${issues.map(iss=>`
+      <div class="mihalych-issue ${iss.type==='ok'?'ok':iss.type==='warn'?'warn':''}">
+        <div class="mihalych-issue-label">${iss.label}</div>
+        <div class="mihalych-issue-sub">${iss.sub}</div>
+        ${iss.type!=='ok' && iss.cost>0 ? `<button class="mihalych-repair-btn" style="margin-top:8px;font-size:13px;padding:10px" onclick="mihalychRepairItem('${carId}','${iss.key}','${iss.action}',${iss.cost})">🔧 Починить (${iss.cost.toLocaleString('ru-RU')} ₽)</button>` : ''}
+      </div>
+    `).join('')}
+
+    ${hasIssues && totalRepairCost > 0 ? `
+    <div style="margin-top:8px;background:#fff;border-radius:14px;border:1.5px solid #e8eef6;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:14px;font-weight:700;color:#1a2a45">Полный ремонт</span>
+      <span style="font-size:16px;font-weight:900;color:#ff3b30">${totalRepairCost.toLocaleString('ru-RU')} ₽</span>
+    </div>
+    <button class="mihalych-repair-btn" onclick="mihalychRepairAll('${carId}',${totalRepairCost})">🔧 Починить всё (${totalRepairCost.toLocaleString('ru-RU')} ₽)</button>
+    ` : ''}
+  `;
+}
+
+// Проведение ТО — отображает результаты осмотра
+async function runMihalychInspect(carId){
+  const user = auth.currentUser;
+  if(!user) return;
+  const uid = user.uid;
+  const snap = await db.ref('userCars/'+uid+'/'+carId).once('value');
+  const car = snap.val();
+  if(!car) return;
+  const mileage = Math.round(car.mileage||0);
+  const price = car.dealerPrice||car.buyPrice||0;
+  const issues = getMihalychIssues(car, mileage, price, carId);
+  const badCount = issues.filter(i=>i.type!=='ok').length;
+
+  // Show result overlay
+  let overlay = document.getElementById('mihalychInspectOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'mihalychInspectOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+    document.body.appendChild(overlay);
+  }
+  const totalCost = issues.filter(i=>i.type!=='ok').reduce((s,i)=>s+i.cost,0);
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:460px;background:#fff;border-radius:22px 22px 0 0;padding:24px 20px 36px;max-height:80vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:18px;font-weight:900;color:#1a2a45">🔍 Результат ТО</div>
+        <button onclick="document.getElementById('mihalychInspectOverlay').style.display='none'" style="background:none;border:none;font-size:22px;color:#8a9ab8;cursor:pointer">✕</button>
+      </div>
+      <div style="background:#1a2a45;border-radius:14px;padding:12px 16px;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:800;color:#fff">${car.name||'Авто'}</div>
+        <div style="font-size:12px;color:#8aabcc;margin-top:2px">Пробег: ${mileage.toLocaleString('ru-RU')} км</div>
+      </div>
+      ${badCount===0
+        ? '<div style="background:#f0fff4;border-radius:14px;padding:16px;text-align:center;font-size:16px;font-weight:800;color:#1ea84a">✅ Автомобиль в отличном состоянии!</div>'
+        : `<div style="background:#fff0f0;border-radius:14px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+             <span style="font-size:14px;font-weight:800;color:#ff3b30">⚠️ Найдено проблем: ${badCount}</span>
+             <span style="font-size:14px;font-weight:900;color:#ff3b30">${totalCost.toLocaleString('ru-RU')} ₽</span>
+           </div>`}
+      ${issues.map(iss=>`
+        <div style="background:${iss.type==='ok'?'#f0fff4':iss.type==='warn'?'#fff8e1':'#fff0f0'};border-radius:12px;padding:10px 14px;margin-bottom:8px;border-left:3px solid ${iss.type==='ok'?'#34c759':iss.type==='warn'?'#ff9500':'#ff3b30'}">
+          <div style="font-size:13px;font-weight:700;color:${iss.type==='ok'?'#1ea84a':iss.type==='warn'?'#e65100':'#ff3b30'}">${iss.label}</div>
+          <div style="font-size:12px;color:#8a9ab8;margin-top:2px">${iss.sub}</div>
+        </div>
+      `).join('')}
+      ${badCount > 0 ? `<button onclick="document.getElementById('mihalychInspectOverlay').style.display='none';openMihalychCar('${carId}')" style="width:100%;background:linear-gradient(135deg,#ff9500,#e65100);color:#fff;border:none;border-radius:14px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px">🔧 Перейти к ремонту</button>` : ''}
+      <button onclick="document.getElementById('mihalychInspectOverlay').style.display='none'" style="width:100%;background:#f0f4f9;color:#8a9ab8;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">Закрыть</button>
+    </div>`;
+  overlay.style.display = 'flex';
+}
+
+// Ремонт одного пункта
+async function mihalychRepairItem(carId, issueKey, action, cost){
+  const user = auth.currentUser;
+  if(!user) return;
+  const uid = user.uid;
+  const bSnap = await db.ref('bankData/'+uid+'/balance').once('value');
+  const balance = bSnap.val()||0;
+  if(balance < cost){ bankToast('❌ Не хватает средств: '+cost.toLocaleString('ru-RU')+' ₽'); return; }
+  if(!confirm('Выполнить ремонт за '+cost.toLocaleString('ru-RU')+' ₽?')) return;
+
+  const snap = await db.ref('userCars/'+uid+'/'+carId).once('value');
+  const car = snap.val();
+  if(!car) return;
+
+  // Deduct money
+  await db.ref('bankData/'+uid+'/balance').set(balance - cost);
+  bankBalance = balance - cost;
+
+  // Apply fix
+  if(action === 'repairRust'){
+    await db.ref('userCars/'+uid+'/'+carId+'/rustPct').set(0);
+    addTx('СТО: ремонт кузова ('+car.name+')', -cost);
+  } else if(action === 'oilChange'){
+    await db.ref('userCars/'+uid+'/'+carId+'/lastOilChangeMileage').set(car.mileage||0);
+    addTx('СТО: замена масла ('+car.name+')', -cost);
+  } else if(action === 'fixService'){
+    // Mark this service as done
+    await db.ref('userCars/'+uid+'/'+carId+'/serviceDone/'+issueKey).set(true);
+    addTx('СТО: ТО '+car.name, -cost);
+  }
+  await saveBankData();
+  renderBankHome();
+  bankToast('✅ Ремонт выполнен! -'+cost.toLocaleString('ru-RU')+' ₽');
+  // Refresh car view
+  openMihalychCar(carId);
+}
+
+// Ремонт всего сразу
+async function mihalychRepairAll(carId, totalCost){
+  const user = auth.currentUser;
+  if(!user) return;
+  const uid = user.uid;
+  const bSnap = await db.ref('bankData/'+uid+'/balance').once('value');
+  const balance = bSnap.val()||0;
+  if(balance < totalCost){ bankToast('❌ Не хватает средств: '+totalCost.toLocaleString('ru-RU')+' ₽'); return; }
+  if(!confirm('Выполнить полный ремонт за '+totalCost.toLocaleString('ru-RU')+' ₽?')) return;
+
+  const snap = await db.ref('userCars/'+uid+'/'+carId).once('value');
+  const car = snap.val();
+  if(!car) return;
+  const mileage = Math.round(car.mileage||0);
+  const price = car.dealerPrice||car.buyPrice||0;
+  const issues = getMihalychIssues(car, mileage, price, carId);
+  const updates = {};
+
+  for(const iss of issues){
+    if(iss.type === 'ok') continue;
+    if(iss.action === 'repairRust') updates['rustPct'] = 0;
+    else if(iss.action === 'oilChange') updates['lastOilChangeMileage'] = mileage;
+    else if(iss.action === 'fixService') updates['serviceDone/'+iss.key] = true;
+  }
+
+  await db.ref('bankData/'+uid+'/balance').set(balance - totalCost);
+  bankBalance = balance - totalCost;
+  if(Object.keys(updates).length) await db.ref('userCars/'+uid+'/'+carId).update(updates);
+  addTx('СТО: полный ремонт '+car.name, -totalCost);
+  await saveBankData();
+  renderBankHome();
+  bankToast('✅ Полный ремонт выполнен! -'+totalCost.toLocaleString('ru-RU')+' ₽');
+  openMihalychCar(carId);
 }
 </script>
 
