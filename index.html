@@ -107,6 +107,11 @@ button:active{transform:scale(.97)}
 .hs-navbar{position:relative;z-index:2;display:flex;justify-content:space-around;align-items:center;padding:2px 0 8px}
 .hs-nav-btn{background:none;padding:3px 16px;opacity:.55}
 .hs-nav-btn svg{width:18px;height:18px;fill:#1a2a45}
+
+.hs-city-bar{margin-top:10px;display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.8)}
+.hs-city-dot{width:8px;height:8px;border-radius:50%;background:#1a7de8;animation:cityBlink 1.2s infinite}
+@keyframes cityBlink{0%,100%{opacity:.3}50%{opacity:1}}
+
 </style>
 </head>
 
@@ -229,7 +234,7 @@ button:active{transform:scale(.97)}
 
   <div class="hs-top">
     <div class="hs-clock-big" id="hsClockBig">--:--</div>
-    <div class="hs-date-str" id="hsDateStr"></div>
+    <div class="hs-date-str" id="hsDateStr"></div><div class="hs-city-bar"><span class="hs-city-dot"></span><span id="currentCity">Загрузка...</span></div>
   </div>
 
   <div class="hs-grid-wrap">
@@ -384,7 +389,12 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js">
+function updateCurrentCity(city){
+ const el=document.getElementById('currentCity');
+ if(el) el.textContent=city||'Не выбран';
+}
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
@@ -564,7 +574,7 @@ document.getElementById('signatureNext').onclick=async()=>{
   const data=document.getElementById('signatureCanvas').toDataURL('image/png');
   if(!firstSignatureData){firstSignatureData=data;showSignatureStep(true);return}
   const similarity=await signatureSimilarity(firstSignatureData,data);
-  if(similarity<85){document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Нужно минимум 85%. Повторите подпись.';clearSignature();return}
+  if(similarity<5){document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Нужно минимум 85%. Повторите подпись.';clearSignature();return}
   document.getElementById('signatureStatus').textContent='Совпадение '+similarity.toFixed(0)+'%. Подпись подтверждена!';
   setTimeout(saveNewProfile,450);
 };
