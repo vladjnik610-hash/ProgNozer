@@ -6575,17 +6575,16 @@ function cvContactSeller(){
   const ad=cvCurrentDetailAd;
   if(!ad) return;
   document.getElementById('cvDetailView').classList.remove('visible');
-  // Add to chats
   const chatId='chat_'+ad.id;
   if(!cvChats[chatId]){
-    cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType||'player',adName:ad.carName,lastMsg:'Здравствуйте, интересует авто',time:Date.now(),unread:0,dealStatus:'ongoing'};
+    cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType||'player',adName:ad.carName,lastMsg:'',time:Date.now(),unread:0,dealStatus:'ongoing'};
     const user=auth.currentUser;
     if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).set(cvChats[chatId]).catch(()=>{});
   }
   cvSwitchTab('chat');
   cvRenderChats();
-  // Open chat immediately (bot or player)
-  setTimeout(()=>cvOpenChat(chatId, cvChats[chatId]), 200);
+  // Открыть чат сразу — бот или игрок
+  setTimeout(()=>cvOpenChat(chatId, cvChats[chatId]), 150);
 }
 
 // ── Chats ──────────────────────────────────────────────
@@ -6696,9 +6695,10 @@ function cvConfirmDeleteChat(){
   bankToast('🗑 Чат удалён');
 }
 
+let _currentPlayerChatId = null;
+
 function cvOpenChat(id, chat){
   if(chat.type==='bot'){
-    // Open bot chat overlay
     const botAd = Object.entries(typeof botManagerData==='object'?botManagerData:{})
       .find(([,ad])=>('chat_'+ad.id)===id||id.includes(ad.id));
     if(botAd){
@@ -6707,119 +6707,85 @@ function cvOpenChat(id, chat){
       const overlay=document.getElementById('botChatOverlay');
       if(overlay){
         document.getElementById('botChatName').textContent=chat.name||'Бот';
-        const adBadge=document.getElementById('botChatAdBadge');
-        if(adBadge) adBadge.textContent=chat.adName?'📋 По объявлению: '+chat.adName:'🤖 Автоматический продавец';
+        document.getElementById('botChatMessages').innerHTML='';
         currentBotAd={sellerName:chat.name,carName:chat.adName,sellerType:'bot',id:id.replace('chat_','')};
-        // Restore history
-        const messagesEl=document.getElementById('botChatMessages');
-        messagesEl.innerHTML='';
-        const hist=cvChatHistories[id]||[];
-        if(hist.length){
-          hist.forEach(m=>{
-            if(m.from==='bot') addBotMessage(m.text);
-            else addUserMessage(m.text);
-          });
-        } else {
-          const firstMsg='Здравствуйте! Чем могу помочь?';
-          addBotMessage(firstMsg);
-          cvSaveMsgToHistory(id,'bot',firstMsg);
-        }
         overlay.style.display='flex';
+        _restoreBotHistory(id, chat);
       }
     }
   } else {
-    // Open player chat overlay with history
-    currentPlayerChatId=id;
-    currentPlayerChat=chat;
-    document.getElementById('playerChatName').textContent=chat.name||'Игрок';
-    const badge=document.getElementById('playerChatAdBadge');
-    if(badge) badge.textContent=chat.adName?'📋 По объявлению: '+chat.adName:'👤 Игрок';
-    const messagesEl=document.getElementById('playerChatMessages');
-    messagesEl.innerHTML='';
-    // Restore history from Firebase
-    const user=auth.currentUser;
+    _currentPlayerChatId = id;
+    document.getElementById('playerChatName').textContent = chat.name||'Игрок';
+    const badge = document.getElementById('playerChatAdBadge');
+    badge.textContent = chat.adName ? '📋 '+chat.adName : '';
+    const msgsEl = document.getElementById('playerChatMessages');
+    msgsEl.innerHTML = '';
+    document.getElementById('playerChatInput').value = '';
+    // Load history from Firebase
+    const user = auth.currentUser;
     if(user){
-      db.ref('carvitoMsgs/'+user.uid+'/'+id).once('value').then(snap=>{
-        const msgs=snap.val()?Object.values(snap.val()):[];
-        msgs.sort((a,b)=>(a.ts||0)-(b.ts||0));
-        msgs.forEach(m=>{ if(m.from==='me') addPlayerMsgMe(m.text); else addPlayerMsgOther(m.text,chat.name); });
-        if(!msgs.length){
-          // First message greeting
-          const greet='Здравствуйте, меня интересует ваше объявление'+(chat.adName?' ('+chat.adName+')':'')+'!';
-          addPlayerMsgMe(greet);
-          cvSavePlayerMsg(id,'me',greet);
+      db.ref('cvPlayerMsgs/'+user.uid+'/'+id).orderByChild('ts').once('value').then(snap=>{
+        const msgs = [];
+        snap.forEach(c=>msgs.push(c.val()));
+        if(msgs.length){
+          msgs.forEach(m=>_renderPlayerMsg(m.text, m.from==='me'));
+        } else {
+          const greet = 'Здравствуйте, меня интересует ваше объявление'+(chat.adName?' «'+chat.adName+'»':'')+'.';
+          _renderPlayerMsg(greet, true);
+          _savePlayerMsg(id, greet, true);
         }
-        messagesEl.scrollTop=messagesEl.scrollHeight;
+        msgsEl.scrollTop = msgsEl.scrollHeight;
       }).catch(()=>{});
     }
-    document.getElementById('playerChatInput').value='';
-    document.getElementById('playerChatOverlay').style.display='flex';
+    document.getElementById('playerChatOverlay').style.display = 'flex';
   }
 }
 
-// Player chat helpers
-let currentPlayerChatId=null;
-let currentPlayerChat=null;
-let cvChatHistories={};
-
-function addPlayerMsgMe(text){
-  const el=document.getElementById('playerChatMessages');
-  const msg=document.createElement('div');
-  msg.style.cssText='align-self:flex-end;max-width:80%;background:linear-gradient(135deg,#1a7de8,#4c9fff);border-radius:16px 16px 0 16px;padding:10px 14px;font-size:14px;color:#fff;box-shadow:0 1px 4px rgba(26,125,232,.3);word-break:break-word';
-  msg.textContent=text;
+function _renderPlayerMsg(text, isMe){
+  const el = document.getElementById('playerChatMessages');
+  const msg = document.createElement('div');
+  msg.style.cssText = isMe
+    ? 'align-self:flex-end;max-width:80%;background:linear-gradient(135deg,#1a7de8,#4c9fff);border-radius:16px 16px 0 16px;padding:10px 14px;font-size:14px;color:#fff;word-break:break-word'
+    : 'align-self:flex-start;max-width:80%;background:#fff;border-radius:0 16px 16px 16px;padding:10px 14px;font-size:14px;color:#1a2a45;box-shadow:0 1px 4px rgba(0,0,0,.08);word-break:break-word';
+  msg.textContent = text;
   el.appendChild(msg);
-  el.scrollTop=el.scrollHeight;
+  el.scrollTop = el.scrollHeight;
 }
-function addPlayerMsgOther(text,name){
-  const el=document.getElementById('playerChatMessages');
-  const wrap=document.createElement('div');
-  wrap.style.cssText='align-self:flex-start;max-width:80%';
-  const lbl=document.createElement('div');
-  lbl.style.cssText='font-size:11px;color:#8a9ab8;margin-bottom:3px;font-weight:700';
-  lbl.textContent=name||'Игрок';
-  const msg=document.createElement('div');
-  msg.style.cssText='background:#fff;border-radius:0 16px 16px 16px;padding:10px 14px;font-size:14px;color:#1a2a45;box-shadow:0 1px 4px rgba(0,0,0,.08);word-break:break-word';
-  msg.textContent=text;
-  wrap.appendChild(lbl);wrap.appendChild(msg);
-  el.appendChild(wrap);
-  el.scrollTop=el.scrollHeight;
-}
-function cvSavePlayerMsg(chatId,from,text){
-  const user=auth.currentUser;
+
+function _savePlayerMsg(chatId, text, isMe){
+  const user = auth.currentUser;
   if(!user) return;
-  const ref=db.ref('carvitoMsgs/'+user.uid+'/'+chatId);
-  ref.push({from,text,ts:Date.now()}).catch(()=>{});
-  // Update lastMsg in chat
+  db.ref('cvPlayerMsgs/'+user.uid+'/'+chatId).push({text, from: isMe?'me':'other', ts: Date.now()}).catch(()=>{});
   if(cvChats[chatId]){
-    cvChats[chatId].lastMsg=text;
-    cvChats[chatId].time=Date.now();
-    db.ref('carvitoChats/'+user.uid+'/'+chatId+'/lastMsg').set(text).catch(()=>{});
-    db.ref('carvitoChats/'+user.uid+'/'+chatId+'/time').set(Date.now()).catch(()=>{});
+    cvChats[chatId].lastMsg = text;
+    cvChats[chatId].time = Date.now();
+    db.ref('carvitoChats/'+user.uid+'/'+chatId).update({lastMsg:text, time:Date.now()}).catch(()=>{});
   }
 }
-function cvSaveMsgToHistory(chatId,from,text){
-  if(!cvChatHistories[chatId]) cvChatHistories[chatId]=[];
-  cvChatHistories[chatId].push({from,text});
-}
+
 function sendPlayerMessage(){
-  const inp=document.getElementById('playerChatInput');
-  const text=(inp.value||'').trim();
-  if(!text) return;
-  addPlayerMsgMe(text);
-  cvSavePlayerMsg(currentPlayerChatId,'me',text);
-  inp.value='';
-  inp.style.height='auto';
+  const inp = document.getElementById('playerChatInput');
+  const text = (inp.value||'').trim();
+  if(!text || !_currentPlayerChatId) return;
+  _renderPlayerMsg(text, true);
+  _savePlayerMsg(_currentPlayerChatId, text, true);
+  inp.value = '';
 }
+
 function closePlayerChat(){
-  document.getElementById('playerChatOverlay').style.display='none';
+  document.getElementById('playerChatOverlay').style.display = 'none';
 }
-function closePlayerChatToMain(){
-  document.getElementById('playerChatOverlay').style.display='none';
-  document.getElementById('cvScreen').classList.remove('visible');
-  document.getElementById('mainScreen').classList.add('visible');
-}
-function closePlayerChatToWindows(){
-  document.getElementById('playerChatOverlay').style.display='none';
+
+// Restore bot chat history (session-only, no Firebase spam)
+const _botHistories = {};
+function _restoreBotHistory(chatId, chat){
+  const hist = _botHistories[chatId];
+  if(hist && hist.length){
+    hist.forEach(m=>{ if(m.from==='bot') addBotMessage(m.text,false); else addUserMessage(m.text,false); });
+  } else {
+    const first = chat.lastMsg||'Здравствуйте! Чем могу помочь?';
+    botAddMsg(first, false);
+  }
 }
 
 // ── Profile ────────────────────────────────────────────
@@ -7283,24 +7249,10 @@ function openBotChat(adIdOrAd, adData){
   if(typeof adIdOrAd==='object'){ ad=adIdOrAd; } else { ad={id:adIdOrAd,...(adData||{})}; }
   currentBotAd=ad;
   document.getElementById('botChatName').textContent=ad.sellerName||'Бот';
-  const adBadge=document.getElementById('botChatAdBadge');
-  if(adBadge) adBadge.textContent=ad.carName?'📋 По объявлению: '+ad.carName:'🤖 Автоматический продавец';
-
-  const chatId='chat_'+(ad.id||Date.now());
   const messagesEl=document.getElementById('botChatMessages');
   messagesEl.innerHTML='';
-
-  // Восстанавливаем историю если есть
-  const hist=cvChatHistories[chatId]||[];
-  if(hist.length){
-    hist.forEach(m=>{ if(m.from==='bot') addBotMessage(m.text); else addUserMessage(m.text); });
-  } else {
-    // Первое сообщение от бота
-    const firstMsg=`Здравствуйте! Я продаю ${ad.carName||'авто'}. Чем могу помочь?`;
-    addBotMessage(firstMsg);
-    cvSaveMsgToHistory(chatId,'bot',firstMsg);
-  }
-
+  // Первое сообщение от бота
+  addBotMessage(`Здравствуйте! Я продаю ${ad.carName||'авто'}. Чем могу помочь?`);
   document.getElementById('botChatOverlay').style.display='flex';
   // Сбросим состояние действий
   document.getElementById('botChatActions').innerHTML=`
@@ -7311,6 +7263,7 @@ function openBotChat(adIdOrAd, adData){
     </div>`;
 
   // Save to cvChats so it appears in chat tab
+  const chatId='chat_'+(ad.id||Date.now());
   if(!cvChats[chatId]){
     cvChats[chatId]={name:ad.sellerName||'Бот',type:'bot',adName:ad.carName,lastMsg:'Здравствуйте! Я продаю '+ad.carName+'. Чем могу помочь?',time:Date.now(),unread:0,dealStatus:'ongoing'};
     const user=auth.currentUser;
@@ -7321,14 +7274,6 @@ function openBotChat(adIdOrAd, adData){
 function closeBotChat(){
   document.getElementById('botChatOverlay').style.display='none';
 }
-function closeBotChatToMain(){
-  document.getElementById('botChatOverlay').style.display='none';
-  document.getElementById('cvScreen').classList.remove('visible');
-  document.getElementById('mainScreen').classList.add('visible');
-}
-function closeBotChatToWindows(){
-  document.getElementById('botChatOverlay').style.display='none';
-}
 
 // Helper to update deal status for a bot chat
 function cvSetDealStatus(adId, status){
@@ -7337,40 +7282,36 @@ function cvSetDealStatus(adId, status){
     cvChats[chatId].dealStatus=status;
     const user=auth.currentUser;
     if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId+'/dealStatus').set(status).catch(()=>{});
-    // Auto-delete chat when deal is fully completed (success)
-    if(status==='success'){
-      setTimeout(()=>{
-        delete cvChats[chatId];
-        delete cvChatHistories[chatId];
-        if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).remove().catch(()=>{});
-        cvRenderChats();
-        bankToast('✅ Сделка завершена — чат удалён');
-      }, 3000);
-    }
   }
 }
 
 function botAddMsg(text,isUser){if(isUser)addUserMessage(text);else addBotMessage(text);}
-function addBotMessage(text){
+function addBotMessage(text, save=true){
   const el=document.getElementById('botChatMessages');
   const msg=document.createElement('div');
-  msg.style.cssText='align-self:flex-start;max-width:80%;background:#fff;border-radius:0 16px 16px 16px;padding:10px 14px;font-size:14px;color:#1a2a45;box-shadow:0 1px 4px rgba(0,0,0,.08);word-break:break-word';
+  msg.style.cssText='align-self:flex-start;max-width:80%;background:#fff;border-radius:0 16px 16px 16px;padding:10px 14px;font-size:14px;color:#1a2a45;box-shadow:0 1px 4px rgba(0,0,0,.08)';
   msg.textContent=text;
   el.appendChild(msg);
   el.scrollTop=el.scrollHeight;
-  // Save to history
-  if(currentBotAd){const cid='chat_'+(currentBotAd.id||'');if(cid!=='chat_')cvSaveMsgToHistory(cid,'bot',text);}
+  if(save && currentBotAd){
+    const cid='chat_'+(currentBotAd.id||'');
+    if(!_botHistories[cid]) _botHistories[cid]=[];
+    _botHistories[cid].push({from:'bot',text});
+  }
 }
 
-function addUserMessage(text){
+function addUserMessage(text, save=true){
   const el=document.getElementById('botChatMessages');
   const msg=document.createElement('div');
-  msg.style.cssText='align-self:flex-end;max-width:80%;background:linear-gradient(135deg,#1a7de8,#4c9fff);border-radius:16px 16px 0 16px;padding:10px 14px;font-size:14px;color:#fff;box-shadow:0 1px 4px rgba(26,125,232,.3);word-break:break-word';
+  msg.style.cssText='align-self:flex-end;max-width:80%;background:linear-gradient(135deg,#1a7de8,#4c9fff);border-radius:16px 16px 0 16px;padding:10px 14px;font-size:14px;color:#fff;box-shadow:0 1px 4px rgba(26,125,232,.3)';
   msg.textContent=text;
   el.appendChild(msg);
   el.scrollTop=el.scrollHeight;
-  // Save to history
-  if(currentBotAd){const cid='chat_'+(currentBotAd.id||'');if(cid!=='chat_')cvSaveMsgToHistory(cid,'user',text);}
+  if(save && currentBotAd){
+    const cid='chat_'+(currentBotAd.id||'');
+    if(!_botHistories[cid]) _botHistories[cid]=[];
+    _botHistories[cid].push({from:'user',text});
+  }
 }
 
 // ── Логика: Купить машину ────────────────────────────────────
@@ -7498,27 +7439,7 @@ function getBotDelay(){
   return 300000;              // 5 мин 10%
 }
 
-// ── Перехват cvContactSeller для ботов ──────────────────────
-const _origCvContactSeller = window.cvContactSeller;
-window.cvContactSeller = function(){
-  const ad=cvCurrentDetailAd;
-  if(!ad) return;
-  if(ad.sellerType==='bot'){
-    document.getElementById('cvDetailView').classList.remove('visible');
-    openBotChat(ad);
-  } else {
-    // Оригинальная логика для игроков
-    document.getElementById('cvDetailView').classList.remove('visible');
-    const chatId='chat_'+ad.id;
-    if(!cvChats[chatId]){
-      cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType||'player',adName:ad.carName,lastMsg:'Здравствуйте, интересует авто',time:Date.now(),unread:0,dealStatus:'ongoing'};
-      const user=auth.currentUser;
-      if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).set(cvChats[chatId]).catch(()=>{});
-    }
-    cvSwitchTab('chat');
-    cvRenderChats();
-  }
-};
+// cvContactSeller определён выше, перехватчик не нужен
 
 // ── Обновить кнопку в детальном виде для ботов ─────────────
 const _origCvOpenDetail = window.cvOpenDetail;
@@ -7634,18 +7555,16 @@ window.cvOpenDetail = function(ad){
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Назад
     </button>
-    <div style="flex:1">
+    <div style="flex:1;min-width:0">
       <div id="playerChatName" style="font-size:16px;font-weight:800;color:#1a2a45">Игрок</div>
-      <div id="playerChatAdBadge" style="font-size:11px;color:#8a9ab8;margin-top:1px"></div>
+      <div id="playerChatAdBadge" style="font-size:11px;color:#8a9ab8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
     </div>
-    <button onclick="closePlayerChatToMain()" style="background:#f0f4f9;border:none;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:700;color:#1a2a45;cursor:pointer">🏠 Главный</button>
-    <button onclick="closePlayerChatToWindows()" style="background:#f0f4f9;border:none;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:700;color:#1a2a45;cursor:pointer">⊟ Окна</button>
   </div>
   <div id="playerChatMessages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f0f4f9"></div>
-  <div style="background:#fff;border-top:1px solid #eaecf0;padding:12px 16px 20px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0">
-    <textarea id="playerChatInput" placeholder="Написать сообщение…" rows="1" style="flex:1;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:14px;padding:10px 14px;font-size:15px;color:#1a2a45;outline:none;font-family:inherit;resize:none;max-height:120px;line-height:1.4" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPlayerMessage()}"></textarea>
+  <div style="background:#fff;border-top:1px solid #eaecf0;padding:10px 16px 20px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0">
+    <textarea id="playerChatInput" placeholder="Написать сообщение…" rows="1" style="flex:1;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:14px;padding:10px 14px;font-size:15px;color:#1a2a45;outline:none;font-family:inherit;resize:none;line-height:1.4" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPlayerMessage()}"></textarea>
     <button onclick="sendPlayerMessage()" style="background:linear-gradient(135deg,#1a7de8,#4c9fff);border:none;border-radius:14px;width:46px;height:46px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </div>
 </div>
@@ -7657,12 +7576,10 @@ window.cvOpenDetail = function(ad){
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Назад
     </button>
-    <div style="flex:1;min-width:0">
+    <div style="flex:1">
       <div id="botChatName" style="font-size:16px;font-weight:800;color:#1a2a45">Бот</div>
-      <div id="botChatAdBadge" style="font-size:11px;color:#8a9ab8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🤖 Автоматический продавец</div>
+      <div style="font-size:12px;color:#8a9ab8">🤖 Автоматический продавец</div>
     </div>
-    <button onclick="closeBotChatToMain()" style="background:#f0f4f9;border:none;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:700;color:#1a2a45;cursor:pointer;flex-shrink:0">🏠 Главный</button>
-    <button onclick="closeBotChatToWindows()" style="background:#f0f4f9;border:none;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:700;color:#1a2a45;cursor:pointer;flex-shrink:0">⊟ Окна</button>
   </div>
   <div id="botChatMessages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f0f4f9"></div>
   <div id="botChatActions" style="background:#fff;border-top:1px solid #eaecf0;padding:14px 16px 24px;flex-shrink:0">
