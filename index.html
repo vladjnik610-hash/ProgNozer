@@ -5829,7 +5829,7 @@ async function mihalychRepairAll(carId, totalCost){
 .cv-sort-chip.active{background:#1a7de8;border-color:#1a7de8;color:#fff}
 
 /* Listings */
-.cv-list{flex:1;overflow-y:auto;padding:12px 16px 80px}
+.cv-list{flex:1;overflow-y:auto;padding:12px 16px 16px}
 .cv-ad-card{background:#fff;border-radius:16px;border:1.5px solid #eaecf0;margin-bottom:10px;overflow:hidden;cursor:pointer;transition:.15s}
 .cv-ad-card:active{transform:scale(.98)}
 .cv-ad-img{width:100%;height:160px;object-fit:cover;background:linear-gradient(135deg,#e8f0f9,#d0e4f7);display:flex;align-items:center;justify-content:center;font-size:48px}
@@ -5857,7 +5857,7 @@ async function mihalychRepairAll(carId, totalCost){
 .cv-empty svg{width:64px;height:64px;fill:#d8e4f0}
 
 /* Bottom tab bar */
-.cv-tab-bar{display:flex;background:#fff;border-top:1px solid #eaecf0;padding:6px 0 8px;flex-shrink:0;position:absolute;bottom:0;left:0;right:0}
+.cv-tab-bar{display:flex;background:#fff;border-top:1px solid #eaecf0;padding:6px 0 4px;flex-shrink:0}
 .cv-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px 0;font-size:10px;font-weight:700;color:#b0bdd0;transition:.1s}
 .cv-tab.active{color:#1a7de8}
 .cv-tab svg{width:22px;height:22px;fill:#c8d4e4}
@@ -5923,7 +5923,7 @@ async function mihalychRepairAll(carId, totalCost){
 .cv-create-no-car{text-align:center;padding:20px;color:#b0bdd0;font-size:14px;font-weight:600}
 
 /* ─── Chat tab ─── */
-.cv-chat-list{flex:1;overflow-y:auto;padding:12px 16px 80px}
+.cv-chat-list{flex:1;overflow-y:auto;padding:12px 16px 16px}
 .cv-chat-wrap{position:relative;margin-bottom:8px;overflow:hidden;border-radius:14px}
 .cv-chat-delete-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:#ff3b30;display:flex;align-items:center;justify-content:center;border-radius:14px;opacity:0;transition:opacity .2s}
 .cv-chat-delete-bg svg{width:22px;height:22px;fill:#fff}
@@ -5957,7 +5957,7 @@ async function mihalychRepairAll(carId, totalCost){
 .cv-delete-confirm-ok{flex:1;background:#ff3b30;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer}
 
 /* ─── Favorites tab ─── */
-.cv-fav-list{flex:1;overflow-y:auto;padding:12px 16px 80px}
+.cv-fav-list{flex:1;overflow-y:auto;padding:12px 16px 16px}
 .cv-fav-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:#c0cce0;font-size:15px;font-weight:600;text-align:center;gap:10px}
 .cv-fav-empty svg{width:56px;height:56px;fill:#d8e4f0}
 
@@ -5980,7 +5980,7 @@ async function mihalychRepairAll(carId, totalCost){
 .cv-filter-reset{width:100%;background:none;border:none;color:#1a7de8;font-size:15px;font-weight:700;padding:10px;cursor:pointer;margin-top:4px}
 
 /* ─── Profile tab ─── */
-.cv-profile-body{flex:1;overflow-y:auto;padding:20px 16px 80px}
+.cv-profile-body{flex:1;overflow-y:auto;padding:20px 16px 16px}
 .cv-profile-header{text-align:center;margin-bottom:24px}
 .cv-profile-ava{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;margin:0 auto 12px;box-shadow:0 8px 24px rgba(26,125,232,.3)}
 .cv-profile-name{font-size:20px;font-weight:900;color:#1a2a45}
@@ -6198,11 +6198,16 @@ async function mihalychRepairAll(carId, totalCost){
     </button>
   </div>
 
-  <!-- Back button (top left) — replaced with CarVito label -->
-  <div style="position:absolute;top:40px;left:0;z-index:40;pointer-events:none" id="cvBackWrap">
-    <button onclick="closeCarVito()" style="background:rgba(255,255,255,.9);border:none;border-radius:0 10px 10px 0;padding:8px 14px 8px 12px;font-size:14px;font-weight:700;color:#1a7de8;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(0,0,0,.1);pointer-events:all">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      CarVito
+  <!-- Android nav bar -->
+  <div style="display:flex;justify-content:space-around;align-items:center;padding:8px 0 12px;background:#fff;border-top:1px solid #eaecf0;flex-shrink:0">
+    <button onclick="closeCarVito()" style="background:none;border:none;padding:10px 24px;cursor:pointer;opacity:.7;display:flex;flex-direction:column;align-items:center;gap:3px">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="#1a2a45"><path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"/></svg>
+    </button>
+    <button onclick="closeCarVito()" style="background:none;border:none;padding:10px 24px;cursor:pointer;opacity:.7;display:flex;flex-direction:column;align-items:center;gap:3px">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="#1a2a45"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </button>
+    <button style="background:none;border:none;padding:10px 24px;cursor:pointer;opacity:.7">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="#1a2a45"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </button>
   </div>
 </div>
@@ -7320,17 +7325,104 @@ function botChatBuy(){
   if(!ad){ return; }
   const user=auth.currentUser;
   if(!user){ bankToast('Необходимо войти'); return; }
-  // Проверить что уже не взаимодействовал
   const completed=ad.completedUids||[];
   if(completed.includes(user.uid)){ addBotMessage('❌ Вы уже совершали сделку по этому объявлению.'); document.getElementById('botChatActions').innerHTML=''; return; }
-  // Показать заглушку
-  addUserMessage('Хочу купить машину за '+((ad.price||0).toLocaleString('ru-RU'))+'₽');
+  // Показать форму ввода суммы
+  const askPrice=ad.price||0;
+  document.getElementById('botChatActions').innerHTML=`
+    <div style="font-size:13px;color:#8a9ab8;margin-bottom:8px;text-align:center">Цена продавца: <b style="color:#1a7de8">${askPrice.toLocaleString('ru-RU')}₽</b></div>
+    <div style="font-size:12px;color:#8a9ab8;margin-bottom:6px">Ваше предложение (₽):</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input id="buyOfferInput" type="number" placeholder="${askPrice}" value="${askPrice}" style="flex:1;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:10px 12px;font-size:15px;font-weight:700;color:#1a2a45;outline:none;text-align:center">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="submitBuyOffer()" style="flex:1;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:13px;font-size:15px;font-weight:700;cursor:pointer">💰 Предложить</button>
+      <button onclick="resetBotActions()" style="background:#f0f4f9;color:#8a9ab8;border:none;border-radius:14px;padding:13px 16px;font-size:14px;font-weight:700;cursor:pointer">Назад</button>
+    </div>`;
+}
+
+function submitBuyOffer(){
+  const ad=currentBotAd;
+  if(!ad) return;
+  const offerVal=parseInt(document.getElementById('buyOfferInput').value)||0;
+  const askPrice=ad.price||0;
+  if(offerVal<=0){ bankToast('Введите сумму'); return; }
+  addUserMessage('Предлагаю купить за '+offerVal.toLocaleString('ru-RU')+'₽');
   document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px">⏳ Бот отвечает…</div>';
   const delay=getBotDelay();
   setTimeout(()=>{
-    addBotMessage('🚧 В разработке! Функция покупки скоро будет доступна.');
-    document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px;font-weight:700">Функция в разработке</div>';
+    const ratio=offerVal/askPrice;
+    if(ratio>=1){
+      addBotMessage('✅ Отлично! Принимаю ваше предложение — '+offerVal.toLocaleString('ru-RU')+'₽. Оформляем сделку!');
+      _completeBotPurchase(ad, offerVal);
+    } else if(ratio>=0.9){
+      addBotMessage('Хмм… '+offerVal.toLocaleString('ru-RU')+'₽ — немного маловато. Готов уступить до '+Math.round(askPrice*0.95).toLocaleString('ru-RU')+'₽. Согласны?');
+      _showCounterOfferBtns(Math.round(askPrice*0.95));
+    } else if(ratio>=0.75){
+      addBotMessage('Нет, это слишком мало. Моя минимальная цена — '+Math.round(askPrice*0.9).toLocaleString('ru-RU')+'₽. Предложите что-то разумное.');
+      resetBotActions();
+    } else {
+      addBotMessage('❌ Это несерьёзно. За такую цену не продаю.');
+      resetBotActions();
+    }
   }, delay);
+}
+
+function _showCounterOfferBtns(counterPrice){
+  document.getElementById('botChatActions').innerHTML=`
+    <div style="font-size:13px;color:#8a9ab8;margin-bottom:8px;text-align:center">Бот предлагает: <b style="color:#1a7de8">${counterPrice.toLocaleString('ru-RU')}₽</b></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="_completeBotPurchase(currentBotAd,${counterPrice})" style="flex:1;background:linear-gradient(135deg,#34c759,#1ea84a);color:#fff;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">✅ Согласен</button>
+      <button onclick="botChatBuy()" style="flex:1;background:#f0f4f9;color:#1a2a45;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">💬 Торговаться</button>
+      <button onclick="resetBotActions()" style="background:#fff0f0;color:#ff3b30;border:none;border-radius:14px;padding:13px 14px;font-size:14px;font-weight:700;cursor:pointer">✕</button>
+    </div>`;
+}
+
+async function _completeBotPurchase(ad, finalPrice){
+  const user=auth.currentUser;
+  if(!user) return;
+  document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px">⏳ Оформляем…</div>';
+  try{
+    // Списываем деньги
+    const bSnap=await db.ref('bankData/'+user.uid+'/balance').once('value');
+    const bal=bSnap.val()||0;
+    if(bal<finalPrice){
+      addBotMessage('❌ Недостаточно средств на счёте. Нужно '+finalPrice.toLocaleString('ru-RU')+'₽, у вас '+bal.toLocaleString('ru-RU')+'₽.');
+      resetBotActions(); return;
+    }
+    await db.ref('bankData/'+user.uid+'/balance').set(bal-finalPrice);
+    bankBalance=bal-finalPrice;
+    addTx('Покупка: '+ad.carName, -finalPrice);
+    await saveBankData();
+    // Добавляем машину пользователю
+    const carId='cv_'+Date.now();
+    const carData={
+      name:ad.carName, buyPrice:finalPrice, dealerPrice:ad.dealerPrice||finalPrice,
+      marketPrice:ad.marketPrice||finalPrice, mileage:ad.mileage||0,
+      location:'yard', rustPct:0, condition:100, lastOilChangeMileage:0,
+      photo:ad.carImg||null, source:'carvito', purchasedAt:Date.now()
+    };
+    await db.ref('userCars/'+user.uid+'/'+carId).set(carData);
+    // Отмечаем сделку
+    await db.ref('carvitoAds/'+ad.id+'/completedUids').transaction(arr=>[...(arr||[]),user.uid]);
+    await db.ref('carvitoAds/'+ad.id+'/remainingUpdates').transaction(n=>Math.max(0,(n||1)-1));
+    addBotMessage('🎉 Сделка завершена! '+ad.carName+' теперь ваша. −'+finalPrice.toLocaleString('ru-RU')+'₽ со счёта.');
+    document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:12px;font-size:14px;color:#34c759;font-weight:800">✅ Сделка закрыта</div>';
+    cvSetDealStatus(ad.id,'success');
+    renderBankHome();
+  }catch(e){
+    addBotMessage('❌ Ошибка оформления: '+e.message);
+    resetBotActions();
+  }
+}
+
+function resetBotActions(){
+  document.getElementById('botChatActions').innerHTML=`
+    <div style="font-size:13px;color:#8a9ab8;margin-bottom:10px;text-align:center">Выберите действие:</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="botChatTrade()" style="background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer">🔄 Предложить обмен</button>
+      <button onclick="botChatBuy()" style="background:#1a2a45;color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer">💰 Купить машину</button>
+    </div>`;
 }
 
 // ── Логика: Предложить обмен ─────────────────────────────────
