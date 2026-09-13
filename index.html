@@ -5924,16 +5924,37 @@ async function mihalychRepairAll(carId, totalCost){
 
 /* ─── Chat tab ─── */
 .cv-chat-list{flex:1;overflow-y:auto;padding:12px 16px 80px}
-.cv-chat-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:8px;cursor:pointer;border:1.5px solid #eaecf0}
+.cv-chat-wrap{position:relative;margin-bottom:8px;overflow:hidden;border-radius:14px}
+.cv-chat-delete-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:#ff3b30;display:flex;align-items:center;justify-content:center;border-radius:14px;opacity:0;transition:opacity .2s}
+.cv-chat-delete-bg svg{width:22px;height:22px;fill:#fff}
+.cv-chat-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:12px 14px;cursor:pointer;border:1.5px solid #eaecf0;position:relative;transition:transform .2s;z-index:1}
 .cv-chat-item:active{transform:scale(.98)}
-.cv-chat-ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;position:relative}
+.cv-chat-ava-wrap{position:relative;flex-shrink:0}
+.cv-chat-ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;position:relative}
 .cv-chat-ava.bot{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
 .cv-chat-unread{position:absolute;top:-3px;right:-3px;width:18px;height:18px;border-radius:50%;background:#ff3b30;font-size:10px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+/* Deal status dot */
+.cv-deal-dot{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;flex-shrink:0}
+.cv-deal-dot.ongoing{background:#34c759}
+.cv-deal-dot.success{background:#ff9500}
+.cv-deal-dot.failed{background:#ff3b30}
 .cv-chat-info{flex:1;min-width:0}
 .cv-chat-name{font-size:15px;font-weight:800;color:#1a2a45}
 .cv-chat-last{font-size:13px;color:#8a9ab8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cv-chat-time{font-size:11px;color:#b0bdd0;font-weight:600;margin-left:auto;align-self:flex-start;flex-shrink:0}
+.cv-chat-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.cv-chat-time{font-size:11px;color:#b0bdd0;font-weight:600}
+.cv-chat-trash{background:none;border:none;padding:4px;cursor:pointer;color:#ff3b30;opacity:.65;font-size:16px;line-height:1}
+.cv-chat-trash:hover{opacity:1}
 .cv-chat-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:#c0cce0;font-size:15px;font-weight:600;text-align:center;gap:10px}
+/* Delete confirm modal */
+.cv-delete-confirm{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.cv-delete-confirm.visible{display:flex}
+.cv-delete-confirm-box{width:100%;max-width:460px;background:#fff;border-radius:22px 22px 0 0;padding:24px 20px 36px;text-align:center}
+.cv-delete-confirm-title{font-size:18px;font-weight:900;color:#1a2a45;margin-bottom:6px}
+.cv-delete-confirm-sub{font-size:14px;color:#8a9ab8;margin-bottom:20px}
+.cv-delete-confirm-btns{display:flex;gap:10px}
+.cv-delete-confirm-cancel{flex:1;background:#f0f4f9;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#6a85a8;cursor:pointer}
+.cv-delete-confirm-ok{flex:1;background:#ff3b30;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer}
 
 /* ─── Favorites tab ─── */
 .cv-fav-list{flex:1;overflow-y:auto;padding:12px 16px 80px}
@@ -5986,7 +6007,10 @@ async function mihalychRepairAll(carId, totalCost){
     <span class="cv-status-time" id="cvStatusTime">--:--</span>
     <div class="cv-status-icons">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="#1a2a45"><rect x="1" y="14" width="3" height="6" rx="1"/><rect x="6" y="10" width="3" height="10" rx="1"/><rect x="11" y="6" width="3" height="14" rx="1"/><rect x="16" y="2" width="3" height="18" rx="1" opacity=".35"/></svg>
-      <svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg>
+      <div style="display:flex;align-items:center;gap:3px;font-size:12px;font-weight:700;color:#1a2a45">
+        <svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" id="cvBattFill" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg>
+        <span class="battery-pct" id="cvBattPct">78%</span>
+      </div>
     </div>
   </div>
 
@@ -6174,11 +6198,11 @@ async function mihalychRepairAll(carId, totalCost){
     </button>
   </div>
 
-  <!-- Back button (top left) -->
+  <!-- Back button (top left) — replaced with CarVito label -->
   <div style="position:absolute;top:40px;left:0;z-index:40;pointer-events:none" id="cvBackWrap">
     <button onclick="closeCarVito()" style="background:rgba(255,255,255,.9);border:none;border-radius:0 10px 10px 0;padding:8px 14px 8px 12px;font-size:14px;font-weight:700;color:#1a7de8;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(0,0,0,.1);pointer-events:all">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Назад
+      CarVito
     </button>
   </div>
 </div>
@@ -6554,10 +6578,17 @@ function cvContactSeller(){
   // Add to chats
   const chatId='chat_'+ad.id;
   if(!cvChats[chatId]){
-    cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType,adName:ad.carName,lastMsg:'Здравствуйте, интересует авто',time:Date.now(),unread:0};
+    cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType||'player',adName:ad.carName,lastMsg:'Здравствуйте, интересует авто',time:Date.now(),unread:0,dealStatus:'ongoing'};
+    // Save to Firebase
+    const user=auth.currentUser;
+    if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).set(cvChats[chatId]).catch(()=>{});
   }
   cvSwitchTab('chat');
   cvRenderChats();
+  // If bot — open bot chat immediately
+  if(ad.sellerType==='bot'){
+    setTimeout(()=>cvOpenChat(chatId, cvChats[chatId]), 200);
+  }
 }
 
 // ── Chats ──────────────────────────────────────────────
@@ -6570,10 +6601,13 @@ function cvLoadChats(){
   }).catch(()=>{});
 }
 
+let _cvDeleteChatId = null;
+
 function cvRenderChats(){
   const list=document.getElementById('cvChatList');
   const empty=document.getElementById('cvChatEmpty');
-  [...list.querySelectorAll('.cv-chat-item')].forEach(e=>e.remove());
+  // Remove old items (wrapped divs)
+  [...list.querySelectorAll('.cv-chat-wrap')].forEach(e=>e.remove());
   const chats=Object.entries(cvChats);
   if(!chats.length){ empty.style.display='flex'; return; }
   empty.style.display='none';
@@ -6581,23 +6615,111 @@ function cvRenderChats(){
   chats.forEach(([id,chat])=>{
     const initials=(chat.name||'?').charAt(0).toUpperCase();
     const isBot=chat.type==='bot';
+    // Deal status dot: 'ongoing'=green, 'success'=yellow, 'failed'=red
+    const dealStatus = chat.dealStatus || 'ongoing';
+    const dealDotClass = dealStatus==='failed'?'failed':dealStatus==='success'?'success':'ongoing';
+
+    const wrap = document.createElement('div');
+    wrap.className='cv-chat-wrap';
+
+    // Red delete background (shown on swipe)
+    const delBg = document.createElement('div');
+    delBg.className='cv-chat-delete-bg';
+    delBg.innerHTML=`<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>`;
+    wrap.appendChild(delBg);
+
     const item=document.createElement('div');
     item.className='cv-chat-item';
     item.innerHTML=`
-      <div class="cv-chat-ava${isBot?' bot':''}">${initials}${chat.unread?`<div class="cv-chat-unread">${chat.unread}</div>`:''}</div>
+      <div class="cv-chat-ava-wrap">
+        <div class="cv-chat-ava${isBot?' bot':''}">${initials}${chat.unread?`<div class="cv-chat-unread">${chat.unread}</div>`:''}</div>
+        <div class="cv-deal-dot ${dealDotClass}" title="${dealStatus==='failed'?'Сделка сорвалась':dealStatus==='success'?'Сделка удалась':'Сделка идёт'}"></div>
+      </div>
       <div class="cv-chat-info">
         <div class="cv-chat-name">${chat.name||'Пользователь'} ${isBot?'🤖':''}</div>
         <div class="cv-chat-last">${chat.adName?`[${chat.adName}] `:''} ${chat.lastMsg||'Написать…'}</div>
       </div>
-      <div class="cv-chat-time">${cvTimeAgo(chat.time)}</div>`;
+      <div class="cv-chat-right">
+        <div class="cv-chat-time">${cvTimeAgo(chat.time)}</div>
+        <button class="cv-chat-trash" onclick="event.stopPropagation();cvAskDeleteChat('${id}','${(chat.name||'чат').replace(/'/g,"\\'")}')">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </div>`;
     item.onclick=()=>cvOpenChat(id,chat);
-    list.insertBefore(item, empty);
+    wrap.appendChild(item);
+
+    // Touch swipe-left to delete
+    let touchStartX=0, touchDeltaX=0;
+    item.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;},{ passive:true });
+    item.addEventListener('touchmove',e=>{
+      touchDeltaX=e.touches[0].clientX-touchStartX;
+      if(touchDeltaX<-10){
+        const shift=Math.min(80,Math.abs(touchDeltaX));
+        item.style.transform=`translateX(-${shift}px)`;
+        delBg.style.opacity=String(shift/80);
+      }
+    },{ passive:true });
+    item.addEventListener('touchend',()=>{
+      if(touchDeltaX<-60){
+        // confirmed swipe — ask to delete
+        item.style.transform='';
+        delBg.style.opacity='0';
+        cvAskDeleteChat(id, chat.name||'чат');
+      } else {
+        item.style.transform='';
+        delBg.style.opacity='0';
+      }
+      touchDeltaX=0;
+    });
+
+    list.insertBefore(wrap, empty);
   });
 }
 
+function cvAskDeleteChat(id, name){
+  _cvDeleteChatId = id;
+  document.getElementById('cvDeleteConfirmSub').textContent=`Удалить чат с «${name}»? Это нельзя отменить.`;
+  document.getElementById('cvDeleteConfirm').classList.add('visible');
+}
+
+function cvCancelDeleteChat(){
+  _cvDeleteChatId=null;
+  document.getElementById('cvDeleteConfirm').classList.remove('visible');
+}
+
+function cvConfirmDeleteChat(){
+  const id=_cvDeleteChatId;
+  document.getElementById('cvDeleteConfirm').classList.remove('visible');
+  _cvDeleteChatId=null;
+  if(!id) return;
+  delete cvChats[id];
+  const user=auth.currentUser;
+  if(user) db.ref('carvitoChats/'+user.uid+'/'+id).remove().catch(()=>{});
+  cvRenderChats();
+  bankToast('🗑 Чат удалён');
+}
+
 function cvOpenChat(id, chat){
-  // Simple placeholder — full chat can be added later
-  alert(`Чат с ${chat.name}\n\nОбъявление: ${chat.adName||'—'}\n\n(Полный чат — в следующем обновлении!)`);
+  if(chat.type==='bot'){
+    // Open bot chat overlay if available
+    const botAd = Object.entries(typeof botManagerData==='object'?botManagerData:{})
+      .find(([,ad])=>('chat_'+ad.id)===id||id.includes(ad.id));
+    if(botAd){
+      openBotChat(botAd[0], botAd[1]);
+    } else {
+      // Generic bot chat via overlay
+      const overlay=document.getElementById('botChatOverlay');
+      if(overlay){
+        document.getElementById('botChatName').textContent=chat.name||'Бот';
+        document.getElementById('botChatMessages').innerHTML='';
+        currentBotAd={sellerName:chat.name,carName:chat.adName,sellerType:'bot'};
+        overlay.style.display='flex';
+        botAddMsg(chat.lastMsg||'Здравствуйте! Чем могу помочь?',false);
+      }
+    }
+  } else {
+    alert(`Чат с ${chat.name}\n\nОбъявление: ${chat.adName||'—'}\n\n(Полный чат с игроками — в следующем обновлении!)`);
+  }
 }
 
 // ── Profile ────────────────────────────────────────────
@@ -7055,13 +7177,16 @@ async function saveBotAd(){
 }
 
 // ── Открыть чат с ботом ──────────────────────────────────────
-function openBotChat(ad){
+function openBotChat(adIdOrAd, adData){
+  // Support both (ad object) and (id, data) call forms
+  let ad;
+  if(typeof adIdOrAd==='object'){ ad=adIdOrAd; } else { ad={id:adIdOrAd,...(adData||{})}; }
   currentBotAd=ad;
   document.getElementById('botChatName').textContent=ad.sellerName||'Бот';
   const messagesEl=document.getElementById('botChatMessages');
   messagesEl.innerHTML='';
   // Первое сообщение от бота
-  addBotMessage(`Здравствуйте! Я продаю ${ad.carName}. Чем могу помочь?`);
+  addBotMessage(`Здравствуйте! Я продаю ${ad.carName||'авто'}. Чем могу помочь?`);
   document.getElementById('botChatOverlay').style.display='flex';
   // Сбросим состояние действий
   document.getElementById('botChatActions').innerHTML=`
@@ -7070,12 +7195,31 @@ function openBotChat(ad){
       <button onclick="botChatTrade()" style="background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer">🔄 Предложить обмен</button>
       <button onclick="botChatBuy()" style="background:#1a2a45;color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer">💰 Купить машину</button>
     </div>`;
+
+  // Save to cvChats so it appears in chat tab
+  const chatId='chat_'+(ad.id||Date.now());
+  if(!cvChats[chatId]){
+    cvChats[chatId]={name:ad.sellerName||'Бот',type:'bot',adName:ad.carName,lastMsg:'Здравствуйте! Я продаю '+ad.carName+'. Чем могу помочь?',time:Date.now(),unread:0,dealStatus:'ongoing'};
+    const user=auth.currentUser;
+    if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).set(cvChats[chatId]).catch(()=>{});
+  }
 }
 
 function closeBotChat(){
   document.getElementById('botChatOverlay').style.display='none';
 }
 
+// Helper to update deal status for a bot chat
+function cvSetDealStatus(adId, status){
+  const chatId='chat_'+adId;
+  if(cvChats[chatId]){
+    cvChats[chatId].dealStatus=status;
+    const user=auth.currentUser;
+    if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId+'/dealStatus').set(status).catch(()=>{});
+  }
+}
+
+function botAddMsg(text,isUser){if(isUser)addUserMessage(text);else addBotMessage(text);}
 function addBotMessage(text){
   const el=document.getElementById('botChatMessages');
   const msg=document.createElement('div');
@@ -7232,7 +7376,9 @@ window.cvContactSeller = function(){
     document.getElementById('cvDetailView').classList.remove('visible');
     const chatId='chat_'+ad.id;
     if(!cvChats[chatId]){
-      cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType,adName:ad.carName,lastMsg:'Здравствуйте, интересует авто',time:Date.now(),unread:0};
+      cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType||'player',adName:ad.carName,lastMsg:'Здравствуйте, интересует авто',time:Date.now(),unread:0,dealStatus:'ongoing'};
+      const user=auth.currentUser;
+      if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).set(cvChats[chatId]).catch(()=>{});
     }
     cvSwitchTab('chat');
     cvRenderChats();
@@ -7405,6 +7551,18 @@ window.cvOpenDetail = function(ad){
 
     <button onclick="confirmExchangeOffer()" style="width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;margin-top:4px">✅ Подтвердить предложение</button>
     <button onclick="document.getElementById('exchangeOverlay').style.display='none'" style="width:100%;background:none;border:none;color:#8a9ab8;font-size:14px;font-weight:700;padding:10px;cursor:pointer;margin-top:6px">Отмена</button>
+  </div>
+</div>
+
+<!-- CV CHAT DELETE CONFIRM -->
+<div class="cv-delete-confirm" id="cvDeleteConfirm">
+  <div class="cv-delete-confirm-box">
+    <div class="cv-delete-confirm-title">🗑 Удалить чат?</div>
+    <div class="cv-delete-confirm-sub" id="cvDeleteConfirmSub">Это действие нельзя отменить.</div>
+    <div class="cv-delete-confirm-btns">
+      <button class="cv-delete-confirm-cancel" onclick="cvCancelDeleteChat()">Отмена</button>
+      <button class="cv-delete-confirm-ok" onclick="cvConfirmDeleteChat()">Удалить</button>
+    </div>
   </div>
 </div>
 
