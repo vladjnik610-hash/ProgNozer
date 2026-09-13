@@ -6230,6 +6230,9 @@ async function mihalychRepairAll(carId, totalCost){
         <button onclick="cvCreateBack()" style="flex:1;background:#f0f4f9;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#6a85a8;cursor:pointer">← Назад</button>
         <button onclick="cvSubmitAd()" style="flex:2;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(26,125,232,.25)">Опубликовать 🚀</button>
       </div>
+      <button onclick="openBotManager()" style="width:100%;margin-top:10px;background:#1a2a45;color:#fff;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        🤖 Создать бота (Админ)
+      </button>
     </div>
   </div>
 </div>
@@ -6716,10 +6719,15 @@ function cvCreateNextStep(){
   if(!cvSelectedCarId){ bankToast('Выберите автомобиль'); return; }
   document.getElementById('cvCreateStep1').style.display='none';
   document.getElementById('cvCreateStep2').style.display='block';
-  // Show recommended price
+  // Show recommended price — use marketPrice (from dealer), fallback to buyPrice
   const car=cvSelectedCarData;
-  const mp=car&&(car.dealerPrice||car.buyPrice||0);
-  if(mp) document.getElementById('cvCreatePriceHint').textContent='Рын.: '+mp.toLocaleString('ru-RU')+'₽';
+  const mp=car&&(car.marketPrice||car.dealerPrice||car.buyPrice||0);
+  if(mp){
+    document.getElementById('cvCreatePriceHint').textContent='Рын.: '+mp.toLocaleString('ru-RU')+'₽';
+    // Pre-fill price field with market price
+    const priceInp=document.getElementById('cvCreatePrice');
+    if(!priceInp.value) priceInp.value=mp;
+  }
 }
 
 function cvCreateBack(){
@@ -6789,7 +6797,7 @@ async function cvSubmitAd(){
     sellerName,
     sellerType:'player',
     city,
-    marketPrice:car.dealerPrice||car.buyPrice||0,
+    marketPrice:car.marketPrice||car.dealerPrice||car.buyPrice||0,
     dealerPrice:car.dealerPrice||0,
     createdAt:Date.now()
   };
@@ -6831,7 +6839,574 @@ const _cvClockInterval=setInterval(()=>{
   const el=document.getElementById('cvStatusTime');
   if(el) el.textContent=hh+':'+mm;
 },1000);
+
+// ══════════════════════════════════════════════════════════════
+// ██████╗  ██████╗ ████████╗    ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗
+// ██╔══██╗██╔═══██╗╚══██╔══╝    ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║
+// ██████╔╝██║   ██║   ██║       ███████╗ ╚████╔╝ ███████╗   ██║   █████╗  ██╔████╔██║
+// ██╔══██╗██║   ██║   ██║       ╚════██║  ╚██╔╝  ╚════██║   ██║   ██╔══╝  ██║╚██╔╝██║
+// ██████╔╝╚██████╔╝   ██║       ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║
+// ══════════════════════════════════════════════════════════════
+// СИСТЕМА БОТОВ CARVITO
+
+let botManagerData = {};       // все бот-объявления
+let botSelectedCar = null;     // выбранная машина для создания бота
+let botSelectedCarData = null;
+let botTypes = { sell: true, trade: false };
+let currentBotAd = null;       // текущее объявление бота (для чата)
+let exchangeMyCarId = null;
+let exchangeMyCarData = null;
+let exchangePayer = 'bot';     // 'you' or 'bot'
+
+// ── Открыть менеджер ботов (требует пароль) ──────────────────
+function openBotManager(){
+  // Запросить пароль через стандартный механизм
+  const overlay = document.getElementById('adminPassOverlay');
+  const input = document.getElementById('adminPassInput');
+  const err = document.getElementById('adminPassErr');
+  if(overlay){ err.textContent=''; input.value=''; overlay.style.cssText='display:flex;'; overlay.classList.add('visible'); }
+  // Переопределим действие — после ввода пароля открыть менеджер ботов
+  window._pendingAdminAction = 'botManager';
+}
+
+// Хук на checkAdminPassword — после успешной проверки пароля
+const _origCheckAdmin = window.checkAdminPassword;
+window.checkAdminPassword = async function(){
+  const val = document.getElementById('adminPassInput').value.trim();
+  const errEl = document.getElementById('adminPassErr');
+  if(!val){ errEl.textContent='❌ Введите пароль'; return; }
+  errEl.textContent='⏳ Проверка…';
+  let storedHash='';
+  try{ const snap=await db.ref('adminSettings/passwordHash').once('value'); storedHash=snap.val()||''; }catch(e){ errEl.textContent='❌ Ошибка сети'; return; }
+  const inputHash=await sha256(val);
+  const match=(inputHash===storedHash)||(val===storedHash);
+  if(!match){
+    errEl.textContent='❌ Неверный пароль';
+    document.getElementById('adminPassInput').classList.add('error');
+    setTimeout(()=>document.getElementById('adminPassInput').classList.remove('error'),400);
+    return;
+  }
+  closeAdminModal();
+  const action = window._pendingAdminAction || 'admin';
+  window._pendingAdminAction = null;
+  if(action==='botManager'){
+    await showBotManager();
+  } else {
+    // оригинальная логика
+    if(!document.getElementById('settingsScreen').classList.contains('visible')) await openSettings();
+    const user=auth.currentUser;
+    if(user){
+      document.getElementById('adminEmail').textContent=user.email||'—';
+      document.getElementById('adminUID').textContent=user.uid;
+      document.getElementById('adminName').textContent=user.displayName||'—';
+      document.getElementById('adminCity').textContent=document.getElementById('currentCity').textContent||'—';
+      let appId=document.getElementById('idSubValue').textContent;
+      if(!appId||appId==='—'){ appId=await getOrCreateUserId(user.uid); document.getElementById('idSubValue').textContent=appId; document.getElementById('settingsIdDisplay').textContent=appId; }
+      document.getElementById('adminAppId').textContent=appId;
+      document.getElementById('adminPlatform').textContent=(navigator.userAgent.includes('iPhone')||navigator.userAgent.includes('Android'))?'📱 Мобильный':'💻 Компьютер';
+    }
+    openSettingsSub('adminSub');
+  }
+};
+
+async function showBotManager(){
+  const overlay = document.getElementById('botManagerOverlay');
+  overlay.style.display='flex';
+  const listEl = document.getElementById('botAdsList');
+  listEl.innerHTML='<div style="text-align:center;padding:16px;color:#b0bdd0;font-size:14px">Загрузка…</div>';
+  try{
+    const snap = await db.ref('carvitoAds').orderByChild('sellerType').equalTo('bot').once('value');
+    const raw = snap.val()||{};
+    botManagerData = raw;
+    if(!Object.keys(raw).length){
+      listEl.innerHTML='<div style="text-align:center;padding:20px;color:#b0bdd0;font-size:14px">Нет активных объявлений ботов</div>';
+      return;
+    }
+    listEl.innerHTML = Object.entries(raw).map(([id,ad])=>`
+      <div style="background:#f8fafc;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+        <div style="font-size:28px">${ad.carImg?`<img src="${ad.carImg}" style="width:44px;height:44px;object-fit:cover;border-radius:8px">`:  '🚗'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:800;color:#1a2a45">${ad.carName||'Авто'}</div>
+          <div style="font-size:12px;color:#8a9ab8">${(ad.price||(0)).toLocaleString('ru-RU')}₽ · ${ad.sellerName||'Бот'} · ${ad.remainingUpdates||0}/${ad.totalUpdates||0} сделок</div>
+        </div>
+        <button onclick="deleteBotAd('${id}')" style="background:#fff0f0;color:#ff3b30;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">Удалить</button>
+      </div>`).join('');
+  }catch(e){
+    listEl.innerHTML='<div style="text-align:center;padding:16px;color:#ff3b30;font-size:13px">Ошибка загрузки</div>';
+  }
+}
+
+async function deleteBotAd(id){
+  if(!confirm('Удалить объявление бота?')) return;
+  await db.ref('carvitoAds/'+id).remove();
+  bankToast('✅ Бот удалён');
+  showBotManager();
+}
+
+// ── Открыть форму создания бот-объявления ────────────────────
+async function openCreateBotAd(){
+  document.getElementById('createBotAdOverlay').style.display='flex';
+  botSelectedCar=null; botSelectedCarData=null;
+  botTypes={sell:true,trade:false};
+  ['botAdPrice','botAdMileage','botAdRepair','botAdUpdates','botAdName','botAdDesc'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  document.getElementById('botCreateStatus').textContent='';
+  document.getElementById('botAdPriceHint').textContent='';
+  // Перерисовать кнопки типа
+  document.querySelectorAll('#botTypeRow button').forEach(b=>{
+    const isActive = b.dataset.type==='sell';
+    b.style.borderColor=isActive?'#1a7de8':'#e2edf9';
+    b.style.background=isActive?'#e8f0ff':'#f5f7fa';
+    b.style.color=isActive?'#1a7de8':'#6a85a8';
+  });
+  // Загрузить список машин из автосалона
+  const pickEl=document.getElementById('botCarPickList');
+  pickEl.innerHTML='<div style="padding:12px;text-align:center;color:#b0bdd0;font-size:13px">Загрузка…</div>';
+  try{
+    const snap=await db.ref('dealerCars').once('value');
+    const raw=snap.val()||{};
+    const cars=Object.entries(raw);
+    if(!cars.length){ pickEl.innerHTML='<div style="padding:12px;text-align:center;color:#b0bdd0;font-size:13px">Нет машин в автосалоне</div>'; return; }
+    pickEl.innerHTML=cars.map(([id,car])=>`
+      <div class="bot-car-item" data-carid="${id}" onclick="botPickCar('${id}',this)" style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid #f0f4f9;transition:.12s">
+        <div style="font-size:22px">${car.photos&&car.photos[0]?`<img src="${car.photos[0]}" style="width:40px;height:36px;object-fit:cover;border-radius:8px">`:  '🚗'}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:800;color:#1a2a45">${car.name||'Авто'}</div>
+          <div style="font-size:12px;color:#8a9ab8">Рын.: ${(car.marketPrice||car.price||(0)).toLocaleString('ru-RU')}₽</div>
+        </div>
+      </div>`).join('');
+  }catch(e){ pickEl.innerHTML='<div style="padding:12px;text-align:center;color:#ff3b30;font-size:13px">Ошибка загрузки</div>'; }
+}
+
+function botPickCar(id, el){
+  document.querySelectorAll('.bot-car-item').forEach(e=>{ e.style.background=''; });
+  el.style.background='#e8f4ff';
+  botSelectedCar=id;
+  // Найдём данные — загружаем свежо
+  db.ref('dealerCars/'+id).once('value').then(snap=>{
+    botSelectedCarData=snap.val()||{};
+    const mp=botSelectedCarData.marketPrice||botSelectedCarData.price||0;
+    document.getElementById('botAdPriceHint').textContent=mp?'Рыночная цена: '+mp.toLocaleString('ru-RU')+'₽':'';
+    const priceEl=document.getElementById('botAdPrice');
+    if(!priceEl.value && mp) priceEl.value=mp;
+  });
+}
+
+function botToggleType(btn){
+  const type=btn.dataset.type;
+  const isNowActive=btn.style.borderColor==='rgb(26, 125, 232)';
+  document.querySelectorAll('#botTypeRow button').forEach(b=>{
+    b.style.borderColor='#e2edf9'; b.style.background='#f5f7fa'; b.style.color='#6a85a8';
+  });
+  if(!isNowActive){
+    btn.style.borderColor='#1a7de8'; btn.style.background='#e8f0ff'; btn.style.color='#1a7de8';
+    botTypes={sell:false,trade:false};
+    botTypes[type]=true;
+  } else {
+    botTypes={sell:true,trade:false};
+    document.querySelectorAll('#botTypeRow button').forEach(b=>{ if(b.dataset.type==='sell'){ b.style.borderColor='#1a7de8'; b.style.background='#e8f0ff'; b.style.color='#1a7de8'; } });
+  }
+}
+
+async function saveBotAd(){
+  if(!botSelectedCar||!botSelectedCarData){ document.getElementById('botCreateStatus').textContent='❌ Выберите машину'; return; }
+  const price=parseInt(document.getElementById('botAdPrice').value)||0;
+  const mileage=parseInt(document.getElementById('botAdMileage').value)||0;
+  const repairCost=parseInt(document.getElementById('botAdRepair').value)||0;
+  const totalUpdates=parseInt(document.getElementById('botAdUpdates').value)||1;
+  const botName=document.getElementById('botAdName').value.trim()||'Бот';
+  const desc=document.getElementById('botAdDesc').value.trim();
+  const city=document.getElementById('botAdCity').value;
+  if(!price){ document.getElementById('botCreateStatus').textContent='❌ Укажите цену'; return; }
+  if(!totalUpdates||totalUpdates<1){ document.getElementById('botCreateStatus').textContent='❌ Укажите количество сделок'; return; }
+  const types=Object.entries(botTypes).filter(([,v])=>v).map(([k])=>k);
+  const car=botSelectedCarData;
+  const adId='bot_ad_'+Date.now();
+  const ad={
+    id:adId, carName:car.name||'Авто',
+    carImg:(car.photos&&car.photos[0])||null,
+    mileage, price,
+    marketPrice:car.marketPrice||car.price||price,
+    dealerPrice:car.price||0,
+    repairCost, // скрытое поле
+    types, description:desc,
+    sellerUid:'bot_'+adId,
+    sellerName:botName,
+    sellerType:'bot',
+    city,
+    totalUpdates, remainingUpdates:totalUpdates,
+    activeDeals:{}, // uid -> deal info
+    completedUids:[], // кто уже завершил сделку
+    createdAt:Date.now()
+  };
+  document.getElementById('botCreateStatus').textContent='⏳ Сохранение…';
+  try{
+    await db.ref('carvitoAds/'+adId).set(ad);
+    document.getElementById('botCreateStatus').textContent='✅ Бот создан!';
+    document.getElementById('botCreateStatus').style.color='#34c759';
+    setTimeout(()=>{
+      document.getElementById('createBotAdOverlay').style.display='none';
+      showBotManager();
+      cvLoadAds();
+    }, 1200);
+  }catch(e){
+    document.getElementById('botCreateStatus').textContent='❌ Ошибка: '+e.message;
+    document.getElementById('botCreateStatus').style.color='#ff3b30';
+  }
+}
+
+// ── Открыть чат с ботом ──────────────────────────────────────
+function openBotChat(ad){
+  currentBotAd=ad;
+  document.getElementById('botChatName').textContent=ad.sellerName||'Бот';
+  const messagesEl=document.getElementById('botChatMessages');
+  messagesEl.innerHTML='';
+  // Первое сообщение от бота
+  addBotMessage(`Здравствуйте! Я продаю ${ad.carName}. Чем могу помочь?`);
+  document.getElementById('botChatOverlay').style.display='flex';
+  // Сбросим состояние действий
+  document.getElementById('botChatActions').innerHTML=`
+    <div style="font-size:13px;color:#8a9ab8;margin-bottom:10px;text-align:center">Выберите действие:</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="botChatTrade()" style="background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer">🔄 Предложить обмен</button>
+      <button onclick="botChatBuy()" style="background:#1a2a45;color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer">💰 Купить машину</button>
+    </div>`;
+}
+
+function closeBotChat(){
+  document.getElementById('botChatOverlay').style.display='none';
+}
+
+function addBotMessage(text){
+  const el=document.getElementById('botChatMessages');
+  const msg=document.createElement('div');
+  msg.style.cssText='align-self:flex-start;max-width:80%;background:#fff;border-radius:0 16px 16px 16px;padding:10px 14px;font-size:14px;color:#1a2a45;box-shadow:0 1px 4px rgba(0,0,0,.08)';
+  msg.textContent=text;
+  el.appendChild(msg);
+  el.scrollTop=el.scrollHeight;
+}
+
+function addUserMessage(text){
+  const el=document.getElementById('botChatMessages');
+  const msg=document.createElement('div');
+  msg.style.cssText='align-self:flex-end;max-width:80%;background:linear-gradient(135deg,#1a7de8,#4c9fff);border-radius:16px 16px 0 16px;padding:10px 14px;font-size:14px;color:#fff;box-shadow:0 1px 4px rgba(26,125,232,.3)';
+  msg.textContent=text;
+  el.appendChild(msg);
+  el.scrollTop=el.scrollHeight;
+}
+
+// ── Логика: Купить машину ────────────────────────────────────
+function botChatBuy(){
+  const ad=currentBotAd;
+  if(!ad){ return; }
+  const user=auth.currentUser;
+  if(!user){ bankToast('Необходимо войти'); return; }
+  // Проверить что уже не взаимодействовал
+  const completed=ad.completedUids||[];
+  if(completed.includes(user.uid)){ addBotMessage('❌ Вы уже совершали сделку по этому объявлению.'); document.getElementById('botChatActions').innerHTML=''; return; }
+  // Показать заглушку
+  addUserMessage('Хочу купить машину за '+((ad.price||0).toLocaleString('ru-RU'))+'₽');
+  document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px">⏳ Бот отвечает…</div>';
+  const delay=getBotDelay();
+  setTimeout(()=>{
+    addBotMessage('🚧 В разработке! Функция покупки скоро будет доступна.');
+    document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px;font-weight:700">Функция в разработке</div>';
+  }, delay);
+}
+
+// ── Логика: Предложить обмен ─────────────────────────────────
+async function botChatTrade(){
+  const ad=currentBotAd;
+  if(!ad){ return; }
+  const user=auth.currentUser;
+  if(!user){ bankToast('Необходимо войти'); return; }
+  const completed=ad.completedUids||[];
+  if(completed.includes(user.uid)){ addBotMessage('❌ Вы уже совершали сделку по этому объявлению.'); document.getElementById('botChatActions').innerHTML=''; return; }
+  // Загрузить машины пользователя
+  exchangeMyCarId=null; exchangeMyCarData=null;
+  const pickEl=document.getElementById('exchangeMyCarList');
+  pickEl.innerHTML='<div style="padding:12px;text-align:center;color:#b0bdd0;font-size:13px">Загрузка…</div>';
+  try{
+    const snap=await db.ref('userCars/'+user.uid).once('value');
+    const cars=snap.val()||{};
+    const eligible=Object.entries(cars).filter(([,c])=>c.location==='yard'||c.location==='garage');
+    if(!eligible.length){ pickEl.innerHTML='<div style="padding:12px;text-align:center;color:#b0bdd0;font-size:13px">Нет машин для обмена</div>'; }
+    else {
+      pickEl.innerHTML=eligible.map(([id,car])=>`
+        <div class="ex-car-item" data-carid="${id}" onclick="pickExchangeCar('${id}',this)" style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid #f0f4f9">
+          <div style="font-size:22px">🚗</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:800;color:#1a2a45">${car.name||'Авто'}</div>
+            <div style="font-size:12px;color:#8a9ab8">Рын.: ${((car.marketPrice||car.dealerPrice||car.buyPrice||0)).toLocaleString('ru-RU')}₽</div>
+          </div>
+        </div>`).join('');
+      // Сохраним для дальнейшего использования
+      window._exUserCars=cars;
+    }
+  }catch(e){ pickEl.innerHTML='<div style="padding:12px;color:#ff3b30;font-size:13px">Ошибка загрузки</div>'; }
+  // Скрыть сравнение пока не выбрана машина
+  document.getElementById('exchangeCompare').style.display='none';
+  document.getElementById('exchangeOverlay').style.display='flex';
+}
+
+function pickExchangeCar(id, el){
+  document.querySelectorAll('.ex-car-item').forEach(e=>e.style.background='');
+  el.style.background='#e8f4ff';
+  exchangeMyCarId=id;
+  exchangeMyCarData=(window._exUserCars||{})[id];
+  if(!exchangeMyCarData) return;
+  const ad=currentBotAd;
+  const myPrice=exchangeMyCarData.marketPrice||exchangeMyCarData.dealerPrice||exchangeMyCarData.buyPrice||0;
+  const botPrice=ad.marketPrice||ad.price||0;
+  document.getElementById('exMyCarName').textContent=exchangeMyCarData.name||'Авто';
+  document.getElementById('exMyCarPrice').textContent=myPrice.toLocaleString('ru-RU')+'₽';
+  document.getElementById('exBotCarName').textContent=ad.carName||'Авто';
+  document.getElementById('exBotCarPrice').textContent=botPrice.toLocaleString('ru-RU')+'₽';
+  document.getElementById('exchangeCompare').style.display='block';
+  // Автоматически считаем доплату
+  const diff=botPrice-myPrice;
+  if(diff>0){
+    setExchangePayer('you');
+    document.getElementById('exPaymentAmt').value=diff;
+    document.getElementById('exPaymentHint').textContent='Система: ваша машина дешевле на '+diff.toLocaleString('ru-RU')+'₽ — вы доплачиваете боту';
+  } else if(diff<0){
+    setExchangePayer('bot');
+    document.getElementById('exPaymentAmt').value=Math.abs(diff);
+    document.getElementById('exPaymentHint').textContent='Система: ваша машина дороже на '+Math.abs(diff).toLocaleString('ru-RU')+'₽ — бот доплачивает вам';
+  } else {
+    setExchangePayer('bot');
+    document.getElementById('exPaymentAmt').value=0;
+    document.getElementById('exPaymentHint').textContent='Машины равны по рыночной цене, доплата не нужна';
+  }
+}
+
+function setExchangePayer(payer){
+  exchangePayer=payer;
+  const youBtn=document.getElementById('exPayerYouBtn');
+  const botBtn=document.getElementById('exPayerBotBtn');
+  if(payer==='you'){
+    youBtn.style.borderColor='#1a7de8'; youBtn.style.background='#e8f0ff'; youBtn.style.color='#1a7de8';
+    botBtn.style.borderColor='#e2edf9'; botBtn.style.background='#f5f7fa'; botBtn.style.color='#6a85a8';
+  } else {
+    botBtn.style.borderColor='#1a7de8'; botBtn.style.background='#e8f0ff'; botBtn.style.color='#1a7de8';
+    youBtn.style.borderColor='#e2edf9'; youBtn.style.background='#f5f7fa'; youBtn.style.color='#6a85a8';
+  }
+}
+
+function confirmExchangeOffer(){
+  if(!exchangeMyCarId||!exchangeMyCarData){ bankToast('Выберите вашу машину'); return; }
+  const ad=currentBotAd;
+  const payAmt=parseInt(document.getElementById('exPaymentAmt').value)||0;
+  const payerLabel=exchangePayer==='you'?'вы боту':'бот вам';
+  let offerText=`Предлагаю обмен: моя "${exchangeMyCarData.name}" на вашу "${ad.carName}"`;
+  if(payAmt>0) offerText+=`. Доплата ${payAmt.toLocaleString('ru-RU')}₽ — ${payerLabel}`;
+  document.getElementById('exchangeOverlay').style.display='none';
+  addUserMessage(offerText);
+  document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px">⏳ Бот рассматривает предложение…</div>';
+  const delay=getBotDelay();
+  setTimeout(()=>{
+    addBotMessage('🚧 В разработке! Ответ бота на обмен скоро появится.');
+    document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px;font-weight:700">Функция в разработке</div>';
+  }, delay);
+}
+
+// ── Время ответа бота (случайное) ────────────────────────────
+function getBotDelay(){
+  const r=Math.random();
+  if(r<0.30) return 60000;   // 1 мин 30%
+  if(r<0.60) return 120000;  // 2 мин 30%
+  if(r<0.80) return 180000;  // 3 мин 20%
+  if(r<0.90) return 240000;  // 4 мин 10%
+  return 300000;              // 5 мин 10%
+}
+
+// ── Перехват cvContactSeller для ботов ──────────────────────
+const _origCvContactSeller = window.cvContactSeller;
+window.cvContactSeller = function(){
+  const ad=cvCurrentDetailAd;
+  if(!ad) return;
+  if(ad.sellerType==='bot'){
+    document.getElementById('cvDetailView').classList.remove('visible');
+    openBotChat(ad);
+  } else {
+    // Оригинальная логика для игроков
+    document.getElementById('cvDetailView').classList.remove('visible');
+    const chatId='chat_'+ad.id;
+    if(!cvChats[chatId]){
+      cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType,adName:ad.carName,lastMsg:'Здравствуйте, интересует авто',time:Date.now(),unread:0};
+    }
+    cvSwitchTab('chat');
+    cvRenderChats();
+  }
+};
+
+// ── Обновить кнопку в детальном виде для ботов ─────────────
+const _origCvOpenDetail = window.cvOpenDetail;
+window.cvOpenDetail = function(ad){
+  cvCurrentDetailAd=ad;
+  document.getElementById('cvDetailTitle').textContent=ad.carName||'Объявление';
+  const imgEl=document.getElementById('cvDetailImg');
+  if(ad.carImg){ imgEl.innerHTML=`<img src="${ad.carImg}" style="width:100%;height:100%;object-fit:cover">`; }
+  else { imgEl.textContent='🚗'; }
+  const favBtn=document.getElementById('cvDetailFavBtn');
+  if(cvFavorites[ad.id]) favBtn.classList.add('active'); else favBtn.classList.remove('active');
+  const fmtP=p=>p?p.toLocaleString('ru-RU')+'₽':'—';
+  const types=ad.types||['sell'];
+  const badgesHtml=types.map(t=>`<span class="cv-ad-badge ${t==='trade'?'trade':'sell'}">${t==='trade'?'🔄 Обмен':'🏷 Продажа'}</span>`).join(' ');
+  const initials=(ad.sellerName||'?').charAt(0).toUpperCase();
+  const isBot=ad.sellerType==='bot';
+
+  document.getElementById('cvDetailBody').innerHTML=`
+    <div class="cv-detail-name">${ad.carName||'Авто'}</div>
+    <div class="cv-detail-price">${fmtP(ad.price)}</div>
+    <div class="cv-detail-market-row">
+      ${ad.marketPrice?`<div class="cv-detail-market-chip">📊 Рын. цена: <b>${fmtP(ad.marketPrice)}</b></div>`:''}
+      ${ad.dealerPrice?`<div class="cv-detail-market-chip">🏪 В автосалоне: <b>${fmtP(ad.dealerPrice)}</b></div>`:''}
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">${badgesHtml}</div>
+    <div class="cv-ad-meta" style="margin-bottom:14px">
+      <span>📍 ${ad.city||'—'}</span>
+      ${ad.mileage?`<span>🛣 Пробег: <b>${(+ad.mileage).toLocaleString('ru-RU')} км</b></span>`:''}
+      <span>🕐 ${cvTimeAgo(ad.createdAt)}</span>
+      ${isBot&&ad.remainingUpdates!==undefined?`<span>🔄 Осталось сделок: <b>${ad.remainingUpdates}</b></span>`:''}
+    </div>
+    ${ad.description?`<div class="cv-detail-section">Описание</div><div class="cv-detail-text">${ad.description}</div>`:''}
+    ${ad.equipment?`<div class="cv-detail-section">Комплектация</div><div class="cv-detail-text">${ad.equipment}</div>`:''}
+    <div class="cv-detail-section">Продавец</div>
+    <div class="cv-detail-seller-card">
+      <div class="cv-detail-seller-ava">${isBot?'🤖':initials}</div>
+      <div class="cv-detail-seller-info">
+        <div class="cv-detail-seller-name">${ad.sellerName||'Игрок'}</div>
+        <div class="cv-detail-seller-city">📍 ${ad.city||'—'} · ${isBot?'🤖 Бот':'👤 Игрок'}</div>
+      </div>
+    </div>
+  `;
+  // Кнопка написать
+  const btnMain=document.querySelector('.cv-detail-btn-main');
+  if(btnMain) btnMain.textContent=isBot?'💬 Написать боту':'💬 Написать продавцу';
+  document.getElementById('cvDetailView').classList.add('visible');
+};
 </script>
+
+<!-- ===== BOT MANAGER OVERLAY ===== -->
+<div id="botManagerOverlay" style="position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="width:100%;max-width:500px;background:#fff;border-radius:24px 24px 0 0;padding:20px 20px 36px;max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:19px;font-weight:900;color:#1a2a45">🤖 Боты CarVito</div>
+      <button onclick="document.getElementById('botManagerOverlay').style.display='none'" style="background:#f0f4f9;border-radius:50%;width:34px;height:34px;font-size:20px;color:#6a85a8;border:none;cursor:pointer">✕</button>
+    </div>
+    <div id="botAdsList" style="margin-bottom:14px"></div>
+    <button onclick="openCreateBotAd()" style="width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:800;cursor:pointer">+ Создать новое объявление бота</button>
+  </div>
+</div>
+
+<!-- ===== CREATE BOT AD OVERLAY ===== -->
+<div id="createBotAdOverlay" style="position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="width:100%;max-width:500px;background:#fff;border-radius:24px 24px 0 0;padding:20px 20px 36px;max-height:94vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:18px;font-weight:900;color:#1a2a45">🤖 Новый бот</div>
+      <button onclick="document.getElementById('createBotAdOverlay').style.display='none'" style="background:#f0f4f9;border-radius:50%;width:34px;height:34px;font-size:20px;color:#6a85a8;border:none;cursor:pointer">✕</button>
+    </div>
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Выберите автомобиль</div>
+    <div id="botCarPickList" style="max-height:180px;overflow-y:auto;border:1.5px solid #e2edf9;border-radius:14px;margin-bottom:12px"></div>
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Тип сделки</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px" id="botTypeRow">
+      <button class="cv-create-type-btn active" data-type="sell" onclick="botToggleType(this)" style="flex:1;padding:12px;border-radius:12px;border:2px solid #1a7de8;background:#e8f0ff;color:#1a7de8;font-size:14px;font-weight:700;cursor:pointer">🏷 Продать</button>
+      <button class="cv-create-type-btn" data-type="trade" onclick="botToggleType(this)" style="flex:1;padding:12px;border-radius:12px;border:2px solid #e2edf9;background:#f5f7fa;color:#6a85a8;font-size:14px;font-weight:700;cursor:pointer">🔄 Обмен</button>
+    </div>
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Цена (₽)</div>
+    <input id="botAdPrice" type="number" placeholder="Введите цену…" style="width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;margin-bottom:4px">
+    <div id="botAdPriceHint" style="font-size:12px;color:#8a9ab8;margin-bottom:12px"></div>
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Пробег (км)</div>
+    <input id="botAdMileage" type="number" placeholder="Например: 45000" style="width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;margin-bottom:12px">
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Сумма ремонта (₽) <span style="color:#1a7de8;font-size:11px">(скрыто от пользователей)</span></div>
+    <input id="botAdRepair" type="number" placeholder="Скрытая сумма ремонта…" style="width:100%;background:#fff8e8;border:1.5px solid #ffe082;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;margin-bottom:12px">
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Количество обновлений (сделок)</div>
+    <input id="botAdUpdates" type="number" min="1" placeholder="Например: 3" style="width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;margin-bottom:4px">
+    <div style="font-size:12px;color:#8a9ab8;margin-bottom:12px">Сколько разных пользователей могут совершить сделку. Если попытка не завершена — слот сохраняется для других.</div>
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Имя бота</div>
+    <input id="botAdName" placeholder="Например: Дмитрий" style="width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;margin-bottom:12px">
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Описание</div>
+    <textarea id="botAdDesc" placeholder="Описание автомобиля…" style="width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;font-family:inherit;resize:none;height:80px;margin-bottom:12px"></textarea>
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Город</div>
+    <select id="botAdCity" style="width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;margin-bottom:16px">
+      <option>Москва</option><option>Санкт-Петербург</option><option>Уфа</option><option>Казань</option><option>Екатеринбург</option><option>Астана</option><option>Костанай</option>
+    </select>
+
+    <div id="botCreateStatus" style="min-height:18px;font-size:13px;color:#6a85a8;margin-bottom:10px;text-align:center"></div>
+    <button onclick="saveBotAd()" style="width:100%;background:linear-gradient(135deg,#1a2a45,#1a7de8);color:#fff;border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:800;cursor:pointer">🤖 Создать бота</button>
+  </div>
+</div>
+
+<!-- ===== BOT CHAT OVERLAY ===== -->
+<div id="botChatOverlay" style="position:fixed;inset:0;z-index:1020;background:#fff;display:none;flex-direction:column">
+  <div style="background:#fff;border-bottom:1px solid #eaecf0;padding:12px 16px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <button onclick="closeBotChat()" style="background:none;border:none;padding:4px;cursor:pointer;color:#1a7de8;font-size:15px;font-weight:700;display:flex;align-items:center;gap:4px">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Назад
+    </button>
+    <div style="flex:1">
+      <div id="botChatName" style="font-size:16px;font-weight:800;color:#1a2a45">Бот</div>
+      <div style="font-size:12px;color:#8a9ab8">🤖 Автоматический продавец</div>
+    </div>
+  </div>
+  <div id="botChatMessages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f0f4f9"></div>
+  <div id="botChatActions" style="background:#fff;border-top:1px solid #eaecf0;padding:14px 16px 24px;flex-shrink:0">
+    <div style="font-size:13px;color:#8a9ab8;margin-bottom:10px;text-align:center">Выберите действие:</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="botChatTrade()" style="background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer">🔄 Предложить обмен</button>
+      <button onclick="botChatBuy()" style="background:#1a2a45;color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer">💰 Купить машину</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EXCHANGE OFFER OVERLAY ===== -->
+<div id="exchangeOverlay" style="position:fixed;inset:0;z-index:1030;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="width:100%;max-width:500px;background:#fff;border-radius:24px 24px 0 0;padding:20px 20px 36px;max-height:94vh;overflow-y:auto">
+    <div style="font-size:18px;font-weight:900;color:#1a2a45;margin-bottom:14px;text-align:center">🔄 Предложить обмен</div>
+
+    <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Выберите вашу машину</div>
+    <div id="exchangeMyCarList" style="max-height:180px;overflow-y:auto;border:1.5px solid #e2edf9;border-radius:14px;margin-bottom:14px"></div>
+
+    <!-- Comparison block -->
+    <div id="exchangeCompare" style="display:none;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;background:#f8fafc;border-radius:16px;padding:14px">
+        <div style="flex:1;text-align:center">
+          <div style="font-size:11px;color:#8a9ab8;margin-bottom:4px">Ваша машина</div>
+          <div id="exMyCarName" style="font-size:13px;font-weight:800;color:#1a2a45"></div>
+          <div id="exMyCarPrice" style="font-size:14px;font-weight:900;color:#1a7de8;margin-top:2px"></div>
+        </div>
+        <div style="font-size:22px">⇄</div>
+        <div style="flex:1;text-align:center">
+          <div style="font-size:11px;color:#8a9ab8;margin-bottom:4px">Машина бота</div>
+          <div id="exBotCarName" style="font-size:13px;font-weight:800;color:#1a2a45"></div>
+          <div id="exBotCarPrice" style="font-size:14px;font-weight:900;color:#1a7de8;margin-top:2px"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Доплата</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button id="exPayerYouBtn" onclick="setExchangePayer('you')" style="flex:1;padding:10px;border-radius:10px;border:2px solid #1a7de8;background:#e8f0ff;color:#1a7de8;font-size:13px;font-weight:700;cursor:pointer">Доплата вам</button>
+          <button id="exPayerBotBtn" onclick="setExchangePayer('bot')" style="flex:1;padding:10px;border-radius:10px;border:2px solid #e2edf9;background:#f5f7fa;color:#6a85a8;font-size:13px;font-weight:700;cursor:pointer">Доплата боту</button>
+        </div>
+        <input id="exPaymentAmt" type="number" placeholder="Сумма доплаты (₽)" style="width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none">
+        <div id="exPaymentHint" style="font-size:12px;color:#8a9ab8;margin-top:4px"></div>
+      </div>
+    </div>
+
+    <button onclick="confirmExchangeOffer()" style="width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;margin-top:4px">✅ Подтвердить предложение</button>
+    <button onclick="document.getElementById('exchangeOverlay').style.display='none'" style="width:100%;background:none;border:none;color:#8a9ab8;font-size:14px;font-weight:700;padding:10px;cursor:pointer;margin-top:6px">Отмена</button>
+  </div>
+</div>
 
 <!-- THEFT NOTIFICATION -->
 <div class="theft-notif" id="theftNotif">
