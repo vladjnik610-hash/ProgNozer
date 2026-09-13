@@ -511,17 +511,6 @@ button:active{transform:scale(.97)}
         <span class="hs-app-label">Календарь</span>
       </div>
 
-      <!-- Блокнот — оставлен SVG -->
-      <div class="hs-app">
-        <div class="hs-app-icon" style="background:linear-gradient(145deg,#c8924a,#a0692c)">
-          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="6" y="4" width="20" height="24" rx="3" fill="rgba(255,255,255,.15)" stroke="#fff" stroke-width="1.8"/>
-            <path d="M10 11h12M10 16h12M10 21h8" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <span class="hs-app-label">Блокнот</span>
-      </div>
-
       <!-- Будильник -->
       <div class="hs-app">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
@@ -677,6 +666,7 @@ function updateClock(){
   const rt=document.getElementById('realtyStatusTime');if(rt)rt.textContent=timeStr;
   const rd=document.getElementById('realtyDetailTime');if(rd)rd.textContent=timeStr;
   const np=document.getElementById('notepadStatusTime');if(np)np.textContent=timeStr;
+  const mc=document.getElementById('mihalychStatusTime');if(mc)mc.textContent=timeStr;
   // Update timers display
   if(typeof updateBankTimersDisplay==='function') updateBankTimersDisplay();
 }
@@ -2089,6 +2079,9 @@ async function dealerOrderClick(){
   showGarageSelectModal(freeGarages, car, price, user.uid);
 }
 
+// Pending purchase state for signature step
+let _pendingPurchase = null;
+
 function showGarageSelectModal(garages, car, price, uid){
   let overlay = document.getElementById('garageSelectOverlay');
   if(!overlay){
@@ -2102,7 +2095,7 @@ function showGarageSelectModal(garages, car, price, uid){
       <div style="font-size:17px;font-weight:800;color:#1a2a45;margin-bottom:4px;text-align:center">🚗 Выберите гараж</div>
       <div style="font-size:13px;color:#8a9ab8;text-align:center;margin-bottom:16px">${car.name} · ${price.toLocaleString('ru-RU')} ₽</div>
       ${garages.map(g=>`
-        <button onclick="confirmCarPurchase('${g.key}','${uid}','${car.id}',${price})" style="width:100%;background:#f5f7fa;border:1.5px solid #e8eef6;border-radius:14px;padding:14px 16px;margin-bottom:10px;text-align:left;cursor:pointer;display:block">
+        <button onclick="showCarPurchaseSign('${g.key}','${uid}','${car.id}',${price})" style="width:100%;background:#f5f7fa;border:1.5px solid #e8eef6;border-radius:14px;padding:14px 16px;margin-bottom:10px;text-align:left;cursor:pointer;display:block">
           <div style="font-size:15px;font-weight:800;color:#1a2a45">${g.name}</div>
           <div style="font-size:12px;color:#8a9ab8;margin-top:3px">🚗 Свободно в гараже: ${g.freeGarage} · 🌿 Во дворе: ${g.freeYard}</div>
         </button>
@@ -2110,6 +2103,101 @@ function showGarageSelectModal(garages, car, price, uid){
       <button onclick="document.getElementById('garageSelectOverlay').style.display='none'" style="width:100%;background:#f0f4f9;color:#8a9ab8;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">Отмена</button>
     </div>`;
   overlay.style.display='flex';
+}
+
+// ── Step 2: show signature modal before purchase ──────────────
+function showCarPurchaseSign(garageKey, uid, carId, price){
+  document.getElementById('garageSelectOverlay').style.display='none';
+  _pendingPurchase = {garageKey, uid, carId, price};
+  _carPurchaseBusy = false;
+
+  let signOverlay = document.getElementById('carBuySignOverlay');
+  if(!signOverlay){
+    signOverlay = document.createElement('div');
+    signOverlay.id = 'carBuySignOverlay';
+    signOverlay.style.cssText = 'position:fixed;inset:0;z-index:9991;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+    document.body.appendChild(signOverlay);
+  }
+  signOverlay.innerHTML = `
+    <div style="width:100%;max-width:460px;background:#fff;border-radius:22px 22px 0 0;padding:24px 20px 36px">
+      <div style="font-size:17px;font-weight:800;color:#1a2a45;margin-bottom:4px;text-align:center">✍️ Подпись покупателя</div>
+      <div style="font-size:13px;color:#8a9ab8;text-align:center;margin-bottom:14px">Распишитесь для подтверждения покупки на <b style="color:#1a2a45">${Number(price).toLocaleString('ru-RU')} ₽</b></div>
+      <canvas id="carBuySignCanvas" style="width:100%;height:150px;background:#fff;border:2px dashed #b8d2ef;border-radius:14px;touch-action:none;display:block;cursor:crosshair"></canvas>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="clearCarBuySign()" style="flex:1;background:#f0f4f9;color:#6a85a8;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">Очистить</button>
+        <button onclick="confirmCarBuySign()" style="flex:2;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:800;cursor:pointer">✅ Подтвердить покупку</button>
+      </div>
+      <div id="carBuySignStatus" style="min-height:18px;font-size:12px;color:#8a9ab8;margin-top:8px;text-align:center"></div>
+      <button onclick="document.getElementById('carBuySignOverlay').style.display='none';_pendingPurchase=null" style="width:100%;background:#f0f4f9;color:#8a9ab8;border:none;border-radius:14px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">Отмена</button>
+    </div>`;
+  signOverlay.style.display = 'flex';
+  setTimeout(()=>initCarBuySignCanvas(), 50);
+}
+
+function initCarBuySignCanvas(){
+  const c = document.getElementById('carBuySignCanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  c.width = c.offsetWidth || 320;
+  c.height = 150;
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.strokeStyle='#1a2a45'; ctx.lineWidth=4; ctx.lineCap='round'; ctx.lineJoin='round';
+  c._ink = false; c._drawing = false;
+  // Draw ghost of registration signature
+  if(_bankUserSignature){
+    const im = new Image();
+    im.onload = ()=>{ ctx.save(); ctx.globalAlpha=0.18; ctx.drawImage(im,0,0,c.width,c.height); ctx.restore(); };
+    im.src = _bankUserSignature;
+  }
+  function pt(e){ const r=c.getBoundingClientRect(); const s=e.touches?e.touches[0]:e; return {x:(s.clientX-r.left)*(c.width/r.width),y:(s.clientY-r.top)*(c.height/r.height)}; }
+  c.ontouchstart = c.onmousedown = e=>{ e.preventDefault(); c._drawing=true; c._ink=true; const p=pt(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
+  c.ontouchmove = c.onmousemove = e=>{ if(!c._drawing)return; e.preventDefault(); const p=pt(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
+  c.ontouchend = c.onmouseup = ()=>{ c._drawing=false; };
+}
+
+function clearCarBuySign(){
+  const c = document.getElementById('carBuySignCanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  c._ink = false;
+  if(_bankUserSignature){
+    const im = new Image();
+    im.onload = ()=>{ ctx.save(); ctx.globalAlpha=0.18; ctx.drawImage(im,0,0,c.width,c.height); ctx.restore(); };
+    im.src = _bankUserSignature;
+  }
+}
+
+async function confirmCarBuySign(){
+  if(_carPurchaseBusy) return;
+  const c = document.getElementById('carBuySignCanvas');
+  const st = document.getElementById('carBuySignStatus');
+  if(!c._ink){ st.textContent='⚠️ Нарисуйте подпись'; return; }
+  if(!_pendingPurchase){ st.textContent='❌ Ошибка: нет данных о покупке'; return; }
+
+  _carPurchaseBusy = true;
+
+  if(_bankUserSignature){
+    st.textContent = 'Проверка подписи…';
+    const sim = await signatureSimilarity(_bankUserSignature, c.toDataURL('image/png'));
+    if(sim < 25){
+      st.textContent = '❌ Совпадение '+sim.toFixed(0)+'%. Нужно минимум 25%. Повторите.';
+      clearCarBuySign();
+      _carPurchaseBusy = false;
+      return;
+    }
+    st.textContent = '✅ '+sim.toFixed(0)+'% — подпись подтверждена! Оформляем…';
+  } else {
+    st.textContent = '✅ Подпись принята! Оформляем…';
+  }
+
+  setTimeout(async()=>{
+    document.getElementById('carBuySignOverlay').style.display='none';
+    const p = _pendingPurchase;
+    _pendingPurchase = null;
+    await confirmCarPurchase(p.garageKey, p.uid, p.carId, p.price);
+    _carPurchaseBusy = false;
+  }, 400);
 }
 
 // ─── VIN GENERATOR ────────────────────────────────────────────
@@ -2128,7 +2216,9 @@ function statusDotClass(status){
 }
 
 async function confirmCarPurchase(garageKey, uid, carId, price){
-  document.getElementById('garageSelectOverlay').style.display='none';
+  // overlay may already be hidden via sign flow, but ensure it's gone
+  const ov = document.getElementById('garageSelectOverlay');
+  if(ov) ov.style.display='none';
 
   // Show animation overlay
   let anim = document.getElementById('buyCarAnim');
@@ -2309,8 +2399,8 @@ function renderCarDetail(carId, c){
   const dealerPrice = c.dealerPrice||c.buyPrice||0;
   const rustRepairCost = dealerPrice>0 ? Math.round(dealerPrice * rust / 100) : 0;
   const oilLastMileage = c.lastOilChangeMileage || 0;
-  const oilDue = Math.ceil((mileage - oilLastMileage) / 50000) > 0;
   const oilKmSince = mileage - oilLastMileage;
+  const oilDue = oilKmSince >= 50000;
   const oilCost = dealerPrice>0 ? Math.round(dealerPrice*0.5/100) : 0;
   const rustColor = rust<1?'#34c759':rust<5?'#ff9500':'#ff3b30';
   const nextServices = SERVICE_SCHEDULE ? SERVICE_SCHEDULE.filter(s=>mileage<s.km).slice(0,3) : [];
@@ -2364,6 +2454,23 @@ function closeCarDetail(){
 async function driveCarToYard(carId){
   const uid = auth.currentUser?.uid;
   if(!uid) return;
+
+  // Check yard capacity before moving
+  const carSnap = await db.ref('userCars/'+uid+'/'+carId).once('value');
+  const carData = carSnap.val()||{};
+  const gKey = carData.garageKey;
+  if(gKey){
+    const gSnap = await db.ref('userProperty/'+uid+'/garages/'+gKey).once('value');
+    const gData = gSnap.val()||{};
+    const yardSpots = gData.yardSpots||0;
+    const carsSnap = await db.ref('userCars/'+uid).orderByChild('garageKey').equalTo(gKey).once('value');
+    const inYard = Object.values(carsSnap.val()||{}).filter(c=>c.location==='yard').length;
+    if(inYard >= yardSpots){
+      bankToast('❌ Двор полон! Освободите место во дворе.');
+      return;
+    }
+  }
+
   closeCarDetail();
 
   // 2% chance of theft
@@ -2424,7 +2531,7 @@ function showTheftNotification(carName, vin){
 
 // ─── SERVICE SCHEDULE (global) ────────────────────────────────
 const SERVICE_SCHEDULE = [
-  {km:50000, label:'Замена масла', costPct:0.5},
+  // Замена масла — отдельно отслеживается через lastOilChangeMileage
   {km:70000, label:'Ремни ГРМ', costPct:1},
   {km:70000, label:'Свечи зажигания', costPct:1},
   {km:100000, label:'Амортизаторы', costPct:2},
@@ -3010,6 +3117,12 @@ let myProp = {
 let bankCreditTimer = null;
 let bankTaxTimer = null;
 
+// ── Anti-double-click locks ──────────────────────────────────
+let _creditSignBusy = false;
+let _earlyPayBusy   = false;
+let _mihalychRepairBusy = false;
+let _carPurchaseBusy = false;
+
 // ─── OPEN / CLOSE ─────────────────────────────────────────────
 async function openBank(){
   const user = auth.currentUser;
@@ -3104,6 +3217,74 @@ async function loadBankData(uid){
   }
 
   startBankTimers();
+
+  // ── Догоняем всё что накопилось пока пользователь был офлайн ──
+  catchUpOfflineTime();
+}
+
+// ─── OFFLINE CATCH-UP ─────────────────────────────────────────
+function catchUpOfflineTime(){
+  const now = getServerTime();
+  const HOUR = 3600000;
+
+  // ── Налоги ──────────────────────────────────────────────────
+  if(bankLastTaxTs){
+    const missedTaxHours = Math.floor((now - bankLastTaxTs) / HOUR);
+    if(missedTaxHours > 0){
+      const hourly = calcHourlyTax();
+      if(hourly > 0){
+        for(let i = 0; i < missedTaxHours; i++){
+          const fakeNow = bankLastTaxTs + (i + 1) * HOUR;
+          let penaltyPct = 0;
+          if(bankLastTaxPaid){
+            const daysSince = (fakeNow - bankLastTaxPaid) / (HOUR * 24);
+            const days = Math.floor(daysSince);
+            penaltyPct = days >= 3 ? Math.min(days - 2, 10) * 10 : 0;
+          }
+          const charge = Math.round(hourly * (1 + penaltyPct / 100));
+          if(bankAutoPay){
+            bankBalance = Math.max(0, bankBalance - charge);
+            bankLastTaxPaid = fakeNow;
+            addTx('Автоплатёж налога (офлайн)', -charge);
+          } else {
+            bankTaxAccumulated += charge;
+          }
+        }
+        bankLastTaxTs = bankLastTaxTs + missedTaxHours * HOUR;
+      } else {
+        bankLastTaxTs = now;
+      }
+    }
+  } else {
+    bankLastTaxTs = now;
+  }
+
+  // ── Кредиты ─────────────────────────────────────────────────
+  let creditChanged = false;
+  bankCredits.forEach(c => {
+    if(c.paidBack >= c.total) return;
+    const lastPay = c.lastPayTs || c.startTs || now;
+    const missedHours = Math.floor((now - lastPay) / HOUR);
+    if(missedHours <= 0) return;
+    for(let i = 0; i < missedHours; i++){
+      if(c.paidBack >= c.total) break;
+      const payment = Math.min(c.payPerHour, c.total - c.paidBack);
+      bankBalance = Math.max(0, bankBalance - payment);
+      c.paidBack += payment;
+      addTx('Платёж по кредиту (офлайн)', -payment);
+      creditChanged = true;
+    }
+    c.lastPayTs = lastPay + missedHours * HOUR;
+    if(c.paidBack >= c.total){
+      bankToast('✅ Кредит '+fmtRub(c.amount)+' погашён (пока вы были офлайн)!');
+    }
+  });
+
+  if(creditChanged || bankTaxAccumulated > 0 || bankAutoPay){
+    saveBankData();
+    renderBankHome();
+    if(creditChanged) renderCredits();
+  }
 }
 
 async function saveBankData(){
@@ -3288,12 +3469,21 @@ function startCreditSign(){
 
 async function confirmBankSign(type){
   const isCredit = type==='credit';
+  // Anti double-click
+  if(isCredit && _creditSignBusy) return;
+  if(!isCredit && _earlyPayBusy) return;
+  if(isCredit) _creditSignBusy = true; else _earlyPayBusy = true;
+
   const canvasId = isCredit ? 'bankCreditCanvas' : 'bankEarlyCanvas';
   const statusId  = isCredit ? 'bankCreditSignStatus' : 'bankEarlySignStatus';
   const c = document.getElementById(canvasId);
   const st = document.getElementById(statusId);
 
-  if(!c._ink){ st.textContent='⚠️ Нарисуйте подпись'; return; }
+  if(!c._ink){
+    st.textContent='⚠️ Нарисуйте подпись';
+    if(isCredit) _creditSignBusy=false; else _earlyPayBusy=false;
+    return;
+  }
 
   // If we have a saved registration signature — compare with it
   if(_bankUserSignature){
@@ -3310,9 +3500,9 @@ async function confirmBankSign(type){
   }
 
   if(isCredit){
-    setTimeout(()=>doIssueCreditAfterSign(), 400);
+    setTimeout(()=>{ doIssueCreditAfterSign(); _creditSignBusy=false; }, 400);
   } else {
-    setTimeout(()=>doEarlyPayoffAfterSign(), 400);
+    setTimeout(()=>{ doEarlyPayoffAfterSign(); _earlyPayBusy=false; }, 400);
   }
 }
 
@@ -3576,10 +3766,12 @@ function accrueHourlyTax(){
   const charge = Math.round(hourly * (1 + penaltyPct/100));
 
   if(bankAutoPay){
-    bankBalance -= charge;
+    const actualCharge = Math.min(charge, Math.max(0, bankBalance));
+    bankBalance = Math.max(0, bankBalance - charge);
     bankLastTaxPaid = getServerTime();
     bankPenaltyDays = 0;
-    addTx('Автоплатёж налога', -charge);
+    if(actualCharge > 0) addTx('Автоплатёж налога', -actualCharge);
+    if(actualCharge < charge) addTx('⚠️ Недостаточно средств для налога', 0);
   } else {
     bankTaxAccumulated += charge;
   }
@@ -3593,7 +3785,7 @@ function processHourlyCredits(){
   bankCredits.forEach(c=>{
     if(c.paidBack >= c.total) return;
     const payment = Math.min(c.payPerHour, c.total - c.paidBack);
-    bankBalance -= payment;
+    bankBalance = Math.max(0, bankBalance - payment);
     c.paidBack += payment;
     c.lastPayTs = now;
     addTx('Платёж по кредиту', -payment);
@@ -3608,7 +3800,7 @@ function processHourlyCredits(){
 // ─── TAX REMINDER ─────────────────────────────────────────────
 function checkTaxReminder(){
   if(!bankLastTaxPaid) return;
-  const daysSince = (Date.now() - bankLastTaxPaid) / (1000*60*60*24);
+  const daysSince = (getServerTime() - bankLastTaxPaid) / (1000*60*60*24);
   if(daysSince >= 2 && bankTaxAccumulated > 0){
     document.getElementById('bankTaxNotif').classList.add('visible');
   }
@@ -4802,9 +4994,10 @@ async function repairCarRust(carId){
     return;
   }
   if(!confirm('Ремонт ржавости: '+repairCost.toLocaleString('ru-RU')+' ₽. Подтвердить?')) return;
-  await db.ref('bankData/'+uid+'/balance').set(balance - repairCost);
+  const newBalRust = Math.max(0, balance - repairCost);
+  await db.ref('bankData/'+uid+'/balance').set(newBalRust);
   await db.ref('userCars/'+uid+'/'+carId+'/rustPct').set(0);
-  bankBalance = balance - repairCost;
+  bankBalance = newBalRust;
   addTx('Ремонт ржавости: '+car.name, -repairCost);
   await saveBankData();
   renderBankHome();
@@ -4831,9 +5024,10 @@ async function doOilChange(carId){
   const balance = bSnap.val()||0;
   if(balance < cost){ bankToast('❌ Не хватает средств: '+cost.toLocaleString('ru-RU')+' ₽'); return; }
   if(!confirm('Замена масла: '+cost.toLocaleString('ru-RU')+' ₽. Подтвердить?')) return;
-  await db.ref('bankData/'+uid+'/balance').set(balance - cost);
+  const newBalOil = Math.max(0, balance - cost);
+  await db.ref('bankData/'+uid+'/balance').set(newBalOil);
   await db.ref('userCars/'+uid+'/'+carId+'/lastOilChangeMileage').set(car.mileage||0);
-  bankBalance = balance - cost;
+  bankBalance = newBalOil;
   addTx('Замена масла: '+car.name, -cost);
   await saveBankData();
   renderBankHome();
@@ -4929,20 +5123,7 @@ function closeMihalych(){
   document.getElementById('mihalychScreen').classList.remove('visible');
 }
 
-// Update clock in mihalych
-const _origUpdateClock = updateClock;
-// We already have updateClock patching mihalychStatusTime via id lookup in main clock loop
-// Add mihalychStatusTime to updateClock
-(function patchMihalychClock(){
-  const orig = window.updateClock;
-  window.updateClock = function(){
-    orig && orig();
-    const msk = getMskNow();
-    const hh = fmt2(msk.getHours()), mm = fmt2(msk.getMinutes());
-    const el = document.getElementById('mihalychStatusTime');
-    if(el) el.textContent = hh+':'+mm;
-  };
-})();
+// mihalychStatusTime теперь обновляется в главном updateClock()
 
 async function loadMihalychCars(uid){
   const body = document.getElementById('mihalychBody');
@@ -5108,21 +5289,24 @@ async function runMihalychInspect(carId){
 
 // Ремонт одного пункта
 async function mihalychRepairItem(carId, issueKey, action, cost){
+  if(_mihalychRepairBusy){ bankToast('⏳ Подождите…'); return; }
+  _mihalychRepairBusy = true;
   const user = auth.currentUser;
-  if(!user) return;
+  if(!user){ _mihalychRepairBusy=false; return; }
   const uid = user.uid;
   const bSnap = await db.ref('bankData/'+uid+'/balance').once('value');
   const balance = bSnap.val()||0;
-  if(balance < cost){ bankToast('❌ Не хватает средств: '+cost.toLocaleString('ru-RU')+' ₽'); return; }
-  if(!confirm('Выполнить ремонт за '+cost.toLocaleString('ru-RU')+' ₽?')) return;
+  if(balance < cost){ bankToast('❌ Не хватает средств: '+cost.toLocaleString('ru-RU')+' ₽'); _mihalychRepairBusy=false; return; }
+  if(!confirm('Выполнить ремонт за '+cost.toLocaleString('ru-RU')+' ₽?')){ _mihalychRepairBusy=false; return; }
 
   const snap = await db.ref('userCars/'+uid+'/'+carId).once('value');
   const car = snap.val();
   if(!car) return;
 
   // Deduct money
-  await db.ref('bankData/'+uid+'/balance').set(balance - cost);
-  bankBalance = balance - cost;
+  const newBalance = Math.max(0, balance - cost);
+  await db.ref('bankData/'+uid+'/balance').set(newBalance);
+  bankBalance = newBalance;
 
   // Apply fix
   if(action === 'repairRust'){
@@ -5139,19 +5323,22 @@ async function mihalychRepairItem(carId, issueKey, action, cost){
   await saveBankData();
   renderBankHome();
   bankToast('✅ Ремонт выполнен! -'+cost.toLocaleString('ru-RU')+' ₽');
+  _mihalychRepairBusy = false;
   // Refresh car view
   openMihalychCar(carId);
 }
 
 // Ремонт всего сразу
 async function mihalychRepairAll(carId, totalCost){
+  if(_mihalychRepairBusy){ bankToast('⏳ Подождите…'); return; }
+  _mihalychRepairBusy = true;
   const user = auth.currentUser;
-  if(!user) return;
+  if(!user){ _mihalychRepairBusy=false; return; }
   const uid = user.uid;
   const bSnap = await db.ref('bankData/'+uid+'/balance').once('value');
   const balance = bSnap.val()||0;
-  if(balance < totalCost){ bankToast('❌ Не хватает средств: '+totalCost.toLocaleString('ru-RU')+' ₽'); return; }
-  if(!confirm('Выполнить полный ремонт за '+totalCost.toLocaleString('ru-RU')+' ₽?')) return;
+  if(balance < totalCost){ bankToast('❌ Не хватает средств: '+totalCost.toLocaleString('ru-RU')+' ₽'); _mihalychRepairBusy=false; return; }
+  if(!confirm('Выполнить полный ремонт за '+totalCost.toLocaleString('ru-RU')+' ₽?')){ _mihalychRepairBusy=false; return; }
 
   const snap = await db.ref('userCars/'+uid+'/'+carId).once('value');
   const car = snap.val();
@@ -5168,13 +5355,15 @@ async function mihalychRepairAll(carId, totalCost){
     else if(iss.action === 'fixService') updates['serviceDone/'+iss.key] = true;
   }
 
-  await db.ref('bankData/'+uid+'/balance').set(balance - totalCost);
-  bankBalance = balance - totalCost;
+  const newBal = Math.max(0, balance - totalCost);
+  await db.ref('bankData/'+uid+'/balance').set(newBal);
+  bankBalance = newBal;
   if(Object.keys(updates).length) await db.ref('userCars/'+uid+'/'+carId).update(updates);
   addTx('СТО: полный ремонт '+car.name, -totalCost);
   await saveBankData();
   renderBankHome();
   bankToast('✅ Полный ремонт выполнен! -'+totalCost.toLocaleString('ru-RU')+' ₽');
+  _mihalychRepairBusy = false;
   openMihalychCar(carId);
 }
 </script>
