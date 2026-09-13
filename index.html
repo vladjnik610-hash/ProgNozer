@@ -11,6 +11,42 @@ html,body{min-height:100%;font-family:Arial,Helvetica,sans-serif;color:#1a2a45}
 button{border:0;cursor:pointer;font-family:inherit}
 button:active{transform:scale(.97)}
 
+/* ── ТЕМЫ ────────────────────────────────────────────────────── */
+:root{
+  --bg-main: radial-gradient(ellipse at 30% 0%,#ffffff 0%,#cde5ff 30%,#a8cdf0 60%,#c5ddf7 100%);
+  --bg-screen: #f0f4f9;
+  --bg-card: #fff;
+  --text-primary: #1a2a45;
+  --text-secondary: #6a85a8;
+  --border-color: #e8eef6;
+}
+[data-theme="dark"]{
+  --bg-main: radial-gradient(ellipse at 30% 0%,#0d1117 0%,#161c26 50%,#1a2235 100%);
+  --bg-screen: #0f1318;
+  --bg-card: #1a2235;
+  --text-primary: #e8f0ff;
+  --text-secondary: #6a85a8;
+  --border-color: #2a3a55;
+}
+[data-theme="dark"] .main-screen,
+[data-theme="dark"] .sync-screen,
+[data-theme="dark"] .auth-screen{ background: var(--bg-main) !important; }
+[data-theme="dark"] .bank-screen,
+[data-theme="dark"] .mihalych-screen{ background: var(--bg-screen) !important; }
+[data-theme="dark"] .bank-form-card,
+[data-theme="dark"] .bank-credit-card,
+[data-theme="dark"] .bank-tax-card,
+[data-theme="dark"] .bank-tile,
+[data-theme="dark"] .bank-tax-auto,
+[data-theme="dark"] .mihalych-car-card{ background: var(--bg-card) !important; border-color: var(--border-color) !important; }
+[data-theme="dark"] .bank-credit-name,
+[data-theme="dark"] .bank-tile-val,
+[data-theme="dark"] .bank-tax-total,
+[data-theme="dark"] .mihalych-car-name{ color: var(--text-primary) !important; }
+[data-theme="dark"] .bank-nav,
+[data-theme="dark"] .bank-tab-bar{ background: var(--bg-card) !important; border-color: var(--border-color) !important; }
+[data-theme="dark"] .hs-app-label{ color: var(--text-primary); }
+
 .auth-screen{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 30% 0%,#ffffff 0%,#cde5ff 30%,#a8cdf0 60%,#c5ddf7 100%);overflow:hidden}
 .auth-screen::before,.auth-screen::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
 .auth-screen::before{width:500px;height:500px;background:radial-gradient(circle,rgba(255,255,255,.7) 0%,rgba(180,218,255,.4) 50%,transparent 70%);top:-180px;left:-120px}
@@ -366,7 +402,9 @@ button:active{transform:scale(.97)}
     <div class="sync-time" id="syncTime">--:--</div>
     <div class="sync-date" id="syncDate"></div>
   </div>
-  <div class="sync-card">
+
+  <!-- Прогресс загрузки -->
+  <div class="sync-card" id="syncLoadCard">
     <div class="sync-card-header">
       <div class="sync-card-icon">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -378,6 +416,54 @@ button:active{transform:scale(.97)}
     <div class="sync-bar-bg"><div class="sync-bar-fill" id="syncBarFill"></div></div>
     <div class="sync-bar-label"><span id="syncBarText">Загрузка…</span><span id="syncBarPct">0%</span></div>
   </div>
+
+  <!-- Карточка имущества (показывается после загрузки) -->
+  <div id="syncPropertyCard" style="display:none;width:min(340px,90vw);margin-bottom:12px">
+
+    <!-- Баланс -->
+    <div style="background:linear-gradient(135deg,#1a7de8,#4c9fff);border-radius:18px;padding:14px 18px;margin-bottom:10px;color:#fff;position:relative;overflow:hidden">
+      <div style="font-size:11px;font-weight:700;opacity:.75;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px">💳 Баланс счёта</div>
+      <div style="font-size:26px;font-weight:900;letter-spacing:-1px" id="lockBalance">—</div>
+      <div style="font-size:11px;opacity:.7;margin-top:3px" id="lockBalanceSub">загрузка…</div>
+    </div>
+
+    <!-- Начисления за офлайн -->
+    <div id="lockOfflineCard" style="display:none;background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border-radius:16px;border:1.5px solid rgba(255,100,50,.25);padding:12px 14px;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:800;color:#ff6b35;margin-bottom:6px">⏱ Пока вы отсутствовали</div>
+      <div id="lockOfflineLines" style="font-size:12px;color:#4a6080;line-height:1.8"></div>
+    </div>
+
+    <!-- Имущество: машины / гараж / кредиты -->
+    <div style="background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border-radius:16px;border:1.5px solid rgba(255,255,255,.9);padding:12px 14px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🏠 Моё имущество</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px" id="lockPropGrid">
+        <div style="background:#f0f6ff;border-radius:10px;padding:8px 10px">
+          <div style="font-size:10px;color:#8a9ab8;font-weight:700">Машин</div>
+          <div style="font-size:18px;font-weight:900;color:#1a2a45" id="lockCarCount">—</div>
+        </div>
+        <div style="background:#f0f6ff;border-radius:10px;padding:8px 10px">
+          <div style="font-size:10px;color:#8a9ab8;font-weight:700">Гараж</div>
+          <div style="font-size:18px;font-weight:900;color:#1a2a45" id="lockGarage">—</div>
+        </div>
+        <div style="background:#fff8f0;border-radius:10px;padding:8px 10px">
+          <div style="font-size:10px;color:#ff9500;font-weight:700">Налог/час</div>
+          <div style="font-size:14px;font-weight:900;color:#1a2a45" id="lockTaxPerHour">—</div>
+        </div>
+        <div style="background:#fff0f5;border-radius:10px;padding:8px 10px">
+          <div style="font-size:10px;color:#ff3b30;font-weight:700">Кредитов</div>
+          <div style="font-size:14px;font-weight:900;color:#1a2a45" id="lockCredits">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Машины во дворе/гараже -->
+    <div id="lockCarsListWrap" style="background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border-radius:16px;border:1.5px solid rgba(255,255,255,.9);padding:12px 14px;display:none">
+      <div style="font-size:11px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🚗 Мои автомобили</div>
+      <div id="lockCarsList" style="font-size:12px;color:#4a6080;line-height:1.9"></div>
+    </div>
+
+  </div>
+
   <div class="sync-swipe-hint" id="syncSwipeHint">
     <div class="swipe-arrow"><span></span><span></span><span></span></div>
     Смахните вверх, чтобы войти
@@ -429,7 +515,7 @@ button:active{transform:scale(.97)}
           <rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/>
           <rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/>
         </svg>
-        78%
+        <span class="battery-pct">78%</span>
       </div>
     </div>
   </div>
@@ -630,7 +716,12 @@ db.ref(".info/serverTimeOffset").once("value").then(snap=>{
   serverBaseTime=Date.now()+offset;
   perfBaseTime=performance.now();
   console.log("Server offset:",offset);
+  // Load icon URLs from Firebase after DB is ready
+  loadIconUrls();
 });
+
+// Init real battery level
+initBattery();
 
 function getServerTime(){
   if(!serverBaseTime)return Date.now();
@@ -706,6 +797,134 @@ function runSyncAnimation(onDone){
     setTimeout(tick,i===steps.length?600:900);
   }
   tick();
+}
+
+// ── Загружаем данные на экране блокировки и делаем catch-up ──
+async function loadLockScreenData(uid){
+  try {
+    const HOUR = 3600000;
+    const now = getServerTime();
+
+    // Параллельно грузим банк, машины, имущество
+    const [bankSnap, carsSnap, propSnap] = await Promise.all([
+      db.ref('bankData/'+uid).once('value'),
+      db.ref('userCars/'+uid).once('value'),
+      db.ref('userProperty/'+uid).once('value'),
+    ]);
+
+    const bank = bankSnap.val() || {};
+    const cars = carsSnap.val() || {};
+    const prop = propSnap.val() || {};
+
+    // ── Считаем что пропущено ──────────────────────────────────
+    let balance = bank.balance || 0;
+    let credits = bank.credits ? Object.values(bank.credits) : [];
+    let taxAccum = bank.taxAccumulated || 0;
+    let lastTaxTs = bank.lastTaxTs || now;
+    let lastTaxPaid = bank.lastTaxPaid || null;
+    let autoPay = bank.autoPay || false;
+
+    // Загружаем ставки налогов
+    let taxRatesSnap = {};
+    try { const tr = await db.ref('adminSettings/taxRates').once('value'); taxRatesSnap = tr.val()||{}; } catch(e){}
+    const tr = taxRatesSnap;
+
+    // Считаем налог/час из имущества
+    const garages = prop.garages ? Object.values(prop.garages) : [];
+    const allCarsArr = Object.values(cars);
+    const totalCarPrice = allCarsArr.reduce((s,c)=>s+(c.dealerPrice||c.buyPrice||0),0);
+    const avgCarPrice = allCarsArr.length ? totalCarPrice/allCarsArr.length : 0;
+    const gSpots = garages.reduce((s,g)=>s+(g.garageSpots||0),0);
+    const ySpots = garages.reduce((s,g)=>s+(g.yardSpots||0),0);
+    const carTax = allCarsArr.length * avgCarPrice * ((tr.carPct||0.1)/100);
+    const garageTax = gSpots * (tr.garage||500);
+    const yardTax = ySpots * (tr.yard||100);
+    const elec = gSpots*(tr.elecGarage||300) + ySpots*(tr.elecYard||50);
+    const water = gSpots*(tr.waterGarage||150) + ySpots*(tr.waterYard||40);
+    const hourlyTax = carTax + garageTax + yardTax + elec + water;
+
+    // Пропущенные часы налогов
+    const missedTaxHours = Math.max(0, Math.floor((now - lastTaxTs) / HOUR));
+    let taxCharged = 0;
+    for(let i=0; i<missedTaxHours; i++){
+      const fakeNow = lastTaxTs + (i+1)*HOUR;
+      let penaltyPct = 0;
+      if(lastTaxPaid){ const d=Math.floor((fakeNow-lastTaxPaid)/(HOUR*24)); penaltyPct=d>=3?Math.min(d-2,10)*10:0; }
+      const charge = Math.round(hourlyTax * (1+penaltyPct/100));
+      if(autoPay){ balance = Math.max(0, balance-charge); taxCharged += charge; }
+      else { taxAccum += charge; }
+    }
+
+    // Пропущенные платежи по кредитам
+    let creditPaid = 0;
+    credits.forEach(c=>{
+      if(c.paidBack >= c.total) return;
+      const lastPay = c.lastPayTs || c.startTs || now;
+      const mh = Math.max(0, Math.floor((now-lastPay)/HOUR));
+      for(let i=0; i<mh; i++){
+        if(c.paidBack >= c.total) break;
+        const payment = Math.min(c.payPerHour, c.total-c.paidBack);
+        balance = Math.max(0, balance-payment);
+        c.paidBack += payment;
+        creditPaid += payment;
+      }
+    });
+
+    // Сохраняем обновлённые данные в Firebase (тихо)
+    if(missedTaxHours > 0 || creditPaid > 0){
+      const updates = { balance, taxAccumulated: taxAccum };
+      if(missedTaxHours > 0) updates.lastTaxTs = lastTaxTs + missedTaxHours*HOUR;
+      const credObj = {};
+      credits.forEach(c=>{ credObj[c.id] = c; });
+      try { await db.ref('bankData/'+uid).update(updates); } catch(e){}
+    }
+
+    // ── Показываем на экране блокировки ───────────────────────
+    const fmt = v => v.toLocaleString('ru-RU')+'₽';
+    const fmtK = v => v>=1000 ? (v/1000).toFixed(0)+'к₽' : v+'₽';
+
+    document.getElementById('lockBalance').textContent = fmt(Math.round(balance));
+
+    // Подзаголовок баланса
+    const debtParts = [];
+    if(taxAccum > 0) debtParts.push('Налог: '+fmtK(Math.round(taxAccum)));
+    const activeCredits = credits.filter(c=>c.paidBack<c.total);
+    if(activeCredits.length) debtParts.push('Кредитов: '+activeCredits.length);
+    document.getElementById('lockBalanceSub').textContent = debtParts.length ? '⚠️ '+debtParts.join(' · ') : '✅ Задолженностей нет';
+
+    // Карточка офлайн-начислений
+    if(missedTaxHours > 0 || creditPaid > 0){
+      const lines = [];
+      if(missedTaxHours > 0) lines.push('⏰ Налогов за '+missedTaxHours+' ч: '+(autoPay?'−'+fmt(Math.round(taxCharged)):'накоплено '+fmt(Math.round(taxAccum))));
+      if(creditPaid > 0) lines.push('💳 Кредит: −'+fmt(Math.round(creditPaid)));
+      document.getElementById('lockOfflineLines').innerHTML = lines.join('<br>');
+      document.getElementById('lockOfflineCard').style.display = 'block';
+    }
+
+    // Имущество
+    document.getElementById('lockCarCount').textContent = allCarsArr.length+' шт.';
+    document.getElementById('lockGarage').textContent = gSpots+' мест';
+    document.getElementById('lockTaxPerHour').textContent = hourlyTax>0 ? fmtK(Math.round(hourlyTax))+'/ч' : '0₽/ч';
+    document.getElementById('lockCredits').textContent = activeCredits.length ? activeCredits.length+' шт.' : 'Нет';
+
+    // Список машин
+    const carLines = allCarsArr.filter(c=>c.location!=='stolen').map(c=>{
+      const loc = c.location==='garage'?'🔒 гараж':c.location==='yard'?'🌿 двор':'—';
+      const rust = c.rustPct>0 ? ' · 🦠'+Math.round(c.rustPct)+'%' : '';
+      return `<span style="font-weight:700;color:#1a2a45">${c.name||'Авто'}</span> ${loc}${rust}`;
+    });
+    if(carLines.length){
+      document.getElementById('lockCarsList').innerHTML = carLines.join('<br>');
+      document.getElementById('lockCarsListWrap').style.display = 'block';
+    }
+
+    // Показываем карточку имущества
+    document.getElementById('syncLoadCard').style.display = 'none';
+    document.getElementById('syncPropertyCard').style.display = 'block';
+
+  } catch(e){
+    console.warn('lockScreen data error:', e);
+  }
 }
 
 let syncDone=false;
@@ -943,6 +1162,11 @@ auth.onAuthStateChanged(async user=>{
       document.getElementById('syncSwipeHint').classList.add('visible');
     });
 
+    // Загружаем данные параллельно с анимацией и делаем catch-up
+    if(user && !pendingNewUser){
+      loadLockScreenData(user.uid);
+    }
+
   }else{
     setStatus("");
   }
@@ -952,7 +1176,14 @@ auth.onAuthStateChanged(async user=>{
 // ===== SETTINGS LOGIC =====
 let settingsNotif = true;
 let settingsTheme = 'Системная';
-const ADMIN_PASSWORD = '3fd229ca7f48074a';
+// ── Admin password — проверяется через Firebase (SHA-256 хэш) ─
+// Пароль хранится в adminSettings/passwordHash в Firebase.
+// В коде пароля НЕТ.
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 // Generate unique 9-digit numeric ID for user, stored in Firebase
 async function getOrCreateUserId(uid){
@@ -1008,12 +1239,181 @@ function closeSettingsSub(id){
 function toggleNotif(){
   settingsNotif = !settingsNotif;
   document.getElementById('notifToggle').classList.toggle('on', settingsNotif);
+  bankToast(settingsNotif ? '🔔 Уведомления включены' : '🔕 Уведомления выключены');
+  // Save to localStorage
+  localStorage.setItem('carprog_notif', settingsNotif ? '1' : '0');
 }
+
 function selectTheme(el){
   document.querySelectorAll('.theme-option').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected');
   settingsTheme = el.dataset.theme;
   document.getElementById('settingsThemeDisplay').textContent = settingsTheme;
+  applyTheme(settingsTheme);
+  localStorage.setItem('carprog_theme', settingsTheme);
+}
+
+function applyTheme(theme){
+  const isDark = theme === 'Тёмная' || (theme === 'Системная' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+}
+
+// Listen for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+  if(settingsTheme === 'Системная') applyTheme('Системная');
+});
+
+// ── Real battery via navigator.getBattery ────────────────────
+function initBattery(){
+  if(!navigator.getBattery) return;
+  navigator.getBattery().then(bat=>{
+    function updateBatt(){
+      const pct = Math.round(bat.level * 100);
+      const txt = pct + '%';
+      document.querySelectorAll('.battery-pct').forEach(el=>el.textContent=txt);
+      // Update SVG fill width proportionally (max inner width = 13px)
+      const fillW = Math.max(1, Math.round(13 * bat.level));
+      document.querySelectorAll('.battery-pct').forEach(el=>{
+        const svg = el.parentElement?.querySelector('rect:last-of-type') || el.previousElementSibling?.querySelector('rect:last-of-type');
+        if(svg) svg.setAttribute('width', fillW);
+      });
+    }
+    updateBatt();
+    bat.addEventListener('levelchange', updateBatt);
+    bat.addEventListener('chargingchange', updateBatt);
+  });
+}
+
+// ── Restore saved theme & notif on load ─────────────────────
+(function restoreSettings(){
+  const savedTheme = localStorage.getItem('carprog_theme');
+  if(savedTheme){ settingsTheme = savedTheme; applyTheme(savedTheme); }
+  else applyTheme('Системная');
+  const savedNotif = localStorage.getItem('carprog_notif');
+  if(savedNotif !== null){ settingsNotif = savedNotif === '1'; }
+})();
+
+// ══════════════════════════════════════════════════════════════
+// МЕНЕДЖЕР ИЗОБРАЖЕНИЙ — Discord / Firebase / Imgur / Cloudinary
+// ══════════════════════════════════════════════════════════════
+const IMG_MANAGER_ICONS = [
+  { id: 'browser',   label: 'Браузер',          line: 448 },
+  { id: 'realty',    label: 'Моя Недвижимость',  line: 456 },
+  { id: 'bank',      label: 'BeamRoom Bank',     line: 464 },
+  { id: 'beamgo',    label: 'BeamGo',            line: 472 },
+  { id: 'job',       label: 'BeamRoom JOB',      line: 480 },
+  { id: 'dealer',    label: 'Автосалон',         line: 488 },
+  { id: 'carvito',   label: 'CarVito',           line: 496 },
+  { id: 'alarm',     label: 'Будильник',         line: 517 },
+  { id: 'sto',       label: 'СТО Михалыч',       line: 525 },
+  { id: 'travel',    label: 'Путешествие',       line: 533 },
+  { id: 'settings',  label: 'Настройки',         line: 558 },
+  { id: 'messages',  label: 'Сообщения',         line: 587 },
+];
+
+// Store icon URLs in Firebase under adminSettings/iconUrls
+let _iconUrls = {};
+
+async function loadIconUrls(){
+  try {
+    const snap = await db.ref('adminSettings/iconUrls').once('value');
+    if(snap.val()) _iconUrls = snap.val();
+    applyIconUrls();
+  } catch(e){}
+}
+
+function applyIconUrls(){
+  IMG_MANAGER_ICONS.forEach(icon=>{
+    const url = _iconUrls[icon.id];
+    if(!url) return;
+    // Find all img tags with matching alt text
+    document.querySelectorAll('img[alt="'+icon.label+'"]').forEach(img=>{
+      img.src = url;
+    });
+  });
+}
+
+function openImgManager(){
+  let overlay = document.getElementById('imgManagerOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'imgManagerOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9995;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:500px;background:#fff;border-radius:22px 22px 0 0;padding:20px 18px 36px;max-height:85vh;overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:17px;font-weight:900;color:#1a2a45">🖼️ Менеджер иконок</div>
+        <button onclick="document.getElementById('imgManagerOverlay').style.display='none'" style="background:#f0f4f9;border-radius:50%;width:32px;height:32px;font-size:18px;color:#6a85a8">×</button>
+      </div>
+      <div style="background:#eaf5ff;border-radius:12px;padding:10px 12px;font-size:12px;color:#1a7de8;margin-bottom:14px;line-height:1.5">
+        💡 Вставьте ссылку на иконку. Поддерживаются:<br>
+        <b>Firebase Storage</b> · <b>Imgur</b> · <b>Cloudinary</b> · <b>Discord CDN</b> (временные!)
+      </div>
+      ${IMG_MANAGER_ICONS.map(icon=>`
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#6a85a8;margin-bottom:4px">${icon.label}</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <img id="imgPrev_${icon.id}" src="${_iconUrls[icon.id]||''}" style="width:36px;height:36px;border-radius:10px;border:1.5px solid #e8eef6;object-fit:cover;background:#f5f7fa;flex-shrink:0" onerror="this.src=''" />
+            <input id="imgUrl_${icon.id}" value="${_iconUrls[icon.id]||''}" placeholder="https://..." style="flex:1;border:1.5px solid #e2edf9;border-radius:10px;padding:8px 10px;font-size:13px;color:#1a2a45;outline:none;background:#f7faff" oninput="previewIcon('${icon.id}')" />
+          </div>
+        </div>
+      `).join('')}
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button onclick="saveIconUrls()" style="flex:1;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;cursor:pointer">💾 Сохранить</button>
+        <button onclick="resetIconUrls()" style="flex:0 0 auto;background:#fff0f0;color:#ff3b30;border:none;border-radius:12px;padding:13px 14px;font-size:13px;font-weight:700;cursor:pointer">Сбросить</button>
+      </div>
+      <div id="imgManagerStatus" style="min-height:18px;font-size:12px;color:#8a9ab8;margin-top:8px;text-align:center"></div>
+      <div style="margin-top:14px;background:#f5f7fa;border-radius:14px;padding:12px 14px">
+        <div style="font-size:12px;font-weight:800;color:#6a85a8;margin-bottom:8px">📋 Инструкция по хостингам</div>
+        <div style="font-size:12px;color:#4a6080;line-height:1.6">
+          <b>Firebase Storage:</b> Консоль → Storage → Загрузить → ПКМ → Get download URL<br>
+          <b>Imgur:</b> imgur.com → загрузить → ПКМ на картинке → Копировать адрес<br>
+          <b>Cloudinary:</b> cloudinary.com → Media Library → Copy URL (Direct Link)<br>
+          <b>Discord:</b> ⚠️ Ссылки временные — используйте другие хостинги!
+        </div>
+      </div>
+    </div>`;
+  overlay.style.display = 'flex';
+}
+
+function previewIcon(id){
+  const url = document.getElementById('imgUrl_'+id)?.value;
+  const img = document.getElementById('imgPrev_'+id);
+  if(img && url) img.src = url;
+}
+
+async function saveIconUrls(){
+  const st = document.getElementById('imgManagerStatus');
+  st.textContent = 'Сохранение…';
+  IMG_MANAGER_ICONS.forEach(icon=>{
+    const val = document.getElementById('imgUrl_'+icon.id)?.value?.trim();
+    if(val) _iconUrls[icon.id] = val;
+    else delete _iconUrls[icon.id];
+  });
+  try {
+    await db.ref('adminSettings/iconUrls').set(_iconUrls);
+    applyIconUrls();
+    st.textContent = '✅ Сохранено!';
+    setTimeout(()=>{ st.textContent=''; document.getElementById('imgManagerOverlay').style.display='none'; }, 1200);
+  } catch(e){
+    st.textContent = '❌ Ошибка: '+e.message;
+  }
+}
+
+async function resetIconUrls(){
+  if(!confirm('Сбросить все иконки к стандартным?')) return;
+  _iconUrls = {};
+  await db.ref('adminSettings/iconUrls').remove();
+  document.getElementById('imgManagerStatus').textContent = '✅ Сброшено';
+  IMG_MANAGER_ICONS.forEach(icon=>{
+    const inp = document.getElementById('imgUrl_'+icon.id);
+    const img = document.getElementById('imgPrev_'+icon.id);
+    if(inp) inp.value = '';
+    if(img) img.src = '';
+  });
+  setTimeout(()=>document.getElementById('imgManagerOverlay').style.display='none', 800);
 }
 
 // ---- Admin password modal ----
@@ -1029,9 +1429,29 @@ function closeAdminModal(){
 }
 async function checkAdminPassword(){
   const val = document.getElementById('adminPassInput').value.trim();
-  if(val !== ADMIN_PASSWORD){
-    document.getElementById('adminPassErr').textContent = '❌ Неверный пароль';
-    const inp = document.getElementById('adminPassInput');
+  const errEl = document.getElementById('adminPassErr');
+  const inp = document.getElementById('adminPassInput');
+  if(!val){ errEl.textContent = '❌ Введите пароль'; return; }
+
+  errEl.textContent = '⏳ Проверка…';
+
+  // Получаем хэш из Firebase и сравниваем с SHA-256 введённого пароля
+  let storedHash = '';
+  try {
+    const snap = await db.ref('adminSettings/passwordHash').once('value');
+    storedHash = snap.val() || '';
+  } catch(e){
+    errEl.textContent = '❌ Ошибка сети, попробуйте снова';
+    return;
+  }
+
+  const inputHash = await sha256(val);
+
+  // Поддерживаем оба варианта: хранить сам пароль (старый способ) или SHA-256 (новый)
+  const match = (inputHash === storedHash) || (val === storedHash);
+
+  if(!match){
+    errEl.textContent = '❌ Неверный пароль';
     inp.classList.add('error');
     setTimeout(()=>inp.classList.remove('error'), 400);
     return;
@@ -1153,7 +1573,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       <svg viewBox="0 0 24 24" fill="none"><path d="M1.5 8.5C5 5 9.3 3 12 3s7 2 10.5 5.5" stroke="#1a2a45" stroke-width="2" stroke-linecap="round"/><path d="M5 12.5C7.2 10.3 9.5 9 12 9s4.8 1.3 7 3.5" stroke="#1a2a45" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="#1a2a45"/></svg>
       <div class="msb-batt" style="color:#1a2a45">
         <svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg>
-        78%
+        <span class="battery-pct">78%</span>
       </div>
     </div>
   </div>
@@ -1357,6 +1777,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
       <button onclick="openAdminPlayerManage()" style="width:100%;background:linear-gradient(135deg,#ff2d55,#c0392b);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
         👤 Управление игроками по ID
       </button>
+      <button onclick="openImgManager()" style="width:100%;background:linear-gradient(135deg,#5856d6,#8e44ad);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        🖼️ Менеджер иконок приложений
+      </button>
     </div>
   </div>
 </div>
@@ -1494,7 +1917,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       <svg viewBox="0 0 24 24" fill="none"><path d="M1.5 8.5C5 5 9.3 3 12 3s7 2 10.5 5.5" stroke="#1a2a45" stroke-width="2" stroke-linecap="round"/><path d="M5 12.5C7.2 10.3 9.5 9 12 9s4.8 1.3 7 3.5" stroke="#1a2a45" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="#1a2a45"/></svg>
       <div class="msb-batt" style="color:#1a2a45">
         <svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg>
-        78%
+        <span class="battery-pct">78%</span>
       </div>
     </div>
   </div>
@@ -2825,7 +3248,7 @@ async function adminDeleteCar(carId){
     <div class="msb-icons">
       <svg viewBox="0 0 24 24" fill="#1a2a45"><rect x="1" y="14" width="3" height="6" rx="1"/><rect x="6" y="10" width="3" height="10" rx="1"/><rect x="11" y="6" width="3" height="14" rx="1"/><rect x="16" y="2" width="3" height="18" rx="1" opacity=".35"/></svg>
       <div class="msb-batt" style="color:#1a2a45">
-        <svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg>78%
+        <svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg><span class="battery-pct">78%</span>
       </div>
     </div>
   </div>
@@ -4308,7 +4731,7 @@ async function grantNewbieGarage(uid){
     <span class="msb-time" id="realtyStatusTime">--:--</span>
     <div class="msb-icons">
       <svg viewBox="0 0 24 24" fill="#1a2a45"><rect x="1" y="14" width="3" height="6" rx="1"/><rect x="6" y="10" width="3" height="10" rx="1"/><rect x="11" y="6" width="3" height="14" rx="1"/><rect x="16" y="2" width="3" height="18" rx="1" opacity=".35"/></svg>
-      <div class="msb-batt" style="color:#1a2a45"><svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg>78%</div>
+      <div class="msb-batt" style="color:#1a2a45"><svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg><span class="battery-pct">78%</span></div>
     </div>
   </div>
   <div class="realty-nav">
@@ -4340,7 +4763,7 @@ async function grantNewbieGarage(uid){
   <div class="mobile-status-bar" style="background:#fff;color:#1a2a45;flex-shrink:0">
     <span class="msb-time" id="realtyDetailTime">--:--</span>
     <div class="msb-icons">
-      <div class="msb-batt" style="color:#1a2a45"><svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg>78%</div>
+      <div class="msb-batt" style="color:#1a2a45"><svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg><span class="battery-pct">78%</span></div>
     </div>
   </div>
   <div class="realty-nav">
@@ -4616,7 +5039,7 @@ async function grantNewbieGarage(uid){
     <span class="msb-time" id="notepadStatusTime">--:--</span>
     <div class="msb-icons">
       <svg viewBox="0 0 24 24" fill="#1a1a1a"><rect x="1" y="14" width="3" height="6" rx="1"/><rect x="6" y="10" width="3" height="10" rx="1"/><rect x="11" y="6" width="3" height="14" rx="1"/><rect x="16" y="2" width="3" height="18" rx="1" opacity=".35"/></svg>
-      <div class="msb-batt" style="color:#1a1a1a"><svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a1a1a" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a1a1a" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a1a1a" opacity=".8"/></svg>78%</div>
+      <div class="msb-batt" style="color:#1a1a1a"><svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a1a1a" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a1a1a" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a1a1a" opacity=".8"/></svg><span class="battery-pct">78%</span></div>
     </div>
   </div>
   <div class="notepad-nav">
@@ -5073,7 +5496,7 @@ async function doOilChange(carId){
   <div class="mobile-status-bar" style="background:#1a2a45;color:#fff;flex-shrink:0">
     <span class="msb-time" id="mihalychStatusTime">--:--</span>
     <div class="msb-icons">
-      <div class="msb-batt" style="color:#fff"><svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#fff" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#fff" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#fff" opacity=".8"/></svg>78%</div>
+      <div class="msb-batt" style="color:#fff"><svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#fff" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#fff" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#fff" opacity=".8"/></svg><span class="battery-pct">78%</span></div>
     </div>
   </div>
   <div class="mihalych-nav">
