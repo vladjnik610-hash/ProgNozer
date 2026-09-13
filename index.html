@@ -417,8 +417,8 @@ button:active{transform:scale(.97)}
     <div class="sync-bar-label"><span id="syncBarText">Загрузка…</span><span id="syncBarPct">0%</span></div>
   </div>
 
-  <!-- Карточка имущества (показывается после загрузки) -->
-  <div id="syncPropertyCard" style="display:none;width:min(340px,90vw);margin-bottom:12px">
+  <!-- Карточка имущества (скрыта на экране блокировки, данные грузятся в фоне) -->
+  <div id="syncPropertyCard" style="display:none!important;width:min(340px,90vw);margin-bottom:12px;visibility:hidden;pointer-events:none">
 
     <!-- Баланс -->
     <div style="background:linear-gradient(135deg,#1a7de8,#4c9fff);border-radius:18px;padding:14px 18px;margin-bottom:10px;color:#fff;position:relative;overflow:hidden">
@@ -577,7 +577,7 @@ button:active{transform:scale(.97)}
       </div>
 
       <!-- CarVito -->
-      <div class="hs-app">
+      <div class="hs-app" onclick="openCarVito()">
         <div class="hs-app-icon" style="background:#fff;border:1.5px solid #e8f0fa">
           <img src="https://cdn.discordapp.com/attachments/1494406726911262822/1548217533944037447/file_0000000008e48210a75b97b2f64f36f5.png?ex=6aa64170&is=6aa4eff0&hm=17126711a2fc088b51bbb5f40f5bb2467a37ad0fc17bf59befbb3bc93a2be86b&" alt="CarVito">
         </div>
@@ -918,9 +918,9 @@ async function loadLockScreenData(uid){
       document.getElementById('lockCarsListWrap').style.display = 'block';
     }
 
-    // Показываем карточку имущества
+    // Данные загружены в фоне — карточку имущества на экране блокировки НЕ показываем
     document.getElementById('syncLoadCard').style.display = 'none';
-    document.getElementById('syncPropertyCard').style.display = 'block';
+    // syncPropertyCard остаётся скрытым (данные готовы для использования после разблокировки)
 
   } catch(e){
     console.warn('lockScreen data error:', e);
@@ -5789,6 +5789,1048 @@ async function mihalychRepairAll(carId, totalCost){
   _mihalychRepairBusy = false;
   openMihalychCar(carId);
 }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ════════════════  CARVITO APP  ══════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<style>
+/* ─── CarVito Screen ─────────────────────────────────── */
+.cv-screen{position:fixed;inset:0;z-index:650;display:none;flex-direction:column;background:#f0f4f9;overflow:hidden}
+.cv-screen.visible{display:flex;animation:slideInRight .3s cubic-bezier(.22,.8,.35,1) both}
+
+/* Status bar */
+.cv-status{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 4px;font-size:12px;font-weight:700;color:#1a2a45;flex-shrink:0;background:#fff}
+.cv-status-time{font-size:13px;font-weight:800}
+.cv-status-icons{display:flex;align-items:center;gap:5px}
+
+/* Header */
+.cv-header{background:#fff;border-bottom:1px solid #eaecf0;padding:10px 16px 12px;flex-shrink:0}
+.cv-logo-row{display:flex;align-items:center;justify-content:space-between}
+.cv-logo-name{font-size:22px;font-weight:900;color:#1a2a45;letter-spacing:-0.5px;display:flex;align-items:center;gap:8px}
+.cv-logo-name span{font-size:13px;font-weight:700;color:#1a7de8;background:#e8f0ff;padding:3px 10px;border-radius:99px}
+.cv-header-notif{background:none;border:none;padding:6px;cursor:pointer}
+.cv-header-notif svg{width:22px;height:22px;fill:#6a85a8}
+
+/* Search bar */
+.cv-search-row{display:flex;gap:8px;align-items:center;padding:10px 16px;background:#fff;border-bottom:1px solid #eaecf0;flex-shrink:0}
+.cv-search-wrap{flex:1;position:relative;display:flex;align-items:center}
+.cv-search-wrap svg{position:absolute;left:10px;width:16px;height:16px;fill:#8a9ab8;pointer-events:none}
+.cv-search-inp{width:100%;background:#f0f4f9;border:1.5px solid transparent;border-radius:12px;padding:10px 14px 10px 36px;font-size:15px;color:#1a2a45;outline:none;transition:.15s;font-family:inherit}
+.cv-search-inp:focus{border-color:#1a7de8;background:#fff}
+.cv-filter-btn{background:#1a7de8;color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:5px;border:none;cursor:pointer;flex-shrink:0}
+.cv-filter-btn svg{width:16px;height:16px;fill:#fff}
+
+/* Sort chips */
+.cv-sort-row{display:flex;gap:6px;padding:10px 16px 0;overflow-x:auto;scrollbar-width:none;flex-shrink:0;background:#fff;border-bottom:1px solid #eaecf0;padding-bottom:10px}
+.cv-sort-row::-webkit-scrollbar{display:none}
+.cv-sort-chip{padding:7px 14px;border-radius:99px;border:1.5px solid #e2edf9;background:#f5f7fa;font-size:13px;font-weight:700;color:#6a85a8;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.15s}
+.cv-sort-chip.active{background:#1a7de8;border-color:#1a7de8;color:#fff}
+
+/* Listings */
+.cv-list{flex:1;overflow-y:auto;padding:12px 16px 80px}
+.cv-ad-card{background:#fff;border-radius:16px;border:1.5px solid #eaecf0;margin-bottom:10px;overflow:hidden;cursor:pointer;transition:.15s}
+.cv-ad-card:active{transform:scale(.98)}
+.cv-ad-img{width:100%;height:160px;object-fit:cover;background:linear-gradient(135deg,#e8f0f9,#d0e4f7);display:flex;align-items:center;justify-content:center;font-size:48px}
+.cv-ad-img img{width:100%;height:100%;object-fit:cover}
+.cv-ad-body{padding:12px 14px 14px}
+.cv-ad-name{font-size:16px;font-weight:800;color:#1a2a45}
+.cv-ad-meta{font-size:12px;color:#7a95b8;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.cv-ad-meta span{display:flex;align-items:center;gap:3px}
+.cv-ad-price-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.cv-ad-price{font-size:18px;font-weight:900;color:#1a7de8}
+.cv-ad-badges{display:flex;gap:6px}
+.cv-ad-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px}
+.cv-ad-badge.sell{background:#e8f4ff;color:#1a7de8}
+.cv-ad-badge.trade{background:#fff0e8;color:#e65100}
+.cv-ad-seller{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #f0f4f9}
+.cv-ad-seller-avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.cv-ad-seller-name{font-size:12px;font-weight:700;color:#4a6080}
+.cv-ad-seller-type{font-size:11px;color:#b0bdd0;margin-left:auto}
+.cv-ad-fav{background:none;border:none;padding:4px;cursor:pointer}
+.cv-ad-fav svg{width:20px;height:20px;fill:none;stroke:#c0cce0;stroke-width:2}
+.cv-ad-fav.active svg{fill:#ff3b30;stroke:#ff3b30}
+
+/* Empty */
+.cv-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;color:#b0bdd0;font-size:16px;font-weight:600;text-align:center;gap:12px}
+.cv-empty svg{width:64px;height:64px;fill:#d8e4f0}
+
+/* Bottom tab bar */
+.cv-tab-bar{display:flex;background:#fff;border-top:1px solid #eaecf0;padding:6px 0 8px;flex-shrink:0;position:absolute;bottom:0;left:0;right:0}
+.cv-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px 0;font-size:10px;font-weight:700;color:#b0bdd0;transition:.1s}
+.cv-tab.active{color:#1a7de8}
+.cv-tab svg{width:22px;height:22px;fill:#c8d4e4}
+.cv-tab.active svg{fill:#1a7de8}
+.cv-tab-add{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1a2a45,#1a7de8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(26,125,232,.35);border:none;cursor:pointer;margin-top:-14px;flex-shrink:0}
+.cv-tab-add svg{width:24px;height:24px;fill:#fff}
+
+/* ─── Detail view ─── */
+.cv-detail{position:absolute;inset:0;background:#fff;display:none;flex-direction:column;z-index:20;overflow:hidden}
+.cv-detail.visible{display:flex}
+.cv-detail-nav{display:flex;align-items:center;gap:8px;padding:12px 16px 10px;background:#fff;border-bottom:1px solid #eaecf0;flex-shrink:0}
+.cv-detail-back{background:none;border:none;padding:4px;cursor:pointer;display:flex;align-items:center;gap:4px;color:#1a7de8;font-size:15px;font-weight:700}
+.cv-detail-back svg{width:20px;height:20px;fill:#1a7de8}
+.cv-detail-title{font-size:16px;font-weight:800;color:#1a2a45;flex:1}
+.cv-detail-fav-btn{background:none;border:none;padding:6px;cursor:pointer}
+.cv-detail-fav-btn svg{width:22px;height:22px;fill:none;stroke:#c0cce0;stroke-width:2}
+.cv-detail-fav-btn.active svg{fill:#ff3b30;stroke:#ff3b30}
+.cv-detail-img{width:100%;height:220px;object-fit:cover;background:#f0f4f9;flex-shrink:0}
+.cv-detail-body{flex:1;overflow-y:auto;padding:16px 16px 100px}
+.cv-detail-name{font-size:22px;font-weight:900;color:#1a2a45;margin-bottom:6px}
+.cv-detail-price{font-size:28px;font-weight:900;color:#1a7de8;margin-bottom:4px}
+.cv-detail-market-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.cv-detail-market-chip{font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;background:#f0f4f9;color:#6a85a8}
+.cv-detail-market-chip b{color:#1a2a45}
+.cv-detail-section{font-size:14px;font-weight:800;color:#1a2a45;margin:16px 0 8px;text-transform:uppercase;letter-spacing:.5px}
+.cv-detail-text{font-size:14px;color:#5a6a80;line-height:1.65;background:#f8fafc;border-radius:12px;padding:12px 14px}
+.cv-detail-feature{display:flex;align-items:flex-start;gap:8px;font-size:14px;color:#3a4a60;margin-bottom:6px}
+.cv-detail-feature svg{width:18px;height:18px;fill:#1a7de8;flex-shrink:0;margin-top:1px}
+.cv-detail-seller-card{background:#f0f6ff;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-top:8px}
+.cv-detail-seller-ava{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0}
+.cv-detail-seller-info{flex:1}
+.cv-detail-seller-name{font-size:15px;font-weight:800;color:#1a2a45}
+.cv-detail-seller-city{font-size:12px;color:#7a95b8;margin-top:2px}
+.cv-detail-btns{padding:12px 16px 20px;background:#fff;border-top:1px solid #eaecf0;flex-shrink:0;display:flex;gap:10px;position:absolute;bottom:0;left:0;right:0}
+.cv-detail-btn-main{flex:1;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:800;cursor:pointer}
+.cv-detail-btn-sec{background:#f0f4f9;color:#1a2a45;border:none;border-radius:14px;padding:15px 18px;font-size:15px;font-weight:700;cursor:pointer}
+
+/* ─── Create ad modal ─── */
+.cv-create-overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.cv-create-overlay.visible{display:flex;animation:fadeIn .2s ease}
+.cv-create-modal{width:100%;max-width:480px;background:#fff;border-radius:24px 24px 0 0;padding:20px 20px 32px;max-height:90vh;overflow-y:auto}
+.cv-create-title{font-size:20px;font-weight:900;color:#1a2a45;margin-bottom:4px}
+.cv-create-sub{font-size:13px;color:#8a9ab8;margin-bottom:18px}
+.cv-create-label{font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}
+.cv-create-inp{width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none;font-family:inherit;transition:.15s}
+.cv-create-inp:focus{border-color:#1a7de8;background:#fff}
+.cv-create-inp::placeholder{color:#b0bdd0}
+.cv-create-textarea{resize:none;height:90px;line-height:1.5}
+.cv-create-row{display:flex;gap:8px;margin-bottom:0}
+.cv-create-type-btn{flex:1;padding:12px;border-radius:12px;border:2px solid #e2edf9;background:#f5f7fa;font-size:14px;font-weight:700;color:#6a85a8;cursor:pointer;transition:.15s;text-align:center}
+.cv-create-type-btn.active{border-color:#1a7de8;background:#e8f0ff;color:#1a7de8}
+.cv-create-price-wrap{position:relative}
+.cv-create-price-hint{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:#b0bdd0;font-weight:700;pointer-events:none}
+.cv-create-autofill-btn{width:100%;background:#f0f4f9;border:1.5px dashed #c8d4e4;border-radius:12px;padding:12px;font-size:14px;font-weight:700;color:#1a7de8;cursor:pointer;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px}
+.cv-create-car-pick{display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;padding:2px}
+.cv-create-car-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f5f7fa;border-radius:14px;border:2px solid transparent;cursor:pointer;transition:.15s}
+.cv-create-car-item.selected{border-color:#1a7de8;background:#e8f0ff}
+.cv-create-car-ava{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.cv-create-car-name{font-size:14px;font-weight:800;color:#1a2a45}
+.cv-create-car-loc{font-size:12px;color:#8a9ab8;margin-top:2px}
+.cv-create-submit{width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:16px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;margin-top:18px;box-shadow:0 8px 24px rgba(26,125,232,.25)}
+.cv-create-cancel{width:100%;background:none;border:none;color:#8a9ab8;font-size:15px;font-weight:700;padding:10px;cursor:pointer;margin-top:4px}
+.cv-create-no-car{text-align:center;padding:20px;color:#b0bdd0;font-size:14px;font-weight:600}
+
+/* ─── Chat tab ─── */
+.cv-chat-list{flex:1;overflow-y:auto;padding:12px 16px 80px}
+.cv-chat-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:8px;cursor:pointer;border:1.5px solid #eaecf0}
+.cv-chat-item:active{transform:scale(.98)}
+.cv-chat-ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;position:relative}
+.cv-chat-ava.bot{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
+.cv-chat-unread{position:absolute;top:-3px;right:-3px;width:18px;height:18px;border-radius:50%;background:#ff3b30;font-size:10px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+.cv-chat-info{flex:1;min-width:0}
+.cv-chat-name{font-size:15px;font-weight:800;color:#1a2a45}
+.cv-chat-last{font-size:13px;color:#8a9ab8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cv-chat-time{font-size:11px;color:#b0bdd0;font-weight:600;margin-left:auto;align-self:flex-start;flex-shrink:0}
+.cv-chat-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:#c0cce0;font-size:15px;font-weight:600;text-align:center;gap:10px}
+
+/* ─── Favorites tab ─── */
+.cv-fav-list{flex:1;overflow-y:auto;padding:12px 16px 80px}
+.cv-fav-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:#c0cce0;font-size:15px;font-weight:600;text-align:center;gap:10px}
+.cv-fav-empty svg{width:56px;height:56px;fill:#d8e4f0}
+
+/* ─── Filter panel ─── */
+.cv-filter-panel{position:absolute;inset:0;background:#fff;display:none;flex-direction:column;z-index:30}
+.cv-filter-panel.visible{display:flex}
+.cv-filter-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid #eaecf0;flex-shrink:0}
+.cv-filter-nav-title{font-size:18px;font-weight:900;color:#1a2a45}
+.cv-filter-nav-close{background:none;border:none;padding:4px;cursor:pointer}
+.cv-filter-nav-close svg{width:22px;height:22px;fill:#8a9ab8}
+.cv-filter-body{flex:1;overflow-y:auto;padding:16px}
+.cv-filter-label{font-size:12px;font-weight:800;color:#8a9ab8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.cv-filter-section{margin-bottom:20px}
+.cv-filter-range{display:flex;gap:8px;margin-bottom:10px}
+.cv-filter-range-inp{flex:1;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:10px 12px;font-size:14px;font-weight:600;color:#1a2a45;outline:none;text-align:center;font-family:inherit}
+.cv-filter-chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.cv-filter-chip{padding:8px 16px;border-radius:50px;border:1.5px solid #e2edf9;background:#f5f7fa;font-size:14px;font-weight:700;color:#6a85a8;cursor:pointer;transition:.15s}
+.cv-filter-chip.active{background:#1a7de8;border-color:#1a7de8;color:#fff}
+.cv-filter-apply{width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:16px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;margin-top:10px;box-shadow:0 8px 24px rgba(26,125,232,.25)}
+.cv-filter-reset{width:100%;background:none;border:none;color:#1a7de8;font-size:15px;font-weight:700;padding:10px;cursor:pointer;margin-top:4px}
+
+/* ─── Profile tab ─── */
+.cv-profile-body{flex:1;overflow-y:auto;padding:20px 16px 80px}
+.cv-profile-header{text-align:center;margin-bottom:24px}
+.cv-profile-ava{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#5ab5ff,#1a7de8);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;margin:0 auto 12px;box-shadow:0 8px 24px rgba(26,125,232,.3)}
+.cv-profile-name{font-size:20px;font-weight:900;color:#1a2a45}
+.cv-profile-id{font-size:13px;color:#8a9ab8;margin-top:3px}
+.cv-profile-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px}
+.cv-profile-stat{background:#fff;border-radius:14px;padding:14px 10px;text-align:center;border:1.5px solid #eaecf0}
+.cv-profile-stat-val{font-size:22px;font-weight:900;color:#1a2a45}
+.cv-profile-stat-label{font-size:11px;color:#8a9ab8;font-weight:700;margin-top:3px}
+.cv-profile-my-ads{background:#fff;border-radius:16px;padding:14px 16px;border:1.5px solid #eaecf0}
+.cv-profile-ads-title{font-size:15px;font-weight:800;color:#1a2a45;margin-bottom:12px}
+.cv-profile-ad-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f4f9}
+.cv-profile-ad-row:last-child{border-bottom:none;padding-bottom:0}
+.cv-profile-ad-thumb{width:52px;height:40px;border-radius:8px;background:#f0f6ff;object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.cv-profile-ad-name{font-size:13px;font-weight:800;color:#1a2a45}
+.cv-profile-ad-price{font-size:12px;color:#1a7de8;font-weight:700;margin-top:2px}
+.cv-profile-empty-ads{text-align:center;color:#c0cce0;font-size:14px;font-weight:600;padding:20px 0}
+</style>
+
+<!-- CarVito Screen -->
+<div class="cv-screen" id="cvScreen">
+
+  <!-- Status bar -->
+  <div class="cv-status">
+    <span class="cv-status-time" id="cvStatusTime">--:--</span>
+    <div class="cv-status-icons">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="#1a2a45"><rect x="1" y="14" width="3" height="6" rx="1"/><rect x="6" y="10" width="3" height="10" rx="1"/><rect x="11" y="6" width="3" height="14" rx="1"/><rect x="16" y="2" width="3" height="18" rx="1" opacity=".35"/></svg>
+      <svg viewBox="0 0 24 14" width="22" height="13"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="#1a2a45" stroke-width="1.5"/><rect x="20" y="4" width="3" height="6" rx="1.5" fill="#1a2a45" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="9" rx="2" fill="#1a2a45" opacity=".8"/></svg>
+    </div>
+  </div>
+
+  <!-- Главная вкладка -->
+  <div id="cvTabHome" class="cv-tab-content" style="display:flex;flex-direction:column;flex:1;overflow:hidden;position:relative">
+    <div class="cv-header">
+      <div class="cv-logo-row">
+        <div class="cv-logo-name">🚗 CarVito <span>BETA</span></div>
+        <button class="cv-header-notif" onclick="cvOpenFilterPanel()">
+          <svg viewBox="0 0 24 24"><path d="M3 4h18v2.5l-7 7V20l-4-2v-4.5L3 6.5V4z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="cv-search-row">
+      <div class="cv-search-wrap">
+        <svg viewBox="0 0 24 24"><path d="M21 21l-5.2-5.2M17 11A6 6 0 115 11a6 6 0 0112 0z" fill="none" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg>
+        <input class="cv-search-inp" id="cvSearchInp" placeholder="Поиск по марке, модели…" oninput="cvFilterAds()">
+      </div>
+    </div>
+
+    <!-- Sort chips -->
+    <div class="cv-sort-row" id="cvSortRow">
+      <button class="cv-sort-chip active" data-sort="new" onclick="cvSetSort(this,'new')">🆕 Новые</button>
+      <button class="cv-sort-chip" data-sort="cheap" onclick="cvSetSort(this,'cheap')">💸 Дешевле</button>
+      <button class="cv-sort-chip" data-sort="expensive" onclick="cvSetSort(this,'expensive')">💎 Дороже</button>
+      <button class="cv-sort-chip" data-sort="bots" onclick="cvSetSort(this,'bots')">🤖 Боты</button>
+      <button class="cv-sort-chip" data-sort="players" onclick="cvSetSort(this,'players')">👤 Игроки</button>
+    </div>
+
+    <!-- Ads list -->
+    <div class="cv-list" id="cvAdsList">
+      <div class="cv-empty" id="cvAdsEmpty" style="display:none">
+        <svg viewBox="0 0 64 64"><path d="M8 24l6-16h36l6 16" fill="none" stroke="#d8e4f0" stroke-width="3" stroke-linecap="round"/><rect x="4" y="24" width="56" height="22" rx="7" fill="#d8e4f0"/><circle cx="18" cy="46" r="7" fill="#c8d4e4"/><circle cx="46" cy="46" r="7" fill="#c8d4e4"/></svg>
+        Объявлений пока нет.<br>Будь первым!
+      </div>
+      <div id="cvAdsLoading" style="text-align:center;padding:40px;color:#b0bdd0;font-size:14px;font-weight:600">Загрузка…</div>
+    </div>
+
+    <!-- Filter panel (inside home tab) -->
+    <div class="cv-filter-panel" id="cvFilterPanel">
+      <div class="cv-filter-nav">
+        <div class="cv-filter-nav-title">Фильтры</div>
+        <button class="cv-filter-nav-close" onclick="document.getElementById('cvFilterPanel').classList.remove('visible')">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" fill="none" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="cv-filter-body">
+        <div class="cv-filter-section">
+          <div class="cv-filter-label">Цена (₽)</div>
+          <div class="cv-filter-range">
+            <input class="cv-filter-range-inp" id="cvFiltMinPrice" type="number" placeholder="от">
+            <input class="cv-filter-range-inp" id="cvFiltMaxPrice" type="number" placeholder="до">
+          </div>
+        </div>
+        <div class="cv-filter-section">
+          <div class="cv-filter-label">Тип продажи</div>
+          <div class="cv-filter-chip-row" id="cvFiltTypeChips">
+            <button class="cv-filter-chip" data-val="sell" onclick="cvToggleFilterChip(this,'type')">Продажа</button>
+            <button class="cv-filter-chip" data-val="trade" onclick="cvToggleFilterChip(this,'type')">Обмен</button>
+          </div>
+        </div>
+        <div class="cv-filter-section">
+          <div class="cv-filter-label">Продавец</div>
+          <div class="cv-filter-chip-row" id="cvFiltSellerChips">
+            <button class="cv-filter-chip" data-val="player" onclick="cvToggleFilterChip(this,'seller')">Игрок</button>
+            <button class="cv-filter-chip" data-val="bot" onclick="cvToggleFilterChip(this,'seller')">Бот</button>
+          </div>
+        </div>
+        <div class="cv-filter-section">
+          <div class="cv-filter-label">Город</div>
+          <div class="cv-filter-chip-row" id="cvFiltCityChips">
+            <button class="cv-filter-chip" data-val="Москва" onclick="cvToggleFilterChip(this,'city')">Москва</button>
+            <button class="cv-filter-chip" data-val="Санкт-Петербург" onclick="cvToggleFilterChip(this,'city')">СПб</button>
+            <button class="cv-filter-chip" data-val="Уфа" onclick="cvToggleFilterChip(this,'city')">Уфа</button>
+            <button class="cv-filter-chip" data-val="Казань" onclick="cvToggleFilterChip(this,'city')">Казань</button>
+            <button class="cv-filter-chip" data-val="Екатеринбург" onclick="cvToggleFilterChip(this,'city')">Екб</button>
+            <button class="cv-filter-chip" data-val="Астана" onclick="cvToggleFilterChip(this,'city')">Астана</button>
+          </div>
+        </div>
+        <button class="cv-filter-apply" onclick="cvApplyFilter()">Применить</button>
+        <button class="cv-filter-reset" onclick="cvResetFilter()">Сбросить фильтры</button>
+      </div>
+    </div>
+
+    <!-- Ad detail view -->
+    <div class="cv-detail" id="cvDetailView">
+      <div class="cv-detail-nav">
+        <button class="cv-detail-back" onclick="document.getElementById('cvDetailView').classList.remove('visible')">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7" fill="none" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Назад
+        </button>
+        <div class="cv-detail-title" id="cvDetailTitle">Объявление</div>
+        <button class="cv-detail-fav-btn" id="cvDetailFavBtn" onclick="cvToggleDetailFav()">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        </button>
+      </div>
+      <div id="cvDetailImg" class="cv-detail-img" style="display:flex;align-items:center;justify-content:center;font-size:64px">🚗</div>
+      <div class="cv-detail-body" id="cvDetailBody"></div>
+      <div class="cv-detail-btns">
+        <button class="cv-detail-btn-main" onclick="cvContactSeller()">💬 Написать продавцу</button>
+        <button class="cv-detail-btn-sec" onclick="document.getElementById('cvDetailView').classList.remove('visible')">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Чат вкладка -->
+  <div id="cvTabChat" class="cv-tab-content" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="cv-header">
+      <div class="cv-logo-row">
+        <div class="cv-logo-name">💬 Сообщения</div>
+      </div>
+    </div>
+    <div class="cv-chat-list" id="cvChatList">
+      <div class="cv-chat-empty" id="cvChatEmpty">
+        <svg viewBox="0 0 64 64" width="56" height="56" fill="none"><path d="M8 8h48v38a4 4 0 01-4 4H8V8z" fill="#e8eef6"/><circle cx="20" cy="28" r="3" fill="#c0cce0"/><circle cx="32" cy="28" r="3" fill="#c0cce0"/><circle cx="44" cy="28" r="3" fill="#c0cce0"/><path d="M16 50l4-6" stroke="#c0cce0" stroke-width="2" stroke-linecap="round"/></svg>
+        Пока нет диалогов.<br>Напишите продавцу из объявления!
+      </div>
+    </div>
+  </div>
+
+  <!-- Избранное вкладка -->
+  <div id="cvTabFav" class="cv-tab-content" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="cv-header">
+      <div class="cv-logo-row">
+        <div class="cv-logo-name">❤️ Избранное</div>
+      </div>
+    </div>
+    <div class="cv-fav-list" id="cvFavList">
+      <div class="cv-fav-empty" id="cvFavEmpty">
+        <svg viewBox="0 0 24 24" width="56" height="56"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        Нет избранных объявлений.<br>Жми ❤️ на карточке авто!
+      </div>
+    </div>
+  </div>
+
+  <!-- Профиль вкладка -->
+  <div id="cvTabProfile" class="cv-tab-content" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="cv-header">
+      <div class="cv-logo-row">
+        <div class="cv-logo-name">👤 Профиль</div>
+      </div>
+    </div>
+    <div class="cv-profile-body" id="cvProfileBody">
+      <div class="cv-profile-header">
+        <div class="cv-profile-ava" id="cvProfileAva">?</div>
+        <div class="cv-profile-name" id="cvProfileName">Загрузка…</div>
+        <div class="cv-profile-id" id="cvProfileId"></div>
+      </div>
+      <div class="cv-profile-stats">
+        <div class="cv-profile-stat"><div class="cv-profile-stat-val" id="cvProfileAdsCount">0</div><div class="cv-profile-stat-label">Объявл.</div></div>
+        <div class="cv-profile-stat"><div class="cv-profile-stat-val" id="cvProfileFavCount">0</div><div class="cv-profile-stat-label">Избранных</div></div>
+        <div class="cv-profile-stat"><div class="cv-profile-stat-val" id="cvProfileCarsCount">0</div><div class="cv-profile-stat-label">Машин</div></div>
+      </div>
+      <div class="cv-profile-my-ads">
+        <div class="cv-profile-ads-title">Мои объявления</div>
+        <div id="cvProfileMyAds"><div class="cv-profile-empty-ads">Нет активных объявлений</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom tab bar -->
+  <div class="cv-tab-bar">
+    <button class="cv-tab active" id="cvBtnHome" onclick="cvSwitchTab('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9" fill="none" stroke="#c8d4e4" stroke-width="1.5"/></svg>
+      Главная
+    </button>
+    <button class="cv-tab" id="cvBtnChat" onclick="cvSwitchTab('chat')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      Чат
+    </button>
+    <button class="cv-tab-add" onclick="openCvCreate()" style="background:none;margin-top:0;width:auto;height:auto;padding:0">
+      <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1a2a45,#1a7de8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(26,125,232,.4);margin-top:-18px">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+    </button>
+    <button class="cv-tab" id="cvBtnFav" onclick="cvSwitchTab('fav')">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      Избранное
+    </button>
+    <button class="cv-tab" id="cvBtnProfile" onclick="cvSwitchTab('profile')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Профиль
+    </button>
+  </div>
+
+  <!-- Back button (top left) -->
+  <div style="position:absolute;top:40px;left:0;z-index:40;pointer-events:none" id="cvBackWrap">
+    <button onclick="closeCarVito()" style="background:rgba(255,255,255,.9);border:none;border-radius:0 10px 10px 0;padding:8px 14px 8px 12px;font-size:14px;font-weight:700;color:#1a7de8;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(0,0,0,.1);pointer-events:all">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Назад
+    </button>
+  </div>
+</div>
+
+<!-- Create ad modal -->
+<div class="cv-create-overlay" id="cvCreateOverlay">
+  <div class="cv-create-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="cv-create-title">Новое объявление</div>
+      <button onclick="closeCvCreate()" style="background:none;border:none;font-size:22px;color:#b0bdd0;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div class="cv-create-sub">Выберите автомобиль из гаража или двора</div>
+
+    <!-- Step 1: Pick car -->
+    <div id="cvCreateStep1">
+      <div class="cv-create-label">Мои автомобили (гараж / двор)</div>
+      <div class="cv-create-car-pick" id="cvCreateCarList">
+        <div style="text-align:center;padding:16px;color:#b0bdd0;font-size:14px;font-weight:600">Загрузка…</div>
+      </div>
+      <button onclick="cvCreateNextStep()" style="width:100%;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;margin-top:14px">Продолжить →</button>
+      <button onclick="closeCvCreate()" class="cv-create-cancel">Отмена</button>
+    </div>
+
+    <!-- Step 2: Fill details -->
+    <div id="cvCreateStep2" style="display:none">
+      <div class="cv-create-label">Тип сделки</div>
+      <div class="cv-create-row" id="cvCreateTypeBtns">
+        <button class="cv-create-type-btn active" data-type="sell" onclick="cvToggleType(this)">🏷 Продать</button>
+        <button class="cv-create-type-btn" data-type="trade" onclick="cvToggleType(this)">🔄 Обмен</button>
+      </div>
+
+      <div class="cv-create-label">Ваша цена (₽)</div>
+      <div class="cv-create-price-wrap">
+        <input class="cv-create-inp" id="cvCreatePrice" type="number" placeholder="Введите сумму…">
+        <span class="cv-create-price-hint" id="cvCreatePriceHint">Рын.: —</span>
+      </div>
+
+      <div class="cv-create-label">Описание</div>
+      <textarea class="cv-create-inp cv-create-textarea" id="cvCreateDesc" placeholder="Расскажите о состоянии, истории…"></textarea>
+
+      <div class="cv-create-label">Комплектация</div>
+      <textarea class="cv-create-inp cv-create-textarea" id="cvCreateEquip" placeholder="Кожаный салон, климат-контроль…"></textarea>
+      <button class="cv-create-autofill-btn" onclick="cvAutofillFromDealer()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="#1a7de8" stroke-width="2" stroke-linecap="round"/></svg>
+        Взять описание и комплектацию из автосалона
+      </button>
+
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="cvCreateBack()" style="flex:1;background:#f0f4f9;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#6a85a8;cursor:pointer">← Назад</button>
+        <button onclick="cvSubmitAd()" style="flex:2;background:linear-gradient(135deg,#1a7de8,#4c9fff);color:#fff;border:none;border-radius:14px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(26,125,232,.25)">Опубликовать 🚀</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CarVito JS -->
+<script>
+// ── State ──────────────────────────────────────────────
+let cvCurrentTab = 'home';
+let cvAllAds = [];        // all ads from Firebase
+let cvDisplayedAds = [];  // filtered & sorted
+let cvFavorites = {};     // adId -> true
+let cvCurrentSort = 'new';
+let cvActiveFilter = {};  // {type, seller, city, minPrice, maxPrice}
+let cvSelectedCarId = null;
+let cvSelectedCarData = null;
+let cvCreateTypes = { sell: true, trade: false };
+let cvCurrentDetailAd = null;
+let cvUserCars = {};
+let cvChats = {};
+
+// ── Open / Close ───────────────────────────────────────
+function openCarVito(){
+  document.getElementById('cvScreen').classList.add('visible');
+  const user = auth.currentUser;
+  if(user){
+    const t = getMskNow();
+    const hh=fmt2(t.getHours()), mm=fmt2(t.getMinutes());
+    const el=document.getElementById('cvStatusTime');
+    if(el) el.textContent=hh+':'+mm;
+  }
+  cvLoadAds();
+  cvLoadProfile();
+  cvLoadChats();
+}
+
+function closeCarVito(){
+  document.getElementById('cvScreen').classList.remove('visible');
+}
+
+// ── Tab switching ──────────────────────────────────────
+function cvSwitchTab(tab){
+  cvCurrentTab = tab;
+  document.querySelectorAll('.cv-tab-content').forEach(el=>{
+    el.style.display = 'none';
+    el.style.flexDirection = '';
+  });
+  const tabs = {home:'cvTabHome',chat:'cvTabChat',fav:'cvTabFav',profile:'cvTabProfile'};
+  const target = document.getElementById(tabs[tab]);
+  if(target){ target.style.display='flex'; target.style.flexDirection='column'; }
+
+  document.querySelectorAll('.cv-tab').forEach(b=>b.classList.remove('active'));
+  const btnMap = {home:'cvBtnHome',chat:'cvBtnChat',fav:'cvBtnFav',profile:'cvBtnProfile'};
+  const btn = document.getElementById(btnMap[tab]);
+  if(btn) btn.classList.add('active');
+
+  // Update tab-specific SVG fill
+  document.querySelectorAll('.cv-tab svg').forEach(svg=>{
+    svg.style.fill = '';
+    svg.style.stroke = '';
+  });
+
+  if(tab === 'fav') cvRenderFav();
+  if(tab === 'profile') cvLoadProfile();
+}
+
+// ── Load ads from Firebase ─────────────────────────────
+async function cvLoadAds(){
+  document.getElementById('cvAdsLoading').style.display='block';
+  document.getElementById('cvAdsEmpty').style.display='none';
+  try{
+    const snap = await db.ref('carvitoAds').once('value');
+    const raw = snap.val() || {};
+    cvAllAds = Object.entries(raw).map(([id,ad])=>({id,...ad}));
+    cvFilterAds();
+  }catch(e){
+    console.warn('cvLoadAds error',e);
+    document.getElementById('cvAdsLoading').textContent='Ошибка загрузки';
+  }
+}
+
+// ── Filter & Sort ──────────────────────────────────────
+function cvSetSort(btn, sort){
+  document.querySelectorAll('.cv-sort-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  cvCurrentSort = sort;
+  cvFilterAds();
+}
+
+function cvFilterAds(){
+  const q = (document.getElementById('cvSearchInp').value||'').toLowerCase().trim();
+  const f = cvActiveFilter;
+
+  let ads = cvAllAds.filter(ad=>{
+    const name = (ad.carName||'').toLowerCase();
+    if(q && !name.includes(q)) return false;
+    if(f.type && f.type.length){
+      const hasType = f.type.some(t=>ad.types && ad.types.includes(t));
+      if(!hasType) return false;
+    }
+    if(f.seller && f.seller.length){
+      if(!f.seller.includes(ad.sellerType||'player')) return false;
+    }
+    if(f.city && f.city.length){
+      if(!f.city.includes(ad.city||'')) return false;
+    }
+    if(f.minPrice && ad.price < f.minPrice) return false;
+    if(f.maxPrice && ad.price > f.maxPrice) return false;
+    return true;
+  });
+
+  // Sort
+  if(cvCurrentSort==='cheap') ads.sort((a,b)=>(a.price||0)-(b.price||0));
+  else if(cvCurrentSort==='expensive') ads.sort((a,b)=>(b.price||0)-(a.price||0));
+  else if(cvCurrentSort==='new') ads.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  else if(cvCurrentSort==='bots') ads = ads.filter(a=>a.sellerType==='bot').concat(ads.filter(a=>a.sellerType!=='bot'));
+  else if(cvCurrentSort==='players') ads = ads.filter(a=>a.sellerType==='player').concat(ads.filter(a=>a.sellerType!=='player'));
+
+  cvDisplayedAds = ads;
+  cvRenderAds();
+}
+
+function cvToggleFilterChip(btn, group){
+  btn.classList.toggle('active');
+}
+
+function cvApplyFilter(){
+  const f = {};
+  const typeChips = [...document.querySelectorAll('#cvFiltTypeChips .cv-filter-chip.active')].map(b=>b.dataset.val);
+  const sellerChips = [...document.querySelectorAll('#cvFiltSellerChips .cv-filter-chip.active')].map(b=>b.dataset.val);
+  const cityChips = [...document.querySelectorAll('#cvFiltCityChips .cv-filter-chip.active')].map(b=>b.dataset.val);
+  if(typeChips.length) f.type = typeChips;
+  if(sellerChips.length) f.seller = sellerChips;
+  if(cityChips.length) f.city = cityChips;
+  const minP = parseInt(document.getElementById('cvFiltMinPrice').value)||0;
+  const maxP = parseInt(document.getElementById('cvFiltMaxPrice').value)||0;
+  if(minP) f.minPrice = minP;
+  if(maxP) f.maxPrice = maxP;
+  cvActiveFilter = f;
+  document.getElementById('cvFilterPanel').classList.remove('visible');
+  cvFilterAds();
+}
+
+function cvResetFilter(){
+  cvActiveFilter = {};
+  document.querySelectorAll('.cv-filter-chip').forEach(b=>b.classList.remove('active'));
+  document.getElementById('cvFiltMinPrice').value='';
+  document.getElementById('cvFiltMaxPrice').value='';
+  document.getElementById('cvFilterPanel').classList.remove('visible');
+  cvFilterAds();
+}
+
+function cvOpenFilterPanel(){
+  document.getElementById('cvFilterPanel').classList.add('visible');
+}
+
+// ── Render ads ─────────────────────────────────────────
+function cvRenderAds(){
+  document.getElementById('cvAdsLoading').style.display='none';
+  const list = document.getElementById('cvAdsList');
+  // Remove old cards
+  [...list.querySelectorAll('.cv-ad-card')].forEach(el=>el.remove());
+
+  if(!cvDisplayedAds.length){
+    document.getElementById('cvAdsEmpty').style.display='flex';
+    return;
+  }
+  document.getElementById('cvAdsEmpty').style.display='none';
+
+  const fmtPrice = p => p ? p.toLocaleString('ru-RU')+'₽' : '—';
+
+  cvDisplayedAds.forEach(ad=>{
+    const isFav = !!cvFavorites[ad.id];
+    const types = ad.types||['sell'];
+    const badgesHtml = types.map(t=>
+      `<span class="cv-ad-badge ${t==='trade'?'trade':'sell'}">${t==='trade'?'🔄 Обмен':'🏷 Продажа'}</span>`
+    ).join('');
+    const sellerLabel = ad.sellerType==='bot'?'🤖 Бот':'👤 Игрок';
+    const initials = (ad.sellerName||'?').charAt(0).toUpperCase();
+    const imgHtml = ad.carImg
+      ? `<img src="${ad.carImg}" style="width:100%;height:100%;object-fit:cover">`
+      : '🚗';
+
+    const card = document.createElement('div');
+    card.className='cv-ad-card';
+    card.innerHTML=`
+      <div class="cv-ad-img">${imgHtml}</div>
+      <div class="cv-ad-body">
+        <div class="cv-ad-name">${ad.carName||'Авто'}</div>
+        <div class="cv-ad-meta">
+          <span>📍 ${ad.city||'—'}</span>
+          <span>🕐 ${cvTimeAgo(ad.createdAt)}</span>
+          ${ad.mileage?`<span>🛣 ${(+ad.mileage).toLocaleString('ru-RU')} км</span>`:''}
+        </div>
+        <div class="cv-ad-price-row">
+          <div class="cv-ad-price">${fmtPrice(ad.price)}</div>
+          <div class="cv-ad-badges">${badgesHtml}</div>
+        </div>
+        <div class="cv-ad-seller">
+          <div class="cv-ad-seller-avatar">${initials}</div>
+          <div class="cv-ad-seller-name">${ad.sellerName||'Игрок'}</div>
+          <div class="cv-ad-seller-type">${sellerLabel}</div>
+          <button class="cv-ad-fav${isFav?' active':''}" onclick="event.stopPropagation();cvToggleFav('${ad.id}',this)">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          </button>
+        </div>
+      </div>`;
+    card.onclick = ()=>cvOpenDetail(ad);
+    list.insertBefore(card, document.getElementById('cvAdsEmpty'));
+  });
+}
+
+function cvTimeAgo(ts){
+  if(!ts) return '—';
+  const diff = Date.now()-ts;
+  if(diff<60000) return 'только что';
+  if(diff<3600000) return Math.floor(diff/60000)+' мин назад';
+  if(diff<86400000) return Math.floor(diff/3600000)+' ч назад';
+  return Math.floor(diff/86400000)+' дн назад';
+}
+
+// ── Favorites ──────────────────────────────────────────
+function cvToggleFav(adId, btn){
+  if(cvFavorites[adId]){ delete cvFavorites[adId]; btn.classList.remove('active'); }
+  else{ cvFavorites[adId]=true; btn.classList.add('active'); }
+  const user=auth.currentUser;
+  if(user) db.ref('carvitoFavs/'+user.uid+'/'+adId).set(cvFavorites[adId]||null);
+}
+
+function cvToggleDetailFav(){
+  const ad=cvCurrentDetailAd;
+  if(!ad) return;
+  const btn=document.getElementById('cvDetailFavBtn');
+  cvToggleFav(ad.id, btn);
+}
+
+function cvRenderFav(){
+  const favIds=Object.keys(cvFavorites);
+  const favAds=cvAllAds.filter(a=>favIds.includes(a.id));
+  const list=document.getElementById('cvFavList');
+  [...list.querySelectorAll('.cv-ad-card')].forEach(e=>e.remove());
+  const empty=document.getElementById('cvFavEmpty');
+  if(!favAds.length){ empty.style.display='flex'; return; }
+  empty.style.display='none';
+  const fmtPrice=p=>p?p.toLocaleString('ru-RU')+'₽':'—';
+  favAds.forEach(ad=>{
+    const card=document.createElement('div');
+    card.className='cv-ad-card';
+    card.innerHTML=`
+      <div class="cv-ad-img">${ad.carImg?`<img src="${ad.carImg}" style="width:100%;height:100%;object-fit:cover">`:'🚗'}</div>
+      <div class="cv-ad-body">
+        <div class="cv-ad-name">${ad.carName||'Авто'}</div>
+        <div class="cv-ad-meta"><span>📍 ${ad.city||'—'}</span></div>
+        <div class="cv-ad-price-row"><div class="cv-ad-price">${fmtPrice(ad.price)}</div></div>
+      </div>`;
+    card.onclick=()=>cvOpenDetail(ad);
+    list.insertBefore(card, empty);
+  });
+}
+
+// ── Load favorites from Firebase ────────────────────────
+async function cvLoadFavs(uid){
+  try{
+    const snap=await db.ref('carvitoFavs/'+uid).once('value');
+    cvFavorites=snap.val()||{};
+  }catch(e){}
+}
+
+// ── Detail view ────────────────────────────────────────
+function cvOpenDetail(ad){
+  cvCurrentDetailAd=ad;
+  document.getElementById('cvDetailTitle').textContent=ad.carName||'Объявление';
+  const imgEl=document.getElementById('cvDetailImg');
+  if(ad.carImg){
+    imgEl.innerHTML=`<img src="${ad.carImg}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    imgEl.textContent='🚗';
+  }
+
+  // Fav button state
+  const favBtn=document.getElementById('cvDetailFavBtn');
+  if(cvFavorites[ad.id]) favBtn.classList.add('active'); else favBtn.classList.remove('active');
+
+  const fmtP=p=>p?p.toLocaleString('ru-RU')+'₽':'—';
+  const types=ad.types||['sell'];
+  const badgesHtml=types.map(t=>`<span class="cv-ad-badge ${t==='trade'?'trade':'sell'}">${t==='trade'?'🔄 Обмен':'🏷 Продажа'}</span>`).join(' ');
+  const initials=(ad.sellerName||'?').charAt(0).toUpperCase();
+
+  document.getElementById('cvDetailBody').innerHTML=`
+    <div class="cv-detail-name">${ad.carName||'Авто'}</div>
+    <div class="cv-detail-price">${fmtP(ad.price)}</div>
+    <div class="cv-detail-market-row">
+      ${ad.marketPrice?`<div class="cv-detail-market-chip">📊 Рын. цена: <b>${fmtP(ad.marketPrice)}</b></div>`:''}
+      ${ad.dealerPrice?`<div class="cv-detail-market-chip">🏪 Автосалон: <b>${fmtP(ad.dealerPrice)}</b></div>`:''}
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">${badgesHtml}</div>
+    <div class="cv-ad-meta" style="margin-bottom:14px">
+      <span>📍 ${ad.city||'—'}</span>
+      ${ad.mileage?`<span>🛣 ${(+ad.mileage).toLocaleString('ru-RU')} км</span>`:''}
+      <span>🕐 ${cvTimeAgo(ad.createdAt)}</span>
+    </div>
+    ${ad.description?`<div class="cv-detail-section">Описание</div><div class="cv-detail-text">${ad.description}</div>`:''}
+    ${ad.equipment?`<div class="cv-detail-section">Комплектация</div><div class="cv-detail-text">${ad.equipment}</div>`:''}
+    <div class="cv-detail-section">Продавец</div>
+    <div class="cv-detail-seller-card">
+      <div class="cv-detail-seller-ava">${initials}</div>
+      <div class="cv-detail-seller-info">
+        <div class="cv-detail-seller-name">${ad.sellerName||'Игрок'}</div>
+        <div class="cv-detail-seller-city">📍 ${ad.city||'—'} · ${ad.sellerType==='bot'?'🤖 Бот':'👤 Игрок'}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('cvDetailView').classList.add('visible');
+}
+
+function cvContactSeller(){
+  const ad=cvCurrentDetailAd;
+  if(!ad) return;
+  document.getElementById('cvDetailView').classList.remove('visible');
+  // Add to chats
+  const chatId='chat_'+ad.id;
+  if(!cvChats[chatId]){
+    cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType,adName:ad.carName,lastMsg:'Здравствуйте, интересует авто',time:Date.now(),unread:0};
+  }
+  cvSwitchTab('chat');
+  cvRenderChats();
+}
+
+// ── Chats ──────────────────────────────────────────────
+function cvLoadChats(){
+  const user=auth.currentUser;
+  if(!user) return;
+  db.ref('carvitoChats/'+user.uid).once('value').then(snap=>{
+    cvChats=snap.val()||{};
+    cvRenderChats();
+  }).catch(()=>{});
+}
+
+function cvRenderChats(){
+  const list=document.getElementById('cvChatList');
+  const empty=document.getElementById('cvChatEmpty');
+  [...list.querySelectorAll('.cv-chat-item')].forEach(e=>e.remove());
+  const chats=Object.entries(cvChats);
+  if(!chats.length){ empty.style.display='flex'; return; }
+  empty.style.display='none';
+  chats.sort((a,b)=>(b[1].time||0)-(a[1].time||0));
+  chats.forEach(([id,chat])=>{
+    const initials=(chat.name||'?').charAt(0).toUpperCase();
+    const isBot=chat.type==='bot';
+    const item=document.createElement('div');
+    item.className='cv-chat-item';
+    item.innerHTML=`
+      <div class="cv-chat-ava${isBot?' bot':''}">${initials}${chat.unread?`<div class="cv-chat-unread">${chat.unread}</div>`:''}</div>
+      <div class="cv-chat-info">
+        <div class="cv-chat-name">${chat.name||'Пользователь'} ${isBot?'🤖':''}</div>
+        <div class="cv-chat-last">${chat.adName?`[${chat.adName}] `:''} ${chat.lastMsg||'Написать…'}</div>
+      </div>
+      <div class="cv-chat-time">${cvTimeAgo(chat.time)}</div>`;
+    item.onclick=()=>cvOpenChat(id,chat);
+    list.insertBefore(item, empty);
+  });
+}
+
+function cvOpenChat(id, chat){
+  // Simple placeholder — full chat can be added later
+  alert(`Чат с ${chat.name}\n\nОбъявление: ${chat.adName||'—'}\n\n(Полный чат — в следующем обновлении!)`);
+}
+
+// ── Profile ────────────────────────────────────────────
+async function cvLoadProfile(){
+  const user=auth.currentUser;
+  if(!user) return;
+  const uid=user.uid;
+
+  const name=user.displayName||'Игрок';
+  const initials=name.charAt(0).toUpperCase();
+  document.getElementById('cvProfileAva').textContent=initials;
+  document.getElementById('cvProfileName').textContent=name;
+
+  // Load appId
+  try{
+    const idSnap=await db.ref('users/'+uid+'/appId').once('value');
+    if(idSnap.val()) document.getElementById('cvProfileId').textContent='ID: '+idSnap.val();
+  }catch(e){}
+
+  // Load my ads
+  try{
+    const snap=await db.ref('carvitoAds').orderByChild('sellerUid').equalTo(uid).once('value');
+    const myAds=snap.val()?Object.values(snap.val()):[];
+    document.getElementById('cvProfileAdsCount').textContent=myAds.length;
+    await cvLoadFavs(uid);
+    document.getElementById('cvProfileFavCount').textContent=Object.keys(cvFavorites).length;
+
+    // Cars count
+    const cSnap=await db.ref('userCars/'+uid).once('value');
+    const cars=cSnap.val()||{};
+    const cArr=Object.values(cars);
+    document.getElementById('cvProfileCarsCount').textContent=cArr.length;
+    cvUserCars=cars;
+
+    // My ads list
+    const container=document.getElementById('cvProfileMyAds');
+    if(!myAds.length){ container.innerHTML='<div class="cv-profile-empty-ads">Нет активных объявлений</div>'; return; }
+    container.innerHTML=myAds.map(ad=>`
+      <div class="cv-profile-ad-row" onclick="cvOpenDetail({...${JSON.stringify(ad)}})">
+        <div class="cv-profile-ad-thumb">${ad.carImg?`<img src="${ad.carImg}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`:  '🚗'}</div>
+        <div>
+          <div class="cv-profile-ad-name">${ad.carName||'Авто'}</div>
+          <div class="cv-profile-ad-price">${ad.price?(+ad.price).toLocaleString('ru-RU')+'₽':'—'}</div>
+        </div>
+        <button onclick="event.stopPropagation();cvDeleteAd('${ad.id}')" style="margin-left:auto;background:none;border:none;font-size:18px;cursor:pointer;color:#ff3b30" title="Удалить">🗑</button>
+      </div>`).join('');
+  }catch(e){ console.warn('cvLoadProfile error',e); }
+}
+
+async function cvDeleteAd(adId){
+  if(!confirm('Удалить объявление?')) return;
+  const user=auth.currentUser;
+  if(!user) return;
+  try{
+    await db.ref('carvitoAds/'+adId).remove();
+    cvAllAds=cvAllAds.filter(a=>a.id!==adId);
+    cvFilterAds();
+    cvLoadProfile();
+    bankToast('✅ Объявление удалено');
+  }catch(e){ bankToast('❌ Ошибка удаления'); }
+}
+
+// ── Create ad ──────────────────────────────────────────
+async function openCvCreate(){
+  const user=auth.currentUser;
+  if(!user){ bankToast('Необходимо войти в аккаунт'); return; }
+  const uid=user.uid;
+
+  // Load user's cars
+  document.getElementById('cvCreateCarList').innerHTML='<div style="text-align:center;padding:16px;color:#b0bdd0;font-size:14px">Загрузка…</div>';
+  document.getElementById('cvCreateStep1').style.display='block';
+  document.getElementById('cvCreateStep2').style.display='none';
+  cvSelectedCarId=null;
+  cvSelectedCarData=null;
+  cvCreateTypes={sell:true,trade:false};
+  document.getElementById('cvCreatePrice').value='';
+  document.getElementById('cvCreateDesc').value='';
+  document.getElementById('cvCreateEquip').value='';
+  document.querySelectorAll('.cv-create-type-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.type==='sell');
+  });
+  document.getElementById('cvCreateOverlay').classList.add('visible');
+
+  try{
+    const snap=await db.ref('userCars/'+uid).once('value');
+    const cars=snap.val()||{};
+    cvUserCars=cars;
+    const eligible=Object.entries(cars).filter(([,c])=>c.location==='yard'||c.location==='garage');
+
+    if(!eligible.length){
+      document.getElementById('cvCreateCarList').innerHTML=`
+        <div class="cv-create-no-car">
+          🚫 Нет машин во дворе или гараже.<br>Машина должна быть во дворе или гараже!
+        </div>`;
+      return;
+    }
+
+    document.getElementById('cvCreateCarList').innerHTML=eligible.map(([id,car])=>`
+      <div class="cv-create-car-item" data-carid="${id}" onclick="cvPickCar('${id}',this)">
+        <div class="cv-create-car-ava">🚗</div>
+        <div>
+          <div class="cv-create-car-name">${car.name||'Авто'}</div>
+          <div class="cv-create-car-loc">${car.location==='garage'?'🔒 Гараж':'🌿 Двор'} · ${car.mileage?(+car.mileage).toLocaleString('ru-RU')+' км':'—'}</div>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    document.getElementById('cvCreateCarList').innerHTML='<div class="cv-create-no-car">Ошибка загрузки авто</div>';
+  }
+}
+
+function cvPickCar(id, el){
+  document.querySelectorAll('.cv-create-car-item').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  cvSelectedCarId=id;
+  cvSelectedCarData=cvUserCars[id];
+}
+
+function cvCreateNextStep(){
+  if(!cvSelectedCarId){ bankToast('Выберите автомобиль'); return; }
+  document.getElementById('cvCreateStep1').style.display='none';
+  document.getElementById('cvCreateStep2').style.display='block';
+  // Show recommended price
+  const car=cvSelectedCarData;
+  const mp=car&&(car.dealerPrice||car.buyPrice||0);
+  if(mp) document.getElementById('cvCreatePriceHint').textContent='Рын.: '+mp.toLocaleString('ru-RU')+'₽';
+}
+
+function cvCreateBack(){
+  document.getElementById('cvCreateStep1').style.display='block';
+  document.getElementById('cvCreateStep2').style.display='none';
+}
+
+function cvToggleType(btn){
+  btn.classList.toggle('active');
+  const type=btn.dataset.type;
+  cvCreateTypes[type]=btn.classList.contains('active');
+}
+
+async function cvAutofillFromDealer(){
+  const car=cvSelectedCarData;
+  if(!car){ bankToast('Нет данных об авто'); return; }
+  // Try to find in dealer cars database
+  try{
+    const snap=await db.ref('dealerCars').once('value');
+    const all=snap.val()||{};
+    const found=Object.values(all).find(d=>d.name&&car.name&&d.name.toLowerCase()===car.name.toLowerCase());
+    if(found){
+      if(found.description) document.getElementById('cvCreateDesc').value=found.description;
+      if(found.equipment) document.getElementById('cvCreateEquip').value=found.equipment;
+      else if(found.features) document.getElementById('cvCreateEquip').value=(found.features||[]).join('\n');
+      bankToast('✅ Данные из автосалона вставлены!');
+    } else {
+      // Fallback — generic description
+      const desc=`${car.name||'Авто'}, пробег ${car.mileage?(+car.mileage).toLocaleString('ru-RU')+' км':'—'}, состояние хорошее.`;
+      document.getElementById('cvCreateDesc').value=desc;
+      bankToast('ℹ️ Данные автосалона не найдены, вставлено базовое описание');
+    }
+  }catch(e){
+    bankToast('Ошибка получения данных из автосалона');
+  }
+}
+
+async function cvSubmitAd(){
+  const user=auth.currentUser;
+  if(!user){ bankToast('Нет авторизации'); return; }
+  if(!cvSelectedCarId){ bankToast('Выберите авто'); return; }
+
+  const price=parseInt(document.getElementById('cvCreatePrice').value)||0;
+  if(!price){ bankToast('Укажите цену'); return; }
+
+  const types=Object.entries(cvCreateTypes).filter(([,v])=>v).map(([k])=>k);
+  if(!types.length){ bankToast('Выберите тип сделки'); return; }
+
+  const car=cvSelectedCarData;
+  const uid=user.uid;
+
+  // Load profile for city & name
+  let city='—'; let sellerName=user.displayName||'Игрок';
+  try{ const p=await db.ref('users/'+uid+'/city').once('value'); if(p.val()) city=p.val(); }catch(e){}
+
+  const adId='ad_'+uid+'_'+Date.now();
+  const ad={
+    id:adId,
+    carName:car.name||'Авто',
+    carImg:car.img||null,
+    mileage:car.mileage||0,
+    price,
+    types,
+    description:document.getElementById('cvCreateDesc').value.trim(),
+    equipment:document.getElementById('cvCreateEquip').value.trim(),
+    sellerUid:uid,
+    sellerName,
+    sellerType:'player',
+    city,
+    marketPrice:car.dealerPrice||car.buyPrice||0,
+    dealerPrice:car.dealerPrice||0,
+    createdAt:Date.now()
+  };
+
+  try{
+    await db.ref('carvitoAds/'+adId).set(ad);
+    closeCvCreate();
+    cvAllAds.unshift(ad);
+    cvFilterAds();
+    bankToast('🚀 Объявление опубликовано!');
+    cvSwitchTab('profile');
+    cvLoadProfile();
+  }catch(e){
+    bankToast('❌ Ошибка публикации: '+e.message);
+  }
+}
+
+function closeCvCreate(){
+  document.getElementById('cvCreateOverlay').classList.remove('visible');
+}
+
+// Update clock for CV screen
+const _origUpdateClock=updateClock;
+if(typeof updateClock==='function'){
+  const _patchedOnce=(()=>{
+    let patched=false;
+    return ()=>{
+      if(patched) return;
+      patched=true;
+      const origInterval=setInterval;
+    };
+  })();
+}
+// Patch updateClock to also update CV time
+const _cvClockInterval=setInterval(()=>{
+  const msk=getMskNow();
+  const hh=fmt2(msk.getHours());
+  const mm=fmt2(msk.getMinutes());
+  const el=document.getElementById('cvStatusTime');
+  if(el) el.textContent=hh+':'+mm;
+},1000);
 </script>
 
 <!-- THEFT NOTIFICATION -->
