@@ -6301,6 +6301,7 @@ function openCarVito(){
   cvLoadAds();
   cvLoadProfile();
   cvLoadChats();
+  _cleanOldBotChats();
 }
 
 function closeCarVito(){
@@ -6588,7 +6589,19 @@ function cvContactSeller(){
   document.getElementById('cvDetailView').classList.remove('visible');
   const chatId='chat_'+ad.id;
   if(!cvChats[chatId]){
-    cvChats[chatId]={name:ad.sellerName||'Игрок',type:ad.sellerType||'player',adName:ad.carName,lastMsg:'',time:Date.now(),unread:0,dealStatus:'ongoing'};
+    cvChats[chatId]={
+      name:ad.sellerName||'Игрок',
+      type:ad.sellerType||'player',
+      adName:ad.carName,
+      adId:ad.id,
+      adPrice:ad.price||0,
+      adImg:ad.carImg||null,
+      adMarketPrice:ad.marketPrice||0,
+      adBotChar:ad.botChar||'normal',
+      lastMsg:'',time:Date.now(),unread:0,dealStatus:'ongoing',
+      // Store full ad snapshot for restoration
+      adSnapshot: JSON.stringify(ad)
+    };
     const user=auth.currentUser;
     if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).set(cvChats[chatId]).catch(()=>{});
   }
@@ -6602,8 +6615,26 @@ function cvContactSeller(){
 function cvLoadChats(){
   const user=auth.currentUser;
   if(!user) return;
+  const cutoff=Date.now()-86400000; // 24 часа
   db.ref('carvitoChats/'+user.uid).once('value').then(snap=>{
-    cvChats=snap.val()||{};
+    const raw=snap.val()||{};
+    const cleaned={};
+    const toDelete=[];
+    Object.entries(raw).forEach(([id,chat])=>{
+      // Delete chats older than 1 real day (by 'time' field)
+      if(chat.time && chat.time < cutoff){
+        toDelete.push(id);
+      } else {
+        cleaned[id]=chat;
+      }
+    });
+    // Remove stale chats from Firebase
+    toDelete.forEach(id=>{
+      db.ref('carvitoChats/'+user.uid+'/'+id).remove().catch(()=>{});
+      db.ref('cvBotMsgs/'+user.uid+'/'+id).remove().catch(()=>{});
+      db.ref('cvPlayerMsgs/'+user.uid+'/'+id).remove().catch(()=>{});
+    });
+    cvChats=cleaned;
     cvRenderChats();
   }).catch(()=>{});
 }
@@ -6710,25 +6741,52 @@ let _currentPlayerChatId = null;
 
 function cvOpenChat(id, chat){
   if(chat.type==='bot'){
-    const botAd = Object.entries(typeof botManagerData==='object'?botManagerData:{})
-      .find(([,ad])=>('chat_'+ad.id)===id||id.includes(ad.id));
-    if(botAd){
-      openBotChat(botAd[0], botAd[1]);
+    // Try to restore full ad from snapshot first
+    let restoredAd = null;
+    if(chat.adSnapshot){
+      try{ restoredAd=JSON.parse(chat.adSnapshot); }catch(e){}
+    }
+    // Then try from in-memory botManagerData
+    if(!restoredAd){
+      const botEntry = Object.entries(typeof botManagerData==='object'?botManagerData:{})
+        .find(([,ad])=>('chat_'+ad.id)===id||id.includes(ad.id));
+      if(botEntry) restoredAd={...botEntry[1]};
+    }
+    // Try to load from Firebase carvitoAds
+    if(!restoredAd && chat.adId){
+      db.ref('carvitoAds/'+chat.adId).once('value').then(snap=>{
+        if(snap.val()) openBotChat(snap.val());
+        else _openBotChatFallback(id, chat);
+      }).catch(()=>_openBotChatFallback(id, chat));
+      return;
+    }
+    if(restoredAd){
+      openBotChat(restoredAd);
     } else {
-      const overlay=document.getElementById('botChatOverlay');
-      if(overlay){
-        document.getElementById('botChatName').textContent=chat.name||'Бот';
-        document.getElementById('botChatMessages').innerHTML='';
-        currentBotAd={sellerName:chat.name,carName:chat.adName,sellerType:'bot',id:id.replace('chat_','')};
-        overlay.style.display='flex';
-        _restoreBotHistory(id, chat);
-      }
+      _openBotChatFallback(id, chat);
     }
   } else {
     _currentPlayerChatId = id;
     document.getElementById('playerChatName').textContent = chat.name||'Игрок';
     const badge = document.getElementById('playerChatAdBadge');
-    badge.textContent = chat.adName ? '📋 '+chat.adName : '';
+    badge.textContent = '';
+    // Show ad banner if ad info is available
+    const pBanner = document.getElementById('playerChatAdBanner');
+    if(chat.adName && pBanner){
+      pBanner.style.display='flex';
+      document.getElementById('playerChatAdBannerName').textContent=chat.adName;
+      const bannerPrice=chat.adPrice||0;
+      document.getElementById('playerChatAdBannerPrice').textContent=bannerPrice>0?bannerPrice.toLocaleString('ru-RU')+'₽':'';
+      // Show thumbnail
+      const thumb=document.getElementById('playerChatAdThumb');
+      if(chat.adImg && thumb){
+        thumb.innerHTML=`<img src="${chat.adImg}" style="width:100%;height:100%;object-fit:cover">`;
+      } else if(thumb){
+        thumb.innerHTML='🚗';
+      }
+    } else if(pBanner){
+      pBanner.style.display='none';
+    }
     const msgsEl = document.getElementById('playerChatMessages');
     msgsEl.innerHTML = '';
     document.getElementById('playerChatInput').value = '';
@@ -6749,6 +6807,45 @@ function cvOpenChat(id, chat){
       }).catch(()=>{});
     }
     document.getElementById('playerChatOverlay').style.display = 'flex';
+  }
+}
+
+function _openBotChatFallback(id, chat){
+  const overlay=document.getElementById('botChatOverlay');
+  if(overlay){
+    document.getElementById('botChatName').textContent=chat.name||'Бот';
+    document.getElementById('botChatMessages').innerHTML='';
+    currentBotAd={
+      sellerName:chat.name,
+      carName:chat.adName,
+      sellerType:'bot',
+      id:id.replace('chat_',''),
+      price:chat.adPrice||0,
+      marketPrice:chat.adMarketPrice||0,
+      botChar:chat.adBotChar||'normal',
+      carImg:chat.adImg||null
+    };
+    // Set resolved price from stored price
+    if(chat.adPrice>0) currentBotAd._resolvedPrice=chat.adPrice;
+    // Show banner
+    const banner=document.getElementById('botChatAdBanner');
+    if(banner){
+      banner.style.display='flex';
+      document.getElementById('botChatAdBannerName').textContent=chat.adName||'Авто';
+      document.getElementById('botChatAdBannerMeta').textContent='Объявление продавца';
+      document.getElementById('botChatAdBannerPrice').textContent=(chat.adPrice||0).toLocaleString('ru-RU')+'₽';
+      if(chat.adImg){
+        document.getElementById('botChatAdThumbImg').src=chat.adImg;
+        document.getElementById('botChatAdThumbImg').style.display='block';
+        document.getElementById('botChatAdThumbIcon').style.display='none';
+      } else {
+        document.getElementById('botChatAdThumbImg').style.display='none';
+        document.getElementById('botChatAdThumbIcon').style.display='flex';
+      }
+    }
+    overlay.style.display='flex';
+    _restoreBotHistory(id, chat);
+    resetBotActions();
   }
 }
 
@@ -6787,16 +6884,49 @@ function closePlayerChat(){
   document.getElementById('playerChatOverlay').style.display = 'none';
 }
 
-// Restore bot chat history (session-only, no Firebase spam)
+// Restore bot chat history from Firebase
 const _botHistories = {};
-function _restoreBotHistory(chatId, chat){
+async function _restoreBotHistory(chatId, chat){
+  const user=auth.currentUser;
   const hist = _botHistories[chatId];
   if(hist && hist.length){
     hist.forEach(m=>{ if(m.from==='bot') addBotMessage(m.text,false); else addUserMessage(m.text,false); });
-  } else {
-    const first = chat.lastMsg||'Здравствуйте! Чем могу помочь?';
-    botAddMsg(first, false);
+    return;
   }
+  if(user){
+    try{
+      const snap=await db.ref('cvBotMsgs/'+user.uid+'/'+chatId).orderByChild('ts').once('value');
+      const msgs=[];
+      snap.forEach(c=>msgs.push(c.val()));
+      // Purge messages older than 24h
+      const cutoff=Date.now()-86400000;
+      const fresh=msgs.filter(m=>m.ts>cutoff);
+      if(fresh.length){
+        fresh.forEach(m=>{ if(m.from==='bot') addBotMessage(m.text,false); else addUserMessage(m.text,false); });
+        if(!_botHistories[chatId]) _botHistories[chatId]=[];
+        fresh.forEach(m=>_botHistories[chatId].push(m));
+        return;
+      }
+    }catch(e){}
+  }
+  const first = chat.lastMsg||'Здравствуйте! Чем могу помочь?';
+  botAddMsg(first, false);
+}
+
+// Clean up old bot chat messages (older than 1 day) on startup
+async function _cleanOldBotChats(){
+  const user=auth.currentUser;
+  if(!user) return;
+  try{
+    const snap=await db.ref('cvBotMsgs/'+user.uid).once('value');
+    const cutoff=Date.now()-86400000;
+    snap.forEach(chatSnap=>{
+      chatSnap.forEach(msgSnap=>{
+        const msg=msgSnap.val();
+        if(msg&&msg.ts<cutoff) msgSnap.ref.remove().catch(()=>{});
+      });
+    });
+  }catch(e){}
 }
 
 // ── Profile ────────────────────────────────────────────
@@ -7318,10 +7448,11 @@ function openBotChat(adIdOrAd, adData){
   const meta=[ad.year,ad.mileage?ad.mileage.toLocaleString('ru-RU')+' км':null].filter(Boolean).join(', ');
   document.getElementById('botChatAdBannerMeta').textContent=meta||'Объявление продавца';
   // Determine actual sell price based on char
-  const mp=ad.marketPrice||ad.price||0;
+  const mp=ad.marketPrice||ad.dealerPrice||ad.price||0;
   const charType=ad.botChar||'normal';
-  const actualPrice=ad.price||getBotSellPrice(mp, charType);
-  if(!ad._resolvedPrice) ad._resolvedPrice=actualPrice; // cache
+  // Always use ad.price if set (explicit bot price), otherwise compute from market
+  let actualPrice = ad.price > 0 ? ad.price : (mp > 0 ? getBotSellPrice(mp, charType) : 0);
+  if(!ad._resolvedPrice || ad._resolvedPrice===0) ad._resolvedPrice=actualPrice; // cache
   document.getElementById('botChatAdBannerPrice').textContent=ad._resolvedPrice.toLocaleString('ru-RU')+'₽';
   if(ad.carImg){
     document.getElementById('botChatAdThumbImg').src=ad.carImg;
@@ -7377,6 +7508,12 @@ function addBotMessage(text, save=true){
     const cid='chat_'+(currentBotAd.id||'');
     if(!_botHistories[cid]) _botHistories[cid]=[];
     _botHistories[cid].push({from:'bot',text});
+    // Save to Firebase
+    const user=auth.currentUser;
+    if(user){
+      const msgRef=db.ref('cvBotMsgs/'+user.uid+'/'+cid);
+      msgRef.push({text,from:'bot',ts:Date.now()}).catch(()=>{});
+    }
   }
 }
 
@@ -7391,6 +7528,12 @@ function addUserMessage(text, save=true){
     const cid='chat_'+(currentBotAd.id||'');
     if(!_botHistories[cid]) _botHistories[cid]=[];
     _botHistories[cid].push({from:'user',text});
+    // Save to Firebase
+    const user=auth.currentUser;
+    if(user){
+      const msgRef=db.ref('cvBotMsgs/'+user.uid+'/'+cid);
+      msgRef.push({text,from:'user',ts:Date.now()}).catch(()=>{});
+    }
   }
 }
 
@@ -7402,7 +7545,7 @@ function botChatBuy(){
   if(!user){ bankToast('Необходимо войти'); return; }
   const completed=ad.completedUids||[];
   if(completed.includes(user.uid)){ addBotMessage('❌ Вы уже совершали сделку по этому объявлению.'); document.getElementById('botChatActions').innerHTML=''; return; }
-  const askPrice=ad._resolvedPrice||ad.price||0;
+  const askPrice=ad._resolvedPrice||(ad.price>0?ad.price:0);
   addUserMessage('Хочу купить за '+askPrice.toLocaleString('ru-RU')+'₽ (полная цена)');
   document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px">⏳ Бот отвечает…</div>';
   setTimeout(()=>{
@@ -7730,17 +7873,29 @@ async function _completeBotPurchase(ad, finalPrice){
 
 function resetBotActions(){
   const chancesLeft=botNegotiateChances;
+  const ad=currentBotAd;
+  const price=(ad&&(ad._resolvedPrice||ad.price||0))||0;
+  const priceStr=price>0?price.toLocaleString('ru-RU')+'₽':'—';
   document.getElementById('botChatActions').innerHTML=`
-    <div style="font-size:12px;color:#b0bdd0;margin-bottom:8px;text-align:center">Шансов на торг: ${chancesLeft}/3</div>
+    <div style="background:linear-gradient(135deg,#f0f4ff,#e8f0ff);border-radius:14px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:11px;color:#6a85a8;font-weight:600">Цена продавца</div>
+        <div style="font-size:18px;font-weight:900;color:#1a2a45">${priceStr}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:#6a85a8;font-weight:600">Шансов торга</div>
+        <div style="font-size:16px;font-weight:900;color:${chancesLeft>1?'#ff9500':chancesLeft===1?'#ff3b30':'#b0bdd0'}">${chancesLeft}/3</div>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-      <button onclick="botChatBuy()" style="background:linear-gradient(135deg,#1a2a45,#2a4a75);color:#fff;border:none;border-radius:14px;padding:13px 6px;font-size:12px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
-        <span style="font-size:20px">💰</span>Купить
+      <button onclick="botChatBuy()" style="background:linear-gradient(145deg,#1a2a45,#243a60);color:#fff;border:none;border-radius:16px;padding:14px 6px;font-size:11px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:0 4px 14px rgba(26,42,69,.3);transition:.15s;letter-spacing:.2px">
+        <span style="font-size:22px">💰</span>Купить
       </button>
-      <button onclick="botChatNegotiate()" ${chancesLeft<=0?'disabled style="opacity:.4;cursor:not-allowed;':'style="'}background:linear-gradient(135deg,#ff9500,#ff6d00);color:#fff;border:none;border-radius:14px;padding:13px 6px;font-size:12px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
-        <span style="font-size:20px">🤝</span>Торговаться
+      <button onclick="botChatNegotiate()" ${chancesLeft<=0?'disabled ':''}style="background:${chancesLeft>0?'linear-gradient(145deg,#ff7d00,#ff5500)':'#e0e0e0'};color:#fff;border:none;border-radius:16px;padding:14px 6px;font-size:11px;font-weight:800;cursor:${chancesLeft>0?'pointer':'not-allowed'};display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:${chancesLeft>0?'0 4px 14px rgba(255,125,0,.3)':'none'};opacity:${chancesLeft>0?'1':'.45'};letter-spacing:.2px">
+        <span style="font-size:22px">🤝</span>Торговаться
       </button>
-      <button onclick="botChatTrade()" style="background:linear-gradient(135deg,#5856d6,#7c3aed);color:#fff;border:none;border-radius:14px;padding:13px 6px;font-size:12px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
-        <span style="font-size:20px">🔄</span>Обменять
+      <button onclick="botChatTrade()" style="background:linear-gradient(145deg,#5856d6,#6c3aed);color:#fff;border:none;border-radius:16px;padding:14px 6px;font-size:11px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:0 4px 14px rgba(88,86,214,.3);letter-spacing:.2px">
+        <span style="font-size:22px">🔄</span>Обменять
       </button>
     </div>`;
 }
@@ -7750,15 +7905,18 @@ function botChatNegotiate(){
   const ad=currentBotAd;
   if(!ad) return;
   if(botNegotiateChances<=0){ bankToast('Шансы на торг исчерпаны'); return; }
-  const askPrice=ad._resolvedPrice||ad.price||0;
+  const askPrice=(ad._resolvedPrice&&ad._resolvedPrice>0)?ad._resolvedPrice:(ad.price>0?ad.price:0);
   document.getElementById('botChatActions').innerHTML=`
-    <div style="font-size:13px;color:#8a9ab8;margin-bottom:6px;text-align:center">Цена продавца: <b style="color:#1a7de8">${askPrice.toLocaleString('ru-RU')}₽</b> · Шансов: ${botNegotiateChances}/3</div>
+    <div style="background:#fff8ee;border:1.5px solid #ffe082;border-radius:14px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:12px;color:#8a7000;font-weight:600">Цена продавца</div>
+      <div style="font-size:17px;font-weight:900;color:#c07000">${askPrice.toLocaleString('ru-RU')}₽</div>
+    </div>
     <div style="font-size:12px;color:#8a9ab8;margin-bottom:6px">Ваше предложение (₽):</div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
-      <input id="negotiateOfferInput" type="number" placeholder="${Math.round(askPrice*0.9)}" style="flex:1;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:10px 12px;font-size:15px;font-weight:700;color:#1a2a45;outline:none;text-align:center">
+      <input id="negotiateOfferInput" type="number" placeholder="${askPrice>0?Math.round(askPrice*0.9):''}" style="flex:1;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:10px 12px;font-size:15px;font-weight:700;color:#1a2a45;outline:none;text-align:center">
     </div>
     <div style="display:flex;gap:8px">
-      <button onclick="submitNegotiateOffer()" style="flex:1;background:linear-gradient(135deg,#ff9500,#ff6d00);color:#fff;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">🤝 Предложить</button>
+      <button onclick="submitNegotiateOffer()" style="flex:1;background:linear-gradient(135deg,#ff9500,#ff6d00);color:#fff;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(255,149,0,.3)">🤝 Предложить</button>
       <button onclick="resetBotActions()" style="background:#f0f4f9;color:#8a9ab8;border:none;border-radius:14px;padding:13px 16px;font-size:13px;font-weight:700;cursor:pointer">Назад</button>
     </div>`;
 }
@@ -7766,7 +7924,7 @@ function botChatNegotiate(){
 function submitNegotiateOffer(){
   const ad=currentBotAd;
   if(!ad) return;
-  const askPrice=ad._resolvedPrice||ad.price||0;
+  const askPrice=(ad._resolvedPrice&&ad._resolvedPrice>0)?ad._resolvedPrice:(ad.price>0?ad.price:0);
   const offerVal=parseInt(document.getElementById('negotiateOfferInput').value)||0;
   if(offerVal<=0){ bankToast('Введите сумму'); return; }
   botNegotiateChances--;
@@ -7870,7 +8028,7 @@ function pickExchangeCar(id, el){
   if(!exchangeMyCarData) return;
   const ad=currentBotAd;
   const myPrice=exchangeMyCarData.marketPrice||exchangeMyCarData.dealerPrice||exchangeMyCarData.buyPrice||0;
-  const botPrice=ad.marketPrice||ad.price||0;
+  const botPrice=(ad._resolvedPrice&&ad._resolvedPrice>0)?ad._resolvedPrice:(ad.price>0?ad.price:(ad.marketPrice||0));
   document.getElementById('exMyCarName').textContent=exchangeMyCarData.name||'Авто';
   document.getElementById('exMyCarPrice').textContent=myPrice.toLocaleString('ru-RU')+'₽';
   document.getElementById('exBotCarName').textContent=ad.carName||'Авто';
@@ -8081,14 +8239,25 @@ window.cvOpenDetail = function(ad){
 
 <!-- ===== PLAYER CHAT OVERLAY ===== -->
 <div id="playerChatOverlay" style="position:fixed;inset:0;z-index:1020;background:#fff;display:none;flex-direction:column">
-  <div style="background:#fff;border-bottom:1px solid #eaecf0;padding:12px 16px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0">
-    <button onclick="closePlayerChat()" style="background:none;border:none;padding:4px;cursor:pointer;color:#1a7de8;font-size:15px;font-weight:700;display:flex;align-items:center;gap:4px">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Назад
-    </button>
-    <div style="flex:1;min-width:0">
-      <div id="playerChatName" style="font-size:16px;font-weight:800;color:#1a2a45">Игрок</div>
-      <div id="playerChatAdBadge" style="font-size:11px;color:#8a9ab8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+  <div style="background:#fff;border-bottom:1px solid #eaecf0;padding:12px 16px 10px;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <button onclick="closePlayerChat()" style="background:none;border:none;padding:4px;cursor:pointer;color:#1a7de8;font-size:15px;font-weight:700;display:flex;align-items:center;gap:4px">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="#1a7de8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Назад
+      </button>
+      <div style="flex:1;min-width:0">
+        <div id="playerChatName" style="font-size:16px;font-weight:800;color:#1a2a45">Игрок</div>
+        <div id="playerChatAdBadge" style="font-size:11px;color:#8a9ab8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+      </div>
+    </div>
+    <!-- Ad banner — like Avito header -->
+    <div id="playerChatAdBanner" style="display:none;background:linear-gradient(135deg,#f8faff,#edf4ff);border:1.5px solid #d0e4ff;border-radius:12px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+      <div id="playerChatAdThumb" style="width:54px;height:38px;border-radius:8px;background:#d0dcea;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px">🚗</div>
+      <div style="flex:1;min-width:0">
+        <div id="playerChatAdBannerName" style="font-size:13px;font-weight:800;color:#1a2a45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+        <div id="playerChatAdBannerMeta" style="font-size:11px;color:#7a95b8;margin-top:1px">Объявление продавца</div>
+      </div>
+      <div id="playerChatAdBannerPrice" style="font-size:14px;font-weight:900;color:#1a7de8;flex-shrink:0"></div>
     </div>
   </div>
   <div id="playerChatMessages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f0f4f9"></div>
