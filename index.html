@@ -3614,8 +3614,11 @@ async function loadBankData(uid){
     bankTxLog = d.txLog ? Object.values(d.txLog).slice(-BANK_TX_LIMIT) : [];
     bankAutoPay = d.autoPay || false;
     bankLastTaxPaid = d.lastTaxPaid || null;
-    bankLastTaxTs = d.lastTaxTs || null;
+    // If lastTaxTs was never saved, set it to now so offline accrual starts from this moment
+    bankLastTaxTs = d.lastTaxTs || getServerTime();
     bankTaxAccumulated = d.taxAccumulated || 0;
+    // If this is first load and lastTaxTs wasn't in DB, persist it
+    if(!d.lastTaxTs) db.ref('bankData/'+uid+'/lastTaxTs').set(bankLastTaxTs).catch(()=>{});
 
     if(taxSnapVal.val()) Object.assign(taxRates, taxSnapVal.val());
 
@@ -3649,10 +3652,11 @@ async function loadBankData(uid){
 function catchUpOfflineTime(){
   const now = getServerTime();
   const HOUR = 3600000;
+  let missedTaxHours = 0;
 
   // ── Налоги ──────────────────────────────────────────────────
   if(bankLastTaxTs){
-    const missedTaxHours = Math.floor((now - bankLastTaxTs) / HOUR);
+    missedTaxHours = Math.floor((now - bankLastTaxTs) / HOUR);
     if(missedTaxHours > 0){
       const hourly = calcHourlyTax();
       if(hourly > 0){
@@ -3703,10 +3707,11 @@ function catchUpOfflineTime(){
     }
   });
 
-  if(creditChanged || bankTaxAccumulated > 0 || bankAutoPay){
+  if(creditChanged || bankTaxAccumulated > 0 || bankAutoPay || missedTaxHours > 0){
     saveBankData();
     renderBankHome();
     if(creditChanged) renderCredits();
+    if(missedTaxHours > 0) bankToast('⏱ Начислено за '+missedTaxHours+' ч. офлайн');
   }
 }
 
@@ -6599,11 +6604,16 @@ function cvContactSeller(){
       adMarketPrice:ad.marketPrice||0,
       adBotChar:ad.botChar||'normal',
       lastMsg:'',time:Date.now(),unread:0,dealStatus:'ongoing',
-      // Store full ad snapshot for restoration
       adSnapshot: JSON.stringify(ad)
     };
     const user=auth.currentUser;
     if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).set(cvChats[chatId]).catch(()=>{});
+  }
+  // Update adId in case it was missing
+  if(cvChats[chatId] && !cvChats[chatId].adId && ad.id){
+    cvChats[chatId].adId=ad.id;
+    const user=auth.currentUser;
+    if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId+'/adId').set(ad.id).catch(()=>{});
   }
   cvSwitchTab('chat');
   cvRenderChats();
@@ -7476,7 +7486,14 @@ function openBotChat(adIdOrAd, adData){
   // Save to cvChats so it appears in chat tab
   const chatId='chat_'+(ad.id||Date.now());
   if(!cvChats[chatId]){
-    cvChats[chatId]={name:ad.sellerName||'Бот',type:'bot',adName:ad.carName,lastMsg:'Здравствуйте! Я продаю '+ad.carName+'. Чем могу помочь?',time:Date.now(),unread:0,dealStatus:'ongoing'};
+    cvChats[chatId]={
+      name:ad.sellerName||'Бот',type:'bot',adName:ad.carName,
+      adId:ad.id,adPrice:ad.price||0,adImg:ad.carImg||null,
+      adMarketPrice:ad.marketPrice||0,adBotChar:ad.botChar||'normal',
+      lastMsg:'Здравствуйте! Я продаю '+ad.carName+'. Чем могу помочь?',
+      time:Date.now(),unread:0,dealStatus:'ongoing',
+      adSnapshot:JSON.stringify(ad)
+    };
     const user=auth.currentUser;
     if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).set(cvChats[chatId]).catch(()=>{});
   }
@@ -7485,6 +7502,43 @@ function openBotChat(adIdOrAd, adData){
 function closeBotChat(){
   document.getElementById('botChatOverlay').style.display='none';
 }
+
+// Open ad from bot chat banner — if ad not found show toast
+async function openBotAdFromChat(){
+  const ad=currentBotAd;
+  if(!ad||!ad.id){ bankToast('❌ Объявление не найдено'); return; }
+  try{
+    const snap=await db.ref('carvitoAds/'+ad.id).once('value');
+    if(snap.val()){
+      const freshAd=snap.val();
+      closeBotChat();
+      setTimeout(()=>{ cvOpenDetail(freshAd); }, 100);
+    } else {
+      bankToast('❌ Объявление не найдено или удалено');
+    }
+  }catch(e){ bankToast('❌ Ошибка загрузки объявления'); }
+}
+
+// Open ad from player chat banner
+async function openPlayerAdFromChat(){
+  const chatId=_currentPlayerChatId;
+  if(!chatId||!cvChats[chatId]){ bankToast('❌ Объявление не найдено'); return; }
+  const chat=cvChats[chatId];
+  if(!chat.adId){ bankToast('❌ Объявление не найдено'); return; }
+  try{
+    const snap=await db.ref('carvitoAds/'+chat.adId).once('value');
+    if(snap.val()){
+      const freshAd=snap.val();
+      closePlayerChat();
+      setTimeout(()=>{ cvOpenDetail(freshAd); }, 100);
+    } else {
+      bankToast('❌ Объявление не найдено или удалено');
+    }
+  }catch(e){ bankToast('❌ Ошибка загрузки объявления'); }
+}
+
+// Legacy stub
+function botScrollToAdInfo(){ openBotAdFromChat(); }
 
 // Helper to update deal status for a bot chat
 function cvSetDealStatus(adId, status){
@@ -7585,11 +7639,22 @@ let _pendingDealTimer=null;
 function scheduleDeal(){
   const ad=currentBotAd;
   if(!ad) return;
-  // Set min date to today
-  const today=new Date().toISOString().split('T')[0];
-  document.getElementById('dealDateInput').value=today;
-  document.getElementById('dealTimeInput').value='';
-  document.getElementById('dealScheduleStatus').textContent='';
+  // Set min date to today (allow today!) and pre-fill current server time
+  const msk=getMskNow();
+  const yyyy=msk.getFullYear();
+  const mm=String(msk.getMonth()+1).padStart(2,'0');
+  const dd=String(msk.getDate()).padStart(2,'0');
+  const today=yyyy+'-'+mm+'-'+dd;
+  // Pre-fill time with current server time + 30 min
+  const futureMs=msk.getTime()+30*60000;
+  const futureDate=new Date(futureMs);
+  const hh=String(futureDate.getHours()).padStart(2,'0');
+  const mi=String(futureDate.getMinutes()).padStart(2,'0');
+  const dateInput=document.getElementById('dealDateInput');
+  dateInput.value=today;
+  dateInput.min=today; // allow today
+  document.getElementById('dealTimeInput').value=hh+':'+mi;
+  document.getElementById('dealScheduleStatus').textContent='⏰ Серверное время МСК: '+fmt2(msk.getHours())+':'+fmt2(msk.getMinutes());
   document.getElementById('dealScheduleOverlay').style.display='flex';
 }
 
@@ -7604,7 +7669,8 @@ function confirmDealSchedule(){
     document.getElementById('dealScheduleStatus').textContent='Неверный формат времени (например: 12:01)'; return;
   }
   const dealDt=new Date(dateVal+'T'+timeVal.padStart(5,'0')+':00');
-  if(dealDt<=new Date()){ document.getElementById('dealScheduleStatus').textContent='Время должно быть в будущем'; return; }
+  const nowMs=getServerTime();
+  if(dealDt.getTime()<=nowMs+60000){ document.getElementById('dealScheduleStatus').textContent='Время должно быть хотя бы на 1 минуту вперёд'; return; }
   // Save scheduled deal
   ad._dealScheduledAt=dealDt.getTime();
   const user=auth.currentUser;
@@ -7874,7 +7940,11 @@ async function _completeBotPurchase(ad, finalPrice){
 function resetBotActions(){
   const chancesLeft=botNegotiateChances;
   const ad=currentBotAd;
-  const price=(ad&&(ad._resolvedPrice||ad.price||0))||0;
+  // Always use resolved price first, then ad price, never show 0 if price exists
+  const price=(ad&&(ad._resolvedPrice>0?ad._resolvedPrice:(ad.price>0?ad.price:(ad.marketPrice||0))))||0;
+  // Sync banner price display
+  const bannerPriceEl=document.getElementById('botChatAdBannerPrice');
+  if(bannerPriceEl&&price>0) bannerPriceEl.textContent=price.toLocaleString('ru-RU')+'₽';
   const priceStr=price>0?price.toLocaleString('ru-RU')+'₽':'—';
   document.getElementById('botChatActions').innerHTML=`
     <div style="background:linear-gradient(135deg,#f0f4ff,#e8f0ff);border-radius:14px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
@@ -7991,6 +8061,9 @@ async function botChatTrade(){
   if(!ad){ return; }
   const user=auth.currentUser;
   if(!user){ bankToast('Необходимо войти'); return; }
+  // Check if trade type is enabled for this ad
+  const types=ad.types||['sell'];
+  if(!types.includes('trade')){ addBotMessage('Извините, я рассматриваю только продажу, без обмена.'); return; }
   const completed=ad.completedUids||[];
   if(completed.includes(user.uid)){ addBotMessage('❌ Вы уже совершали сделку по этому объявлению.'); document.getElementById('botChatActions').innerHTML=''; return; }
   // Загрузить машины пользователя
@@ -8068,16 +8141,73 @@ function confirmExchangeOffer(){
   if(!exchangeMyCarId||!exchangeMyCarData){ bankToast('Выберите вашу машину'); return; }
   const ad=currentBotAd;
   const payAmt=parseInt(document.getElementById('exPaymentAmt').value)||0;
-  const payerLabel=exchangePayer==='you'?'вы боту':'бот вам';
-  let offerText=`Предлагаю обмен: моя "${exchangeMyCarData.name}" на вашу "${ad.carName}"`;
+  const capturedPayAmt=payAmt; // capture for closure
+  const capturedExchangePayer=exchangePayer;
+  const capturedMyCarId=exchangeMyCarId;
+  const capturedMyCarData={...exchangeMyCarData};
+  const payerLabel=capturedExchangePayer==='you'?'вы боту':'бот вам';
+  let offerText=`Предлагаю обмен: моя "${capturedMyCarData.name}" на вашу "${ad.carName}"`;
   if(payAmt>0) offerText+=`. Доплата ${payAmt.toLocaleString('ru-RU')}₽ — ${payerLabel}`;
   document.getElementById('exchangeOverlay').style.display='none';
   addUserMessage(offerText);
   document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px">⏳ Бот рассматривает предложение…</div>';
   const delay=getBotDelay();
-  setTimeout(()=>{
-    addBotMessage('🚧 В разработке! Ответ бота на обмен скоро появится.');
-    document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:10px;color:#8a9ab8;font-size:13px;font-weight:700">Функция в разработке</div>';
+  setTimeout(async()=>{
+    const ad=currentBotAd;
+    if(!ad){ return; }
+    const user=auth.currentUser;
+    if(!user){ return; }
+    const myPrice=capturedMyCarData?(capturedMyCarData.marketPrice||capturedMyCarData.dealerPrice||capturedMyCarData.buyPrice||0):0;
+    const botPrice=(ad._resolvedPrice&&ad._resolvedPrice>0)?ad._resolvedPrice:(ad.price>0?ad.price:(ad.marketPrice||0));
+    const ratio=myPrice/Math.max(botPrice,1);
+    const charType=ad.botChar||'normal';
+    const minRatios={ urgentsell:0.55, normal:0.80, reseller:0.90, clueless:0.65 };
+    const minRatio=minRatios[charType]||0.80;
+    if(ratio>=minRatio){
+      addBotMessage(`Хорошо, соглашусь на обмен вашей «${capturedMyCarData.name}» на мою «${ad.carName}»${capturedPayAmt>0?('. Доплата '+capturedPayAmt.toLocaleString('ru-RU')+'₽'):''}.`);
+      try{
+        const botCarId='exch_'+Date.now();
+        const botCarData={
+          name:ad.carName,buyPrice:botPrice,dealerPrice:ad.dealerPrice||botPrice,
+          marketPrice:ad.marketPrice||botPrice,mileage:ad.mileage||0,
+          location:'yard',rustPct:0,condition:100,lastOilChangeMileage:0,
+          photo:ad.carImg||null,source:'carvito_exchange',purchasedAt:Date.now()
+        };
+        if(capturedExchangePayer==='you'&&capturedPayAmt>0){
+          const bSnap=await db.ref('bankData/'+user.uid+'/balance').once('value');
+          const bal=bSnap.val()||0;
+          if(bal<capturedPayAmt){ addBotMessage('❌ Недостаточно средств для доплаты ('+capturedPayAmt.toLocaleString('ru-RU')+'₽)'); resetBotActions(); return; }
+          await db.ref('bankData/'+user.uid+'/balance').set(bal-capturedPayAmt);
+          bankBalance=bal-capturedPayAmt;
+          addTx('Доплата при обмене',-capturedPayAmt);
+          await saveBankData();
+        } else if(capturedExchangePayer==='bot'&&capturedPayAmt>0){
+          const bSnap=await db.ref('bankData/'+user.uid+'/balance').once('value');
+          const bal=bSnap.val()||0;
+          await db.ref('bankData/'+user.uid+'/balance').set(bal+capturedPayAmt);
+          bankBalance=bal+capturedPayAmt;
+          addTx('Доплата от бота при обмене',+capturedPayAmt);
+          await saveBankData();
+        }
+        await db.ref('userCars/'+user.uid+'/'+botCarId).set(botCarData);
+        await db.ref('userCars/'+user.uid+'/'+capturedMyCarId).remove();
+        await db.ref('carvitoAds/'+ad.id+'/remainingUpdates').transaction(n=>Math.max(0,(n||1)-1));
+        document.getElementById('botChatActions').innerHTML='<div style="text-align:center;padding:12px;font-size:14px;color:#34c759;font-weight:800">✅ Обмен совершён!</div>';
+        cvSetDealStatus(ad.id,'success');
+        addBotMessage('🎉 Обмен оформлен! «'+ad.carName+'» теперь ваша.');
+        renderBankHome();
+        const chatId='chat_'+ad.id;
+        setTimeout(()=>{ if(cvChats[chatId]) delete cvChats[chatId]; if(user) db.ref('carvitoChats/'+user.uid+'/'+chatId).remove().catch(()=>{}); cvRenderChats(); },2000);
+      }catch(e){ addBotMessage('❌ Ошибка обмена: '+e.message); resetBotActions(); }
+    } else {
+      const refusePhrases=[
+        'Нет, ваша машина стоит значительно дешевле моей. Это невыгодный обмен для меня.',
+        'Извините, но такой обмен мне не подходит. Ценовая разница слишком велика.',
+        'Не могу согласиться на такой обмен. Доплатите разницу или предложите другую машину.'
+      ];
+      addBotMessage(refusePhrases[Math.floor(Math.random()*refusePhrases.length)]);
+      resetBotActions();
+    }
   }, delay);
 }
 
@@ -8251,11 +8381,11 @@ window.cvOpenDetail = function(ad){
       </div>
     </div>
     <!-- Ad banner — like Avito header -->
-    <div id="playerChatAdBanner" style="display:none;background:linear-gradient(135deg,#f8faff,#edf4ff);border:1.5px solid #d0e4ff;border-radius:12px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+    <div id="playerChatAdBanner" style="display:none;background:linear-gradient(135deg,#f8faff,#edf4ff);border:1.5px solid #d0e4ff;border-radius:12px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openPlayerAdFromChat()">
       <div id="playerChatAdThumb" style="width:54px;height:38px;border-radius:8px;background:#d0dcea;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px">🚗</div>
       <div style="flex:1;min-width:0">
         <div id="playerChatAdBannerName" style="font-size:13px;font-weight:800;color:#1a2a45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
-        <div id="playerChatAdBannerMeta" style="font-size:11px;color:#7a95b8;margin-top:1px">Объявление продавца</div>
+        <div id="playerChatAdBannerMeta" style="font-size:11px;color:#7a95b8;margin-top:1px">Объявление продавца · нажмите для просмотра</div>
       </div>
       <div id="playerChatAdBannerPrice" style="font-size:14px;font-weight:900;color:#1a7de8;flex-shrink:0"></div>
     </div>
@@ -8284,7 +8414,7 @@ window.cvOpenDetail = function(ad){
       </div>
     </div>
     <!-- Ad banner (like Avito) -->
-    <div id="botChatAdBanner" style="display:none;background:linear-gradient(135deg,#f8faff,#edf4ff);border:1.5px solid #d0e4ff;border-radius:12px;padding:9px 12px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:10px" onclick="botScrollToAdInfo()">
+    <div id="botChatAdBanner" style="display:none;background:linear-gradient(135deg,#f8faff,#edf4ff);border:1.5px solid #d0e4ff;border-radius:12px;padding:9px 12px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:10px" onclick="openBotAdFromChat()">
       <div id="botChatAdThumb" style="width:54px;height:38px;border-radius:8px;background:#d0dcea;flex-shrink:0;overflow:hidden">
         <img id="botChatAdThumbImg" src="" style="width:100%;height:100%;object-fit:cover;display:none">
         <div id="botChatAdThumbIcon" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🚗</div>
