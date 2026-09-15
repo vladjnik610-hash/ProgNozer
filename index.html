@@ -3375,7 +3375,7 @@ async function adminDeleteCar(carId){
     <div class="bank-penalty-badge" id="bankPenaltyBadge">⚠️ Штраф за просрочку: +<span id="bankPenaltyPct">0</span>% к платежу</div>
     <!-- Tax breakdown -->
     <div class="bank-tax-card">
-      <div class="bank-tax-title">Начисление за час <span style="font-size:12px;color:#8a9ab8;font-weight:600" id="bankTaxNextTime">—</span></div>
+      <div class="bank-tax-title">Начисление за час</div>
       <div class="bank-tax-row"><span>Налог на автомобили</span><span id="txCar">0 ₽</span></div>
       <div class="bank-tax-row"><span>Налог на гараж</span><span id="txGarage">0 ₽</span></div>
       <div class="bank-tax-row"><span>Электричество</span><span id="txElec">0 ₽</span></div>
@@ -3612,6 +3612,7 @@ async function loadBankData(uid){
 
     bankCredits = d.credits ? Object.values(d.credits) : [];
     bankTxLog = d.txLog ? Object.values(d.txLog).slice(-BANK_TX_LIMIT) : [];
+    purgeStaleTx(); // Remove transactions older than 3 days
     bankAutoPay = d.autoPay || false;
     bankLastTaxPaid = d.lastTaxPaid || null;
     // If lastTaxTs was never saved, set it to now so offline accrual starts from this moment
@@ -3810,12 +3811,17 @@ function fmtRub(n){
 }
 
 const BANK_TX_LIMIT = 20;
+const BANK_TX_TTL = 3 * 24 * 3600 * 1000; // 3 days in ms
 function addTx(label, amt){
   const now = getMskNow ? getMskNow() : new Date();
   const time = fmt2(now.getHours())+':'+fmt2(now.getMinutes())+' '+now.getDate()+'.'+(now.getMonth()+1);
-  bankTxLog.push({label, amt, time});
+  bankTxLog.push({label, amt, time, ts: Date.now()});
   // Keep only last 20 records — older ones are deleted when limit exceeded
   while(bankTxLog.length > BANK_TX_LIMIT) bankTxLog.shift();
+}
+function purgeStaleTx(){
+  const cutoff = Date.now() - BANK_TX_TTL;
+  bankTxLog = bankTxLog.filter(tx => !tx.ts || tx.ts >= cutoff);
 }
 
 // ─── CREDITS ──────────────────────────────────────────────────
@@ -4024,12 +4030,6 @@ function updateBankTimersDisplay(){
     el.textContent = fmtCountdown(msLeft);
   });
   // Tax countdown
-  const taxEl = document.getElementById('bankTaxNextCountdown');
-  if(taxEl){
-    const lastTax = bankLastTaxTs || getServerTime();
-    const msLeft = (lastTax + 3600000) - now;
-    taxEl.textContent = fmtCountdown(msLeft);
-  }
 }
 
 function startEarlyPayoff(creditId){
@@ -4132,8 +4132,6 @@ function renderTax(){
   const lastTax = bankLastTaxTs || nowTs;
   const msLeft = (lastTax + 3600000) - nowTs;
   const countdown = fmtCountdown(msLeft);
-  const nextEl = document.getElementById('bankTaxNextTime');
-  if(nextEl) nextEl.innerHTML = '⏱ до списания: <span id="bankTaxNextCountdown">'+countdown+'</span>';
 }
 
 async function recalcTax(){
@@ -5877,7 +5875,7 @@ async function mihalychRepairAll(carId, totalCost){
 .cv-tab-add svg{width:24px;height:24px;fill:#fff}
 
 /* ─── Detail view ─── */
-.cv-detail{position:absolute;inset:0;background:#fff;display:none;flex-direction:column;z-index:20;overflow:hidden}
+.cv-detail{position:fixed;inset:0;background:#fff;display:none;flex-direction:column;z-index:690;overflow:hidden}
 .cv-detail.visible{display:flex}
 .cv-detail-nav{display:flex;align-items:center;gap:8px;padding:12px 16px 10px;background:#fff;border-bottom:1px solid #eaecf0;flex-shrink:0}
 .cv-detail-back{background:none;border:none;padding:4px;cursor:pointer;display:flex;align-items:center;gap:4px;color:#1a7de8;font-size:15px;font-weight:700}
@@ -7670,7 +7668,7 @@ function confirmDealSchedule(){
   }
   const dealDt=new Date(dateVal+'T'+timeVal.padStart(5,'0')+':00');
   const nowMs=getServerTime();
-  if(dealDt.getTime()<=nowMs+60000){ document.getElementById('dealScheduleStatus').textContent='Время должно быть хотя бы на 1 минуту вперёд'; return; }
+  if(dealDt.getTime()<=nowMs){ document.getElementById('dealScheduleStatus').textContent='Укажите время в будущем'; return; }
   // Save scheduled deal
   ad._dealScheduledAt=dealDt.getTime();
   const user=auth.currentUser;
@@ -8101,7 +8099,7 @@ function pickExchangeCar(id, el){
   if(!exchangeMyCarData) return;
   const ad=currentBotAd;
   const myPrice=exchangeMyCarData.marketPrice||exchangeMyCarData.dealerPrice||exchangeMyCarData.buyPrice||0;
-  const botPrice=(ad._resolvedPrice&&ad._resolvedPrice>0)?ad._resolvedPrice:(ad.price>0?ad.price:(ad.marketPrice||0));
+  const botPrice=ad.marketPrice||ad.dealerPrice||(ad._resolvedPrice&&ad._resolvedPrice>0?ad._resolvedPrice:(ad.price>0?ad.price:0));
   document.getElementById('exMyCarName').textContent=exchangeMyCarData.name||'Авто';
   document.getElementById('exMyCarPrice').textContent=myPrice.toLocaleString('ru-RU')+'₽';
   document.getElementById('exBotCarName').textContent=ad.carName||'Авто';
@@ -8158,7 +8156,7 @@ function confirmExchangeOffer(){
     const user=auth.currentUser;
     if(!user){ return; }
     const myPrice=capturedMyCarData?(capturedMyCarData.marketPrice||capturedMyCarData.dealerPrice||capturedMyCarData.buyPrice||0):0;
-    const botPrice=(ad._resolvedPrice&&ad._resolvedPrice>0)?ad._resolvedPrice:(ad.price>0?ad.price:(ad.marketPrice||0));
+    const botPrice=ad.marketPrice||ad.dealerPrice||(ad._resolvedPrice&&ad._resolvedPrice>0?ad._resolvedPrice:(ad.price>0?ad.price:0));
     const ratio=myPrice/Math.max(botPrice,1);
     const charType=ad.botChar||'normal';
     const minRatios={ urgentsell:0.55, normal:0.80, reseller:0.90, clueless:0.65 };
@@ -8536,10 +8534,10 @@ window.cvOpenDetail = function(ad){
       <div style="margin-top:12px">
         <div style="font-size:12px;font-weight:800;color:#6a85a8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Доплата</div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button id="exPayerYouBtn" onclick="setExchangePayer('you')" style="flex:1;padding:10px;border-radius:10px;border:2px solid #1a7de8;background:#e8f0ff;color:#1a7de8;font-size:13px;font-weight:700;cursor:pointer">Доплата вам</button>
-          <button id="exPayerBotBtn" onclick="setExchangePayer('bot')" style="flex:1;padding:10px;border-radius:10px;border:2px solid #e2edf9;background:#f5f7fa;color:#6a85a8;font-size:13px;font-weight:700;cursor:pointer">Доплата боту</button>
+          <button id="exPayerYouBtn" onclick="setExchangePayer('you')" style="flex:1;padding:10px;border-radius:10px;border:2px solid #1a7de8;background:#e8f0ff;color:#1a7de8;font-size:13px;font-weight:700;cursor:pointer">Доплачиваете вы</button>
+          <button id="exPayerBotBtn" onclick="setExchangePayer('bot')" style="flex:1;padding:10px;border-radius:10px;border:2px solid #e2edf9;background:#f5f7fa;color:#6a85a8;font-size:13px;font-weight:700;cursor:pointer">Доплачивают вам</button>
         </div>
-        <input id="exPaymentAmt" type="number" placeholder="Сумма доплаты (₽)" style="width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none">
+        <input id="exPaymentAmt" type="number" placeholder="" style="width:100%;background:#f0f4f9;border:1.5px solid #e2edf9;border-radius:12px;padding:12px 14px;font-size:15px;color:#1a2a45;outline:none">
         <div id="exPaymentHint" style="font-size:12px;color:#8a9ab8;margin-top:4px"></div>
       </div>
     </div>
