@@ -2171,6 +2171,9 @@ function getAllCars() {
 async function openDealer() {
   document.getElementById('dealerScreen').classList.add('visible');
   syncDealerTime();
+  // Load signature so ghost shows in purchase confirmation
+  const _dUser = auth.currentUser;
+  if(_dUser && !_bankUserSignature) loadUserSignatureForBank(_dUser.uid);
   // Reset class selection — no card active by default
   document.querySelectorAll('.dealer-class-card').forEach(c=>c.classList.remove('active'));
   currentDealerClass = null;
@@ -5875,7 +5878,7 @@ async function mihalychRepairAll(carId, totalCost){
 .cv-tab-add svg{width:24px;height:24px;fill:#fff}
 
 /* ─── Detail view ─── */
-.cv-detail{position:fixed;inset:0;background:#fff;display:none;flex-direction:column;z-index:690;overflow:hidden}
+.cv-detail{position:fixed;inset:0;background:#fff;display:none;flex-direction:column;z-index:1025;overflow:hidden}
 .cv-detail.visible{display:flex}
 .cv-detail-nav{display:flex;align-items:center;gap:8px;padding:12px 16px 10px;background:#fff;border-bottom:1px solid #eaecf0;flex-shrink:0}
 .cv-detail-back{background:none;border:none;padding:4px;cursor:pointer;display:flex;align-items:center;gap:4px;color:#1a7de8;font-size:15px;font-weight:700}
@@ -7668,7 +7671,7 @@ function confirmDealSchedule(){
   }
   const dealDt=new Date(dateVal+'T'+timeVal.padStart(5,'0')+':00');
   const nowMs=getServerTime();
-  if(dealDt.getTime()<=nowMs){ document.getElementById('dealScheduleStatus').textContent='Укажите время в будущем'; return; }
+  if(dealDt.getTime()<nowMs-60000){ document.getElementById('dealScheduleStatus').textContent='Укажите время не раньше текущего'; return; }
   // Save scheduled deal
   ad._dealScheduledAt=dealDt.getTime();
   const user=auth.currentUser;
