@@ -8016,16 +8016,26 @@ function submitNegotiateOffer(){
     } else if(ratio>=minRatio){
       // Counter offer
       const counter=Math.round(askPrice*(minRatio+(1-minRatio)*0.5));
-      const tradePhrases=[`Ваше предложение мне интересно, но сумма немного ниже, чем я рассчитывал получить. Если сможете добавить ещё немного, думаю, мы договоримся.`,
-        `Понимаю вашу позицию, однако за такую цену продавать не очень выгодно. Давайте попробуем найти компромисс и сойтись где-нибудь посередине.`,
-        `Автомобиль находится в хорошем состоянии, поэтому хотелось бы получить за него немного больше. Готов немного уступить, если вы тоже немного поднимете своё предложение.`];
-      addBotMessage(tradePhrases[Math.floor(Math.random()*tradePhrases.length)]+` Максимум скину до ${counter.toLocaleString('ru-RU')}₽.`);
-      ad._resolvedPrice=counter;
-      if(botNegotiateChances>0){
-        _showCounterOfferBtns(counter);
+      // If counter is >= user's offer, just accept — no point asking for less than offered
+      if(counter>=offerVal){
+        const acceptPhrases=['Хорошо, меня полностью устраивает ваше предложение. Думаю, мы можем спокойно оформить сделку и завершить продажу.',
+          'Согласен на такую цену. Предложение выглядит справедливым, поэтому готов продать автомобиль.',
+          'Договорились. Цена меня устраивает, можем переходить к оформлению сделки и передаче автомобиля.'];
+        addBotMessage(acceptPhrases[Math.floor(Math.random()*acceptPhrases.length)]);
+        ad._resolvedPrice=offerVal;
+        _showDealAgreedBtn(ad, offerVal);
       } else {
-        addBotMessage('Это мой последний ответ. Соглашаться или нет — ваше дело.');
-        _showCounterOfferBtns(counter);
+        const tradePhrases=[`Ваше предложение мне интересно, но сумма немного ниже, чем я рассчитывал получить. Если сможете добавить ещё немного, думаю, мы договоримся.`,
+          `Понимаю вашу позицию, однако за такую цену продавать не очень выгодно. Давайте попробуем найти компромисс и сойтись где-нибудь посередине.`,
+          `Автомобиль находится в хорошем состоянии, поэтому хотелось бы получить за него немного больше. Готов немного уступить, если вы тоже немного поднимете своё предложение.`];
+        addBotMessage(tradePhrases[Math.floor(Math.random()*tradePhrases.length)]+` Максимум скину до ${counter.toLocaleString('ru-RU')}₽.`);
+        ad._resolvedPrice=counter;
+        if(botNegotiateChances>0){
+          _showCounterOfferBtns(counter);
+        } else {
+          addBotMessage('Это мой последний ответ. Соглашаться или нет — ваше дело.');
+          _showCounterOfferBtns(counter);
+        }
       }
     } else {
       // Refuse
